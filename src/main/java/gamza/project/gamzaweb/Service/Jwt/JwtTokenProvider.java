@@ -1,11 +1,16 @@
 package gamza.project.gamzaweb.Service.Jwt;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
@@ -73,6 +78,63 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader("AT", accessToken);
+    }
+
+    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+        response.setHeader("RT", refreshToken);
+    }
+
+    public String resolveAccessToken(HttpServletRequest request) throws Exception {
+        String authorizationHeader = request.getHeader("AT");
+        if(authorizationHeader != null && extractTokenType(authorizationHeader).equals("access")) {
+            return request.getHeader("AT");
+        }
+        return null;
+    }
+
+    public String resolveRefreshToken(HttpServletRequest request) throws Exception {
+        String authorizationHeader = request.getHeader("RT");
+        if(authorizationHeader != null && extractTokenType(authorizationHeader).equals("refresh")) {
+            return request.getHeader("RT");
+        }
+        return null;
+    }
+//
+//    public boolean validateRefreshToken(String refreshToken) {
+//        try {
+//            Claims claims = extractAllClaims(refreshToken);
+//            return !claims.getExpiration().before(new Date());
+//        } catch (MalformedJwtException e) {
+//            throw new MalformedJwtException("Invalid JWT token");
+//        } catch (ExpiredJwtException e) {
+//            throw new ExpiredRefreshTokenException("1006", ErrorCode.EXPIRED_REFRESH_TOKEN);
+//        } catch (UnsupportedJwtException ex) {
+//            throw new UnsupportedJwtException("JWT token is unsupported");
+//        } catch (IllegalArgumentException e) {
+//            throw new IllegalArgumentException("JWT claims string is empty");
+//        }
+//    }
+//
+//    public boolean validateAccessToken(String accessToken) {
+//        try {
+//            Claims claims = extractAllClaims(accessToken);
+//
+//            return !claims.getExpiration().before(new Date());
+//        } catch (MalformedJwtException e) {
+//            throw new MalformedJwtException("Invalid JWT token");
+//        } catch (ExpiredJwtException e) {
+//            throw new ExpiredJwtException(null, null, "AccessToken is Expired");
+//        } catch (UnsupportedJwtException ex) {
+//            throw new UnsupportedJwtException("JWT token is unsupported");
+//        } catch (IllegalArgumentException e) {
+//            throw new IllegalArgumentException("JWT claims string is empty");
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     private String encrypt(String plainToken) throws Exception {
         SecretKeySpec secretKeySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
         IvParameterSpec IV = new IvParameterSpec(aesKey.substring(0, 16).getBytes());
@@ -98,7 +160,28 @@ public class JwtTokenProvider {
 
     }
 
+    private Claims extractAllClaims(String token ) {
+        return getParser()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
 
+    private JwtParser getParser() {
+        return Jwts.parser()
+                .verifyWith(this.getSigningKey())
+                .build();
+    }
+
+    private JsonObject extractValue(String token) throws Exception {
+        String subject = extractAllClaims(token).getSubject();
+        String decrypted  =decrypt(subject);
+        return new Gson().fromJson(decrypted, JsonObject.class);
+    }
+
+    private String extractTokenType(String token) throws Exception {
+        JsonElement tokenType = extractValue(token).get("tokenType");
+        return String.valueOf(tokenType);
+    }
 
 
 }
