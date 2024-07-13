@@ -16,6 +16,6 @@ public class VariableEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String key;
+    private String variableKey;
 
 }
