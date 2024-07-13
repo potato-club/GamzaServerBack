@@ -3,10 +3,10 @@ package gamza.project.gamzaweb.Service.Jwt;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
 import gamza.project.gamzaweb.Repository.UserRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -101,39 +101,39 @@ public class JwtTokenProvider {
         }
         return null;
     }
-//
-//    public boolean validateRefreshToken(String refreshToken) {
-//        try {
-//            Claims claims = extractAllClaims(refreshToken);
-//            return !claims.getExpiration().before(new Date());
-//        } catch (MalformedJwtException e) {
-//            throw new MalformedJwtException("Invalid JWT token");
-//        } catch (ExpiredJwtException e) {
-//            throw new ExpiredRefreshTokenException("1006", ErrorCode.EXPIRED_REFRESH_TOKEN);
-//        } catch (UnsupportedJwtException ex) {
-//            throw new UnsupportedJwtException("JWT token is unsupported");
-//        } catch (IllegalArgumentException e) {
-//            throw new IllegalArgumentException("JWT claims string is empty");
-//        }
-//    }
-//
-//    public boolean validateAccessToken(String accessToken) {
-//        try {
-//            Claims claims = extractAllClaims(accessToken);
-//
-//            return !claims.getExpiration().before(new Date());
-//        } catch (MalformedJwtException e) {
-//            throw new MalformedJwtException("Invalid JWT token");
-//        } catch (ExpiredJwtException e) {
-//            throw new ExpiredJwtException(null, null, "AccessToken is Expired");
-//        } catch (UnsupportedJwtException ex) {
-//            throw new UnsupportedJwtException("JWT token is unsupported");
-//        } catch (IllegalArgumentException e) {
-//            throw new IllegalArgumentException("JWT claims string is empty");
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+
+    public boolean validateRefreshToken(String refreshToken) {
+        try {
+            Claims claims = extractAllClaims(refreshToken);
+            return !claims.getExpiration().before(new Date());
+        } catch (MalformedJwtException e) {
+            throw new MalformedJwtException("Invalid JWT token");
+        } catch (ExpiredJwtException e) {
+            throw new ExpiredRefreshTokenException("5002", ErrorCode.EXPIRED_REFRESH_TOKEN);
+        } catch (UnsupportedJwtException ex) {
+            throw new UnsupportedJwtException("JWT token is unsupported");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("JWT claims string is empty");
+        }
+    }
+
+    public boolean validateAccessToken(String accessToken) {
+        try {
+            Claims claims = extractAllClaims(accessToken);
+
+            return !claims.getExpiration().before(new Date());
+        } catch (MalformedJwtException e) {
+            throw new MalformedJwtException("Invalid JWT token");
+        } catch (ExpiredJwtException e) {
+            throw new ExpiredJwtException(null, null, "AccessToken is Expired");
+        } catch (UnsupportedJwtException ex) {
+            throw new UnsupportedJwtException("JWT token is unsupported");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("JWT claims string is empty");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private String encrypt(String plainToken) throws Exception {
         SecretKeySpec secretKeySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
