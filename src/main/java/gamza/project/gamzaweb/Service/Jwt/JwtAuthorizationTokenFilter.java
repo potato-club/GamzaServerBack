@@ -25,7 +25,6 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    @SneakyThrows
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = jwtTokenProvider.resolveAccessToken(request);
@@ -87,8 +86,8 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
     }
 
-    private void setAuthentication(String token) throws Exception {
-//        Authentication authentication = jwtTokenProvider.(token);
+    private void setAuthentication(String token) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(token);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

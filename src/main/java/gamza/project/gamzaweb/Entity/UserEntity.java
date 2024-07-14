@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Entity;
 
+import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,6 +27,13 @@ public class UserEntity extends BaseTime {
 
     @Column(length = 50, nullable = false)
     private String email;
+
+    @Column(length = 50, nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole userRole;
 
     @Column(length = 30)
     private String major;

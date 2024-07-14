@@ -3,7 +3,9 @@ package gamza.project.gamzaweb.Service.Jwt;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
@@ -12,8 +14,11 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -28,6 +33,7 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Value("${jwt.secretKey}")
     private String secretKey;
@@ -62,8 +68,9 @@ public class JwtTokenProvider {
         }
     }
 
-    public String createToken(Long id, String role, long tokenValid, String tokenType) throws Exception {
+    public String createToken(Long id, String role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("id", id);
         jsonObject.addProperty("role", role);
         jsonObject.addProperty("tokenType", tokenType);
 
@@ -86,21 +93,49 @@ public class JwtTokenProvider {
         response.setHeader("RT", refreshToken);
     }
 
-    public String resolveAccessToken(HttpServletRequest request) throws Exception {
+    public UsernamePasswordAuthenticationToken getAuthentication(String token) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(this.extractUserEmail(token));
+        return new UsernamePasswordAuthenticationToken(userDetails, "" , userDetails.getAuthorities());
+    }
+
+    public Long extractId(String token) {
+        JsonElement id = extractValue(token).get("id");
+        return id.getAsLong();
+    }
+
+    public String extractRole(String token) {
+        JsonElement role = extractValue(token).get("role");
+        return role.getAsString();
+    }
+
+    public String extractUserEmail(String token) {
+        Long id = extractId(token);
+        UserEntity userId = userRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("해당하는 사용자를 찾을 수 없습니다", ErrorCode.BAD_REQUEST_EXCEPTION));
+        return userId.getEmail();
+    }
+
+    public String extractTokenType(String token){
+        JsonElement tokenType = extractValue(token).get("tokenType");
+        return String.valueOf(tokenType);
+    }
+
+    public String resolveAccessToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("AT");
-        if(authorizationHeader != null && extractTokenType(authorizationHeader).equals("access")) {
+        if (authorizationHeader != null && extractTokenType(authorizationHeader).equals("access")) {
             return request.getHeader("AT");
         }
         return null;
     }
 
-    public String resolveRefreshToken(HttpServletRequest request) throws Exception {
+    public String resolveRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("RT");
-        if(authorizationHeader != null && extractTokenType(authorizationHeader).equals("refresh")) {
+        if (authorizationHeader != null && extractTokenType(authorizationHeader).equals("refresh")) {
             return request.getHeader("RT");
         }
         return null;
     }
+
 
     public boolean validateRefreshToken(String refreshToken) {
         try {
@@ -135,7 +170,8 @@ public class JwtTokenProvider {
         }
     }
 
-    private String encrypt(String plainToken) throws Exception {
+    @SneakyThrows
+    private String encrypt(String plainToken) {
         SecretKeySpec secretKeySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
         IvParameterSpec IV = new IvParameterSpec(aesKey.substring(0, 16).getBytes());
 
@@ -147,7 +183,8 @@ public class JwtTokenProvider {
         return Hex.encodeHexString(encryptionByte);
     }
 
-    private String decrypt(String encodeText) throws Exception {
+    @SneakyThrows
+    private String decrypt(String encodeText) {
         SecretKeySpec secretKeySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
         IvParameterSpec IV = new IvParameterSpec(aesKey.substring(0, 16).getBytes());
 
@@ -160,7 +197,7 @@ public class JwtTokenProvider {
 
     }
 
-    private Claims extractAllClaims(String token ) {
+    private Claims extractAllClaims(String token) {
         return getParser()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -172,16 +209,12 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    private JsonObject extractValue(String token) throws Exception {
+    private JsonObject extractValue(String token)  {
         String subject = extractAllClaims(token).getSubject();
-        String decrypted  =decrypt(subject);
+        String decrypted = decrypt(subject);
         return new Gson().fromJson(decrypted, JsonObject.class);
     }
 
-    private String extractTokenType(String token) throws Exception {
-        JsonElement tokenType = extractValue(token).get("tokenType");
-        return String.valueOf(tokenType);
-    }
 
 
 }
