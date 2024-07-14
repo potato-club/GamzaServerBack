@@ -10,6 +10,7 @@ import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+        jwtTokenProvider.validateRefreshToken(refreshToken);
+
+        String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
+        jwtTokenProvider.setHeaderAccessToken(response, newAT);
+    }
+
+    @Override
     public void setTokenInHeader(String  email, HttpServletResponse response) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("5003", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION));
@@ -65,6 +75,7 @@ public class UserServiceImpl implements UserService {
 
         jwtTokenProvider.setHeaderAccessToken(response, accessToken);
         jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
-
     }
+
+
 }

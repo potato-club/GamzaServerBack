@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -137,7 +139,6 @@ public class JwtTokenProvider {
         return null;
     }
 
-
     public boolean validateRefreshToken(String refreshToken) {
         try {
             Claims claims = extractAllClaims(refreshToken);
@@ -168,6 +169,18 @@ public class JwtTokenProvider {
             throw new IllegalArgumentException("JWT claims string is empty");
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public String reissueAT(String refreshToken, HttpServletResponse response) {
+        try {
+            this.validateRefreshToken(refreshToken);
+            Long id = extractId(refreshToken);
+            Optional<UserEntity> user = userRepository.findById(id);
+            return createAccessToken(id, user.get().getUserRole());
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
         }
     }
 
@@ -213,7 +226,8 @@ public class JwtTokenProvider {
     private JsonObject extractValue(String token)  {
         String subject = extractAllClaims(token).getSubject();
         String decrypted = decrypt(subject);
-        return new Gson().fromJson(decrypted, JsonObject.class);
+        JsonObject jsonObject = new Gson().fromJson(decrypted, JsonObject.class);
+        return jsonObject;
     }
 
 
