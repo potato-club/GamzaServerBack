@@ -111,7 +111,7 @@ public class JwtTokenProvider {
     public String extractUserEmail(String token) {
         Long id = extractId(token);
         UserEntity userId = userRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("해당하는 사용자를 찾을 수 없습니다", ErrorCode.BAD_REQUEST_EXCEPTION));
+                .orElseThrow(() -> new BadRequestException("해당하는 사용자를 찾을 수 없습니다", ErrorCode.NOT_FOUND_EXCEPTION));
         return userId.getEmail();
     }
 
