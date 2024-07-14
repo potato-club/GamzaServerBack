@@ -3,6 +3,7 @@ package gamza.project.gamzaweb.Service.Jwt;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
@@ -52,7 +53,7 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createAccessToken(Long id, String role) {
+    public String createAccessToken(Long id, UserRole role) {
         try {
             return this.createToken(id, role, accessTokenValidTime, "access");
         } catch (Exception e) {
@@ -60,7 +61,7 @@ public class JwtTokenProvider {
         }
     }
 
-    public String createRefreshToken(Long id, String role) {
+    public String createRefreshToken(Long id, UserRole role) {
         try {
             return this.createToken(id, role, refreshTokenValidTime, "refresh");
         } catch (Exception e) {
@@ -68,10 +69,10 @@ public class JwtTokenProvider {
         }
     }
 
-    public String createToken(Long id, String role, long tokenValid, String tokenType) {
+    public String createToken(Long id, UserRole role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", id);
-        jsonObject.addProperty("role", role);
+        jsonObject.addProperty("role", role.ordinal());
         jsonObject.addProperty("tokenType", tokenType);
 
         Claims claims = Jwts.claims().subject(encrypt(jsonObject.toString())).build();

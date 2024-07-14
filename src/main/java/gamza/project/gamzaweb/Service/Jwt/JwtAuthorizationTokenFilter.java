@@ -49,13 +49,12 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                     return;
                 }
-            } else if (accessToken == null) {
+            } else if (accessToken == null && refreshToken == null) {
                 filterChain.doFilter(request, response);
                 return;
             } else {
                 if (jwtTokenProvider.validateAccessToken(accessToken)) {
                     this.setAuthentication(accessToken);
-
                 }
             }
         } catch (MalformedJwtException e) {
@@ -75,6 +74,7 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         } catch (RuntimeException e) {
+            e.printStackTrace();
             errorCode = ErrorJwtCode.RUNTIME_EXCEPTION;
             setResponse(response, errorCode);
             return;
