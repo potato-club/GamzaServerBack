@@ -79,6 +79,7 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
 

@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtTokenProvider {
 
     private final UserRepository userRepository;
@@ -120,21 +122,21 @@ public class JwtTokenProvider {
 
     public String extractTokenType(String token){
         JsonElement tokenType = extractValue(token).get("tokenType");
-        return String.valueOf(tokenType);
+        return tokenType.getAsString();
     }
 
     public String resolveAccessToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("AT");
-        if (authorizationHeader != null && extractTokenType(authorizationHeader).equals("access")) {
-            return request.getHeader("AT");
+        if(request.getHeader("AT") != null && extractTokenType(authorizationHeader).equals("access")) {
+            return authorizationHeader;
         }
         return null;
     }
 
     public String resolveRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("RT");
-        if (authorizationHeader != null && extractTokenType(authorizationHeader).equals("refresh")) {
-            return request.getHeader("RT");
+        if(request.getHeader("RT") != null && extractTokenType(authorizationHeader).equals("refresh")) {
+            return authorizationHeader;
         }
         return null;
     }
@@ -226,8 +228,7 @@ public class JwtTokenProvider {
     private JsonObject extractValue(String token)  {
         String subject = extractAllClaims(token).getSubject();
         String decrypted = decrypt(subject);
-        JsonObject jsonObject = new Gson().fromJson(decrypted, JsonObject.class);
-        return jsonObject;
+        return new Gson().fromJson(decrypted, JsonObject.class);
     }
 
 
