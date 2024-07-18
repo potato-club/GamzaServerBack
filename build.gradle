@@ -38,6 +38,15 @@ dependencies {
 //    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    //여기부터
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
+    implementation group: 'org.javassist', name: 'javassist', version: '3.15.0-GA'
+    implementation group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.7.4'
+    //여기까지는 실행이 안되어서 추가한 라이브러리 -> 필요없음 지울것
+
+
     // docker
     // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
     implementation 'com.github.docker-java:docker-java:3.3.6'

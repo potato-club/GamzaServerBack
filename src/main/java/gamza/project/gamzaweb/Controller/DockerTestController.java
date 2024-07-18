@@ -79,4 +79,10 @@ public class DockerTestController {
     public String create() {
         return provider.createContainer("test_name", "8082", "80", "1.0.0");
     }
+    @GetMapping("/update")
+    public String update() {
+        //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
+        //3c74c4202325
+        return provider.createContainer("test_name", "8082", "80", "1.0.0");
+    }
 }
