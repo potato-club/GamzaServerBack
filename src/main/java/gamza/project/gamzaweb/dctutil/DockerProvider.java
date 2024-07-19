@@ -15,6 +15,9 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import jakarta.annotation.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -101,6 +104,45 @@ public class DockerProvider {
 
 
 
+    public String updateNginxConfig(String containerId, String port, String cname) {
+        try {
+            String configContent = generateNginxConfig(port, cname);
+            Path tempFile = Files.createTempFile("nginx", ".conf");
+            Files.write(tempFile, configContent.getBytes());
+
+            getDockerClient().copyArchiveToContainerCmd(containerId)
+                    .withHostResource(tempFile.toString())
+                    .withRemotePath("/etc/nginx/nginx.conf")
+                    .exec();
+
+            getDockerClient().restartContainerCmd(containerId).exec();
+
+            Files.delete(tempFile);
+            return "Nginx config updated and container restarted.";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error updating Nginx config: " + e.getMessage();
+        }
+    }
+
+    private String generateNginxConfig(String port, String cname) {
+        return """
+                server {
+                    listen %s;
+                    server_name %s;
+                                            
+                    location / {
+                        proxy_pass http://localhost:8080;
+                        proxy_set_header Host $host;
+                        proxy_set_header X-Real-IP $remote_addr;
+                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                        proxy_set_header X-Forwarded-Proto $scheme;
+                    }
+                }
+                """.formatted(port, cname);
+    }
+
+
     //example interface ---
 
     public interface DockerProviderBuildCallback {
@@ -112,5 +154,7 @@ public class DockerProvider {
     }
 
     //examples end---
+
+
 }
 

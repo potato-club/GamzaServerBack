@@ -74,6 +74,13 @@ public class DockerTestController {
         }
     }
 
+    @GetMapping("/update/nginx")
+    public String updateNginxConfig(@RequestParam("containerId") String containerId,
+                                    @RequestParam("port") String port,
+                                    @RequestParam("cname") String cname) {
+        return provider.updateNginxConfig(containerId, port, cname);
+    }
+
 
     @GetMapping("/create")
     public String create() {
