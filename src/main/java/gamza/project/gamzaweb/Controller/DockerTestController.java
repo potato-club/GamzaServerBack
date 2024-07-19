@@ -45,10 +45,10 @@ public class DockerTestController {
 
 
     @GetMapping("/buildImage")
-    public String buildImage(@RequestParam String name, @RequestParam String tag) {
+    public String buildImage(@RequestParam("name") String name, @RequestParam("tag") String tag) {
         CompletableFuture<String> result = new CompletableFuture<>();
         provider.buildImage(
-                new File("/Users/isaacjang/Documents/test-nginx/Dockerfile"),
+                new File("/Users/kimseonghun/Desktop/docker/Dockerfile"),
                 name,
                 tag,
                 new DockerProvider.DockerProviderBuildCallback() {
