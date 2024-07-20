@@ -9,10 +9,7 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,12 +71,18 @@ public class DockerTestController {
         }
     }
 
-    @GetMapping("/update/nginx")
-    public String updateNginxConfig(@RequestParam("containerId") String containerId,
-                                    @RequestParam("port") String port,
-                                    @RequestParam("cname") String cname) {
-        return provider.updateNginxConfig(containerId, port, cname);
+    @GetMapping("/logs/{containerId}")
+    public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
+                                         @RequestParam("lines") int lines) {
+        return provider.getContainerLogs(containerId, lines);
     }
+
+//    @GetMapping("/update/nginx") // 피그마에 엔진엑스 conf 파일 수정 내용이 왜있지?
+//    public String updateNginxConfig(@RequestParam("containerId") String containerId,
+//                                    @RequestParam("port") String port,
+//                                    @RequestParam("cname") String cname) {
+//        return provider.updateNginxConfig(containerId, port, cname);
+//    }
 
 
     @GetMapping("/create")
