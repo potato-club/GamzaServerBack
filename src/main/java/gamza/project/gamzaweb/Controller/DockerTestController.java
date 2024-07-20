@@ -40,36 +40,63 @@ public class DockerTestController {
         return sb.toString();
     }
 
-
     @GetMapping("/buildImage")
-    public String buildImage(@RequestParam("name") String name, @RequestParam("tag") String tag) {
+    public String buildImage(
+            @RequestParam("name") String name,
+            @RequestParam("tag") String tag,
+            @RequestParam(value = "jasyptKey", required = false) String jasyptKey) {
+
+        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile");
+
         CompletableFuture<String> result = new CompletableFuture<>();
-        provider.buildImage(
-                new File("/Users/kimseonghun/Desktop/docker/Dockerfile"),
-                name,
-                tag,
-                new DockerProvider.DockerProviderBuildCallback() {
-                    @Override
-                    public void getImageId(String imageId) {
-                        result.complete(imageId);
-                    }
-                }
-        );
+
+        provider.buildImage(dockerfile, name, tag, jasyptKey, new DockerProvider.DockerProviderBuildCallback() {
+            @Override
+            public void getImageId(String imageId) {
+                result.complete(imageId);
+            }
+        });
 
         try {
-            String imageId = result.get();
-
-            return imageId;
-        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-            e.printStackTrace();
-            return e.getLocalizedMessage();
-        } catch (ExecutionException e) {
-//            throw new RuntimeException(e);
-            e.printStackTrace();
+            return result.get();
+        } catch (InterruptedException | ExecutionException e) {
+//            e.printStackTrace();
             return e.getLocalizedMessage();
         }
     }
+
+//    @GetMapping("/buildImage")
+//    public String buildImage(
+//            @RequestParam("name") String name,
+//            @RequestParam("tag") String tag,
+//            @RequestParam(value = "jasyptKey", required = false) String jasyptKey) {
+//        CompletableFuture<String> result = new CompletableFuture<>();
+//        provider.buildImage(
+//                new File("/Users/kimseonghun/Desktop/docker/Dockerfile"),
+//                name,
+//                tag,
+//                new DockerProvider.DockerProviderBuildCallback() {
+//                    @Override
+//                    public void getImageId(String imageId) {
+//                        result.complete(imageId);
+//                    }
+//                }
+//        );
+//
+//        try {
+//            String imageId = result.get();
+//
+//            return imageId;
+//        } catch (InterruptedException e) {
+////            throw new RuntimeException(e);
+//            e.printStackTrace();
+//            return e.getLocalizedMessage();
+//        } catch (ExecutionException e) {
+////            throw new RuntimeException(e);
+//            e.printStackTrace();
+//            return e.getLocalizedMessage();
+//        }
+//    }
 
     @GetMapping("/logs/{containerId}")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,

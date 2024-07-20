@@ -64,8 +64,15 @@ public class DockerProvider {
 //                .toURI()).getPath();
 //    }
 
-    public void buildImage(File file, String name, @Nullable String tag, DockerProviderBuildCallback callback) {
-        buildImage(file, new BuildImageResultCallback() {
+
+    public void buildImage(File file, String name, @Nullable String tag, @Nullable String jasyptKey, DockerProviderBuildCallback callback) {
+        BuildImageCmd buildImageCmd = getDockerClient().buildImageCmd(file);
+
+        if (jasyptKey != null && !jasyptKey.isEmpty()) {
+            buildImageCmd.withBuildArg("JASYPT_KEY", jasyptKey);
+        }
+
+        buildImageCmd.exec(new BuildImageResultCallback() {
             @Override
             public void onNext(BuildResponseItem item) {
                 super.onNext(item);
@@ -77,6 +84,19 @@ public class DockerProvider {
             }
         });
     }
+//    public void buildImage(File file, String name, @Nullable String tag, DockerProviderBuildCallback callback) {
+//        buildImage(file, new BuildImageResultCallback() {
+//            @Override
+//            public void onNext(BuildResponseItem item) {
+//                super.onNext(item);
+//                System.out.println("onNext: " + item.getImageId());
+//                if (item.getImageId() != null) {
+//                    taggingImage(item.getImageId(), name, tag);
+//                    callback.getImageId(item.getImageId());
+//                }
+//            }
+//        });
+//    }
 
     public String createContainer(String name, String outerPort, String innerPort, String tag) {
         ExposedPort tcpOuter = ExposedPort.tcp(Integer.parseInt(innerPort));
