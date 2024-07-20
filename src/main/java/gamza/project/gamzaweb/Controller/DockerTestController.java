@@ -73,7 +73,7 @@ public class DockerTestController {
 
     @GetMapping("/logs/{containerId}")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
-                                         @RequestParam("lines") int lines) {
+                                         @RequestParam(value = "lines", defaultValue = "100") int lines) {
         return provider.getContainerLogs(containerId, lines);
     }
 
