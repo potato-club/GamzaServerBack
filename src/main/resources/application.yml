@@ -1,0 +1,25 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/Gamza?serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: teddy0719
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        show_sql: false
+        format_sql: true
+    open-in-view: false
+
+
+jwt:
+  secretKey: secretKeyhiimseonghuninfinitytokenletsgohahahahsecretKeyhiimseonghuninfinitytokenletsgohahahah
+  accessExpiration: 3600000 # 30000  #
+  refreshExpiration: 604800000 # 60000 #
+  aesKey: cec7a2ba03cd4112
+
