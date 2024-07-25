@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 
 ### STS ###
+
 .apt_generated
 .classpath
 .factorypath
@@ -18,6 +19,8 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
+.yml
+*.yml
 .idea
 *.iws
 *.iml

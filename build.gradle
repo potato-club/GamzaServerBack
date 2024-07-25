@@ -37,6 +37,22 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 //    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //여기부터
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation group: 'org.javassist', name: 'javassist', version: '3.15.0-GA'
+
+
+    // docker
+    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
+    implementation 'com.github.docker-java:docker-java:3.3.6'
+
+    //apache docker http client
+    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-httpclient5
+    implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.6'
+
+
 }
 
 tasks.named('test') {
