@@ -1,6 +1,5 @@
 package gamza.project.gamzaweb.Entity;
 
-import gamza.project.gamzaweb.Entity.Enums.ApplicationType;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
