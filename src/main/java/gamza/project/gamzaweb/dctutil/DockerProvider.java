@@ -150,43 +150,44 @@ public class DockerProvider {
 
 
 
-//    public String updateNginxConfig(String containerId, String port, String cname) {
-//        try {
-//            String configContent = generateNginxConfig(port, cname);
-//            Path tempFile = Files.createTempFile("nginx", ".conf");
-//            Files.write(tempFile, configContent.getBytes());
-//
-//            getDockerClient().copyArchiveToContainerCmd(containerId)
-//                    .withHostResource(tempFile.toString())
-//                    .withRemotePath("/etc/nginx/nginx.conf")
-//                    .exec();
-//
-//            getDockerClient().restartContainerCmd(containerId).exec();
-//
-//            Files.delete(tempFile);
-//            return "Nginx config updated and container restarted.";
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "Error updating Nginx config: " + e.getMessage();
-//        }
-//    }
-//
-//    private String generateNginxConfig(String port, String cname) {
-//        return """
-//                server {
-//                    listen %s;
-//                    server_name %s;
-//
-//                    location / {
-//                        proxy_pass http://localhost:8080;
-//                        proxy_set_header Host $host;
-//                        proxy_set_header X-Real-IP $remote_addr;
-//                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-//                        proxy_set_header X-Forwarded-Proto $scheme;
-//                    }
-//                }
-//                """.formatted(port, cname);
-//    }
+    public String updateNginxConfig(String containerId, String port, String cname) {
+        try {
+            String configContent = generateNginxConfig(port, cname);
+            System.out.println(configContent); // Test 용
+            Path tempFile = Files.createTempFile("nginx", ".conf");
+            Files.write(tempFile, configContent.getBytes());
+
+            getDockerClient().copyArchiveToContainerCmd(containerId)
+                    .withHostResource(tempFile.toString())
+                    .withRemotePath("/etc/nginx/nginx.conf") // 기본 경로가 여기일거고
+                    .exec();
+
+            getDockerClient().restartContainerCmd(containerId).exec();
+
+            Files.delete(tempFile);
+            return "Nginx config updated and container restarted.";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "Error updating Nginx config: " + e.getMessage(); // 잘못 되었을떄 프린트 찍고 log 컨테이너 하면 로그 확인가능
+        }
+    }
+
+    private String generateNginxConfig(String port, String cname) {
+        return """
+                server {
+                    listen %s;
+                    server_name %s;
+
+                    location / {
+                        proxy_pass http://localhost:8080;
+                        proxy_set_header Host $host;
+                        proxy_set_header X-Real-IP $remote_addr;
+                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                        proxy_set_header X-Forwarded-Proto $scheme;
+                    }
+                }
+                """.formatted(port, cname);
+    }
 
 
     //example interface ---
