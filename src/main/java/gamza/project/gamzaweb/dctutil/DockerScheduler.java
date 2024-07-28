@@ -19,17 +19,19 @@ public class DockerScheduler {
 
     public DockerScheduler() {
         this.client = DockerProvider.getInstance().dockerClient;
+        DockerProvider.getInstance().setScheduler(this);
     }
 
     @Scheduled(fixedRate = 10 * 1000)
     private void dockerScheduler() {
         List<Container> dockerContainers = client.listContainersCmd().withShowAll(true).exec();
-        List<Image> dockerImages = client.listImagesCmd().exec();
+        List<Image> dockerImages = client.listImagesCmd().withShowAll(true).exec();
 
         final Map<String, Container> dockerContainerMap = new HashMap<>();
         dockerContainers.forEach(Container -> dockerContainerMap.put(Container.getId(), Container));
 
         checkContainerMap.keySet().forEach(id -> {
+            //todo : input db
             if (dockerContainerMap.containsKey(id)) {
                 checkContainerMap.get(id).containerCheckResult(true, dockerContainerMap.get(id));
             } else {
@@ -41,6 +43,7 @@ public class DockerScheduler {
         dockerImages.forEach(image -> dockerImageMap.put(image.getId(), image));
 
         checkImageMap.keySet().forEach(id -> {
+            //todo : input db
             if (dockerImageMap.containsKey(id)) {
                 checkImageMap.get(id).containerCheckResult(true, dockerImageMap.get(id));
             } else {

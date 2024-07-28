@@ -8,7 +8,6 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import jakarta.annotation.Nullable;
@@ -16,7 +15,6 @@ import jakarta.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
@@ -37,6 +35,11 @@ public class DockerProvider {
 //            .build();
 
     private static DockerProvider instance;
+    private DockerScheduler scheduler;
+
+    public void setScheduler(DockerScheduler scheduler) {
+        this.scheduler = scheduler;
+    }
 
     private DockerProvider() {
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
@@ -64,6 +67,39 @@ public class DockerProvider {
     public List<Image> getImageList() {
         return dockerClient.listImagesCmd().exec();
     }
+
+    /**
+     * Make Automatically image build and start process
+     * */
+    public String imageRegister(File dockerFile, String projectName, String versionName, String outerPort, String innerPort) throws Exception {
+        if (!dockerFile.exists()) {
+            throw new NotFoundException("Docker File Not Exist");
+        }
+        if (scheduler == null) {
+            throw new NullPointerException("Scheduler is null");
+        }
+
+        String tempImageId = ""; //todo : make random and push to db
+
+        buildImage(dockerFile, new BuildImageResultCallback() {
+            @Override
+            public void onNext(BuildResponseItem item) {
+                super.onNext(item);
+                if (item.getImageId() == null) {
+                    return;
+                }
+                //todo : update temp id to real id
+                taggingImage(item.getImageId(), projectName, versionName);
+
+                String containerId = createContainer(projectName, outerPort, innerPort, versionName);
+                //todo : input container id
+                dockerClient.startContainerCmd(containerId).exec();
+            }
+        });
+
+        return ""; // todo : return db id
+    }
+
 
     public void buildImage(File file, String name, @Nullable String tag, DockerProviderBuildCallback callback) {
         buildImage(file, new BuildImageResultCallback() {
@@ -102,7 +138,6 @@ public class DockerProvider {
                 .withImage(name + ":" + tag)
                 .exec();
 
-        dockerClient.startContainerCmd(container.getId()).exec();
         return container.getId();
     }
 
