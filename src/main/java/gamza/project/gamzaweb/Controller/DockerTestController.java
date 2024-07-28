@@ -42,7 +42,7 @@ public class DockerTestController {
     DockerScheduler dockerScheduler;
 
     @GetMapping("/buildImage")
-    public String buildImage(@RequestParam("name") String name, @RequestParam("tag") String tag) {
+//    public String buildImage(@RequestParam("name") String name, @RequestParam("tag") String tag) {
     public String buildImage(
             @RequestParam("name") String name,
             @RequestParam("tag") String tag,

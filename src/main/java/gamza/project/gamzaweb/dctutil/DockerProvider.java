@@ -118,7 +118,7 @@ public class DockerProvider {
 
 
     public void buildImage(File file, String name, @Nullable String tag, @Nullable String jasyptKey, DockerProviderBuildCallback callback) {
-        BuildImageCmd buildImageCmd = getDockerClient().buildImageCmd(file);
+        BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(file);
 
         if (jasyptKey != null && !jasyptKey.isEmpty()) {
             buildImageCmd.withBuildArg("JASYPT_KEY", jasyptKey);
@@ -205,7 +205,7 @@ public class DockerProvider {
     public List<String> getContainerLogs(String containerId, int lines) {
         List<String> logs = new ArrayList<>();
 
-        try (LogContainerCmd logContainerCmd = getDockerClient().logContainerCmd(containerId)) {
+        try (LogContainerCmd logContainerCmd = dockerClient.logContainerCmd(containerId)) {
             logContainerCmd
                     .withStdOut(true)
                     .withStdErr(true)
