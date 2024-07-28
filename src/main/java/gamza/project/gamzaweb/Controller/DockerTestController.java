@@ -47,7 +47,7 @@ public class DockerTestController {
             @RequestParam("tag") String tag,
             @RequestParam(value = "jasyptKey", required = false) String jasyptKey) {
 
-        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile");
+        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
 
         CompletableFuture<String> result = new CompletableFuture<>();
 
@@ -66,39 +66,6 @@ public class DockerTestController {
         }
     }
 
-//    @GetMapping("/buildImage")
-//    public String buildImage(
-//            @RequestParam("name") String name,
-//            @RequestParam("tag") String tag,
-//            @RequestParam(value = "jasyptKey", required = false) String jasyptKey) {
-//        CompletableFuture<String> result = new CompletableFuture<>();
-//        provider.buildImage(
-//                new File("/Users/kimseonghun/Desktop/docker/Dockerfile"),
-//                name,
-//                tag,
-//                new DockerProvider.DockerProviderBuildCallback() {
-//                    @Override
-//                    public void getImageId(String imageId) {
-//                        result.complete(imageId);
-//                    }
-//                }
-//        );
-//
-//        try {
-//            String imageId = result.get();
-//
-//            return imageId;
-//        } catch (InterruptedException e) {
-////            throw new RuntimeException(e);
-//            e.printStackTrace();
-//            return e.getLocalizedMessage();
-//        } catch (ExecutionException e) {
-////            throw new RuntimeException(e);
-//            e.printStackTrace();
-//            return e.getLocalizedMessage();
-//        }
-//    }
-
     @GetMapping("/logs/{containerId}")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
                                          @RequestParam(value = "lines", defaultValue = "100") int lines) {
@@ -113,12 +80,12 @@ public class DockerTestController {
 
     @GetMapping("/create")
     public String create() {
-        return provider.createContainer("test_name2", "8083", "80", "1.0.0");
+        return provider.createContainer("test_name2", "8081", "80", "1.0.0");
     }
     @GetMapping("/update")
     public String update() {
         //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
         //3c74c4202325
-        return provider.createContainer("test_name", "8082", "80", "1.0.0");
+        return provider.createContainer("test_name", "8081", "80", "1.0.0");
     }
 }

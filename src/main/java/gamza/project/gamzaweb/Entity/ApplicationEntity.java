@@ -16,6 +16,12 @@ public class ApplicationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false) // 엔티티 추가
+    private String imageId;
+
+    @Column(nullable = false) // 엔티티 추가
+    private String containerId;
+
     @Column(length = 30, nullable = false, unique = true)
     private String name;
 
