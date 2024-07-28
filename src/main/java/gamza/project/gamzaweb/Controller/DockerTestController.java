@@ -45,13 +45,13 @@ public class DockerTestController {
     public String buildImage(
             @RequestParam("name") String name,
             @RequestParam("tag") String tag,
-            @RequestParam(value = "jasyptKey", required = false) String jasyptKey) {
+            @RequestParam(value = "key", required = false) String key) {
 
         File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
 
         CompletableFuture<String> result = new CompletableFuture<>();
 
-        provider.buildImage(dockerfile, name, tag, jasyptKey, new DockerProvider.DockerProviderBuildCallback() {
+        provider.buildImage(dockerfile, name, tag, key, new DockerProvider.DockerProviderBuildCallback() {
             @Override
             public void getImageId(String imageId) {
                 result.complete(imageId);

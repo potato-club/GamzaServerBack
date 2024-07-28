@@ -65,11 +65,11 @@ public class DockerProvider {
 //    }
 
 
-    public void buildImage(File file, String name, @Nullable String tag, @Nullable String jasyptKey, DockerProviderBuildCallback callback) {
+    public void buildImage(File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
         BuildImageCmd buildImageCmd = getDockerClient().buildImageCmd(file);
 
-        if (jasyptKey != null && !jasyptKey.isEmpty()) {
-            buildImageCmd.withBuildArg("JASYPT_KEY", jasyptKey);
+        if (key != null && !key.isEmpty()) {
+            buildImageCmd.withBuildArg("key", key);
         }
 
         buildImageCmd.exec(new BuildImageResultCallback() {
