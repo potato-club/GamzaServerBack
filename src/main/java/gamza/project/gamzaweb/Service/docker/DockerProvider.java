@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.dctutil;
+package gamza.project.gamzaweb.Service.docker;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
@@ -15,7 +15,16 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
+import gamza.project.gamzaweb.Entity.InfoEntity;
+import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.Repository.InfoRepository;
+import gamza.project.gamzaweb.Repository.UserRepository;
+import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,13 +33,18 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
 //https://github.com/docker-java/docker-java/blob/main/docs/getting_started.md
 //https://docs.docker.com/engine/api/v1.45/#tag/Image/operation/BuildPrune
+@Service
+@RequiredArgsConstructor
 public class DockerProvider {
+
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final InfoRepository infoRepository;
 
     public DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 //    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -51,21 +65,12 @@ public class DockerProvider {
             .responseTimeout(Duration.ofSeconds(45))
             .build();
 
-
     public DockerClient getDockerClient() {
         return DockerClientImpl.getInstance(config, httpClient);
     }
 
+    public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
 
-    //examples start ---
-
-//    public String getJarPath() throws Exception {
-//        return new File(DockerProvider.class.getProtectionDomain().getCodeSource().getLocation()
-//                .toURI()).getPath();
-//    }
-
-
-    public void buildImage(File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
         BuildImageCmd buildImageCmd = getDockerClient().buildImageCmd(file);
 
         if (key != null && !key.isEmpty()) {
@@ -84,43 +89,37 @@ public class DockerProvider {
             }
         });
     }
-//    public void buildImage(File file, String name, @Nullable String tag, DockerProviderBuildCallback callback) {
-//        buildImage(file, new BuildImageResultCallback() {
-//            @Override
-//            public void onNext(BuildResponseItem item) {
-//                super.onNext(item);
-//                System.out.println("onNext: " + item.getImageId());
-//                if (item.getImageId() != null) {
-//                    taggingImage(item.getImageId(), name, tag);
-//                    callback.getImageId(item.getImageId());
-//                }
-//            }
-//        });
-//    }
 
-    public String createContainer(String name, String outerPort, String innerPort, String tag) {
-        ExposedPort tcpOuter = ExposedPort.tcp(Integer.parseInt(innerPort));
+    public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        ExposedPort tcpOuter = ExposedPort.tcp(dto.getInternalPort());
         Ports portBindings = new Ports();
-        portBindings.bind(tcpOuter, Ports.Binding.bindPort(Integer.parseInt(outerPort)));
+        portBindings.bind(tcpOuter, Ports.Binding.bindPort(dto.getOuterPort()));
 
         // create container from image
-        CreateContainerResponse container = getDockerClient().createContainerCmd(name)
+        CreateContainerResponse container = getDockerClient().createContainerCmd(dto.getName())
                 .withExposedPorts(tcpOuter)
                 .withHostConfig(newHostConfig()
                         .withPortBindings(portBindings))
-                .withImage(name + ":" + tag)
+                .withImage(dto.getName() + ":" + dto.getTag())
                 .exec();
 
         // start the container
         getDockerClient().startContainerCmd(container.getId()).exec();
+
+        InfoEntity infoEntity = InfoEntity.builder()
+                .containerId(container.getId()) // ?
+                .imageId(dto.getName() + ":" + dto.getTag())
+                .user(userPk)
+                .build();
+
+        infoRepository.save(infoEntity);
+
         return container.getId();
-    }
-
-    public void buildImage(File file, BuildImageResultCallback callback) {
-        System.out.println("buildImage : " + file.exists() + "/" + file.length());
-
-        BuildImageCmd image = getDockerClient().buildImageCmd(file);
-        image.exec(callback);
     }
 
     public void taggingImage(String imageId, String name, String tag) {
@@ -151,24 +150,39 @@ public class DockerProvider {
 
 
     public String updateNginxConfig(String containerId, String port, String cname) {
-        try {
-            String configContent = generateNginxConfig(port, cname);
-            System.out.println(configContent); // Test 용
-            Path tempFile = Files.createTempFile("nginx", ".conf");
-            Files.write(tempFile, configContent.getBytes());
 
-            getDockerClient().copyArchiveToContainerCmd(containerId)
-                    .withHostResource(tempFile.toString())
-                    .withRemotePath("/etc/nginx/nginx.conf") // 기본 경로가 여기일거고
-                    .exec();
+        if (isContainerRunning(containerId)) {
+            try {
+                // Delete the existing nginx.conf file
+                getDockerClient().execCreateCmd(containerId)
+                        .withCmd("rm", "-f", "/etc/nginx/nginx.conf")
+                        .exec();
+//                getDockerClient().execStartCmd(containerId).exec());
 
-            getDockerClient().restartContainerCmd(containerId).exec();
+                String configContent = generateNginxConfig(port, cname);
 
-            Files.delete(tempFile);
-            return "Nginx config updated and container restarted.";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "Error updating Nginx config: " + e.getMessage(); // 잘못 되었을떄 프린트 찍고 log 컨테이너 하면 로그 확인가능
+                Path tempFile = Files.createTempFile("nginx", ".conf");
+                Files.write(tempFile, configContent.getBytes());
+
+                // Copy the new nginx.conf to the container
+                getDockerClient().copyArchiveToContainerCmd(containerId)
+                        .withHostResource(tempFile.toString())
+                        .withRemotePath("/etc/nginx/nginx.conf")
+                        .exec();
+
+                // Restart the container to apply the new configuration
+                getDockerClient().restartContainerCmd(containerId).exec();
+
+                // Delete the temporary file
+                Files.delete(tempFile);
+
+                return "Nginx config updated and container restarted.";
+            } catch (IOException e) {
+                e.printStackTrace();
+                return "Error updating Nginx config: " + e.getMessage();
+            }
+        } else {
+            return "Container is not running.";
         }
     }
 
@@ -187,6 +201,13 @@ public class DockerProvider {
                     }
                 }
                 """.formatted(port, cname);
+    }
+
+    private boolean isContainerRunning(String containerId) {
+        return Boolean.TRUE.equals(getDockerClient().inspectContainerCmd(containerId)
+                .exec()
+                .getState()
+                .getRunning());
     }
 
 

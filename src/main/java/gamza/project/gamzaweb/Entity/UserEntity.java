@@ -43,4 +43,7 @@ public class UserEntity extends BaseTime {
 
     @OneToMany(mappedBy = "leader")
     private List<ProjectEntity> projects;
+
+    @OneToMany(mappedBy = "user")
+    private List<InfoEntity> infos;
 }
