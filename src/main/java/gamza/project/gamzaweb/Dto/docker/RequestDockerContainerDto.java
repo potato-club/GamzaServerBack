@@ -1,7 +1,6 @@
 package gamza.project.gamzaweb.Dto.docker;
 
 import gamza.project.gamzaweb.Entity.ApplicationEntity;
-import gamza.project.gamzaweb.Entity.InfoEntity;
 import lombok.Data;
 
 @Data

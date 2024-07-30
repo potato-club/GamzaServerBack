@@ -71,6 +71,10 @@ public class DockerProvider {
 
     public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
 
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
         BuildImageCmd buildImageCmd = getDockerClient().buildImageCmd(file);
 
         if (key != null && !key.isEmpty()) {
@@ -126,7 +130,7 @@ public class DockerProvider {
         getDockerClient().tagImageCmd(imageId, name, tag).exec();
     }
 
-    public List<String> getContainerLogs(String containerId, int lines) {
+    public List<String> getContainerLogs(String containerId, int lines, HttpServletRequest request) {
         List<String> logs = new ArrayList<>();
 
         try (LogContainerCmd logContainerCmd = getDockerClient().logContainerCmd(containerId)) {

@@ -3,6 +3,7 @@ package gamza.project.gamzaweb.Controller;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Container;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
+import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.Service.docker.DockerProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -36,18 +37,18 @@ public class DockerTestController {
         return sb.toString();
     }
 
-    @GetMapping("/buildImage") /// 변수만 수정
-    public String buildImage(
-            @RequestParam("name") String name,
-            @RequestParam("tag") String tag,
-            @RequestParam(value = "key", required = false) String key,
-            HttpServletRequest request) {
+//    @RequestParam("name") String name,
+//    @RequestParam("tag") String tag,
+//    @RequestParam(value = "key", required = false) String key,
+//    HttpServletRequest request) {
+    @PostMapping("/buildImage") /// 변수만 수정
+    public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
 
         File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
 
         CompletableFuture<String> result = new CompletableFuture<>();
 
-        provider.buildImage(request, dockerfile, name, tag, key, new DockerProvider.DockerProviderBuildCallback() {
+        provider.buildImage(request, dockerfile, dto.getName(), dto.getTag(), dto.getKey(), new DockerProvider.DockerProviderBuildCallback() {
             @Override
             public void getImageId(String imageId) {
                 result.complete(imageId);
@@ -64,8 +65,9 @@ public class DockerTestController {
 
     @GetMapping("/logs/{containerId}")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
-                                         @RequestParam(value = "lines", defaultValue = "100") int lines) {
-        return provider.getContainerLogs(containerId, lines);
+                                         @RequestParam(value = "lines", defaultValue = "100") int lines,
+                                         HttpServletRequest request) {
+        return provider.getContainerLogs(containerId, lines, request);
     }
 
 //    @PostMapping("/update/nginx") // 미작동
@@ -74,16 +76,13 @@ public class DockerTestController {
 //    }
 
 
-    //"test_name", "8082", "80", "1.0.0"
     @PostMapping("/create")
     public String create(@RequestBody RequestDockerContainerDto requestDockerContainerDto, HttpServletRequest request) {
         return provider.createContainer(requestDockerContainerDto, request);
     }
 
-//    @GetMapping("/update")
+//    @PostMapping("/update")
 //    public String update() {
-//        //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
-//        //3c74c4202325
 //        return provider.createContainer("test_name", "8082", "80", "1.0.0");
 //    }
 }
