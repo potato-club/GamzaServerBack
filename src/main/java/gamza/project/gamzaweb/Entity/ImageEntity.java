@@ -23,7 +23,6 @@ public class ImageEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @OneToOne
-    private VariableEntity key;
+    private String key;
 
 }

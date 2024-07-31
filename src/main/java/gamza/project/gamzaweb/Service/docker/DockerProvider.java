@@ -16,9 +16,14 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
-import gamza.project.gamzaweb.Entity.InfoEntity;
+import gamza.project.gamzaweb.Entity.ContainerEntity;
+import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
-import gamza.project.gamzaweb.Repository.InfoRepository;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BusinessException;
+import gamza.project.gamzaweb.Error.requestError.DockerRequestException;
+import gamza.project.gamzaweb.Repository.ContainerRepository;
+import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import jakarta.annotation.Nullable;
@@ -44,7 +49,8 @@ public class DockerProvider {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-    private final InfoRepository infoRepository;
+    private final ContainerRepository containerRepository;
+    private final ImageRepository imageRepository;
 
     public DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
 //    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -90,8 +96,17 @@ public class DockerProvider {
                     taggingImage(item.getImageId(), name, tag);
                     callback.getImageId(item.getImageId());
                 }
+                ImageEntity imageEntity = ImageEntity.builder()
+                        .imageId(item.getImageId())
+                        .user(userPk)
+                        .key(key)
+                        .build();
+
+                imageRepository.save(imageEntity);
             }
         });
+
+
     }
 
     public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
@@ -105,25 +120,30 @@ public class DockerProvider {
         portBindings.bind(tcpOuter, Ports.Binding.bindPort(dto.getOuterPort()));
 
         // create container from image
-        CreateContainerResponse container = getDockerClient().createContainerCmd(dto.getName())
-                .withExposedPorts(tcpOuter)
-                .withHostConfig(newHostConfig()
-                        .withPortBindings(portBindings))
-                .withImage(dto.getName() + ":" + dto.getTag())
-                .exec();
+        try {
 
-        // start the container
-        getDockerClient().startContainerCmd(container.getId()).exec();
+            CreateContainerResponse container = getDockerClient().createContainerCmd(dto.getName())
+                    .withExposedPorts(tcpOuter)
+                    .withHostConfig(newHostConfig()
+                            .withPortBindings(portBindings))
+                    .withImage(dto.getName() + ":" + dto.getTag())
+                    .exec();
 
-        InfoEntity infoEntity = InfoEntity.builder()
-                .containerId(container.getId()) // ?
-                .imageId(dto.getName() + ":" + dto.getTag())
-                .user(userPk)
-                .build();
+            // start the container
+            getDockerClient().startContainerCmd(container.getId()).exec();
 
-        infoRepository.save(infoEntity);
+            ContainerEntity containerEntity = ContainerEntity.builder()
+                    .containerId(container.getId()) // ?
+                    .imageId(dto.getName() + ":" + dto.getTag())
+                    .user(userPk)
+                    .build();
 
-        return container.getId();
+            containerRepository.save(containerEntity);
+
+            return container.getId();
+        } catch (DockerRequestException e) {
+            throw new DockerRequestException("3005 FAILED CONTAINER BUILD", ErrorCode.FAILED_CONTAINER_BUILD);
+        }
     }
 
     public void taggingImage(String imageId, String name, String tag) {

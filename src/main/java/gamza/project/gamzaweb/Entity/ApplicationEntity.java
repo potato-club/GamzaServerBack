@@ -38,6 +38,9 @@ public class ApplicationEntity {
     @Column(nullable = false)
     private String tag;
 
+    @Column
+    private String key;
+
     @ManyToOne()
     @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity project;
