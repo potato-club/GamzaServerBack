@@ -22,7 +22,7 @@ public class UserController {
         return ResponseEntity.ok().body("Success Sing Up!\nIf you want to see the PK value, please ask SH :)");
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody RequestUserLoginDto dto, HttpServletResponse response) {
         userService.login(dto, response);
         return ResponseEntity.ok().body("Success Login!");

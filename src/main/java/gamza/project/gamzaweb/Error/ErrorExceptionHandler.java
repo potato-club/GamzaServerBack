@@ -82,5 +82,16 @@ public class ErrorExceptionHandler {
                 .body(errorEntity);
     }
 
+    @ExceptionHandler({DockerRequestException.class})
+    public ResponseEntity<ErrorEntity> exceptionHandler(final DockerRequestException e) {
+        ErrorEntity errorEntity = ErrorEntity.builder()
+                .errorCode(Integer.parseInt(e.getErrorCode().getCode()))
+                .errorMessage(e.getMessage())
+                .build();
+        return ResponseEntity
+                .status(e.getErrorCode().getHttpStatus())
+                .body(errorEntity);
+    }
+
 
 }

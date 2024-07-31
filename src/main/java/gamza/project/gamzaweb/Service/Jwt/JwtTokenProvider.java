@@ -91,11 +91,11 @@ public class JwtTokenProvider {
     }
 
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-        response.setHeader("AT", accessToken);
+        response.setHeader("AT",  accessToken);
     }
 
     public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
-        response.setHeader("RT", refreshToken);
+        response.setHeader("RT",  refreshToken);
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
