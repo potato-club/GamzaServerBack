@@ -25,22 +25,10 @@ public class DockerTestController {
     private final DockerProvider provider;
 
     @GetMapping("/list") // 도커리스트 출력
-    public String something() {
-        DockerClient dockerClient = provider.getDockerClient();
-        List<Container> containers = dockerClient.listContainersCmd().exec();
-        StringBuilder sb = new StringBuilder();
-        sb.append("containers.size() : ").append(containers.size()).append("\n");
-        for (Container container : containers) {
-            sb.append(container.toString());
-        }
-
-        return sb.toString();
+    public String something(HttpServletRequest request) {
+        return provider.listContainers(request);
     }
 
-//    @RequestParam("name") String name,
-//    @RequestParam("tag") String tag,
-//    @RequestParam(value = "key", required = false) String key,
-//    HttpServletRequest request) {
     @PostMapping("/buildImage") /// 변수만 수정
     public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
 
