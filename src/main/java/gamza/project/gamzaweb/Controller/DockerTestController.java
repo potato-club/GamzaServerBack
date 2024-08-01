@@ -10,6 +10,7 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.sun.jna.WString;
+import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.DockerScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +37,13 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/doc")
 public class DockerTestController {
 
-    DockerProvider provider = DockerProvider.getInstance();
+    @Autowired
+    DockerProvider provider;
 
     @Autowired
     DockerScheduler dockerScheduler;
+    @Autowired
+    private DockerProvider dockerProvider;
 
     @GetMapping("/buildImage")
 //    public String buildImage(@RequestParam("name") String name, @RequestParam("tag") String tag) {
@@ -248,5 +252,16 @@ public class DockerTestController {
         //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
         //3c74c4202325
         return provider.createContainer("test_name", "8082", "80", "1.0.0");
+    }
+
+    @GetMapping("/checker")
+    public String checker() {
+        //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
+        //3c74c4202325
+//        return provider.createContainer("test_name", "8082", "80", "1.0.0");
+        System.out.println("is null ? : " + (DockerDataStore.getInstance().getDockerClient() == null));
+        System.out.println("is null ? : " + (dockerProvider == null));
+        System.out.println("is null ? : " + (dockerScheduler == null));
+        return "return";
     }
 }

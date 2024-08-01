@@ -15,12 +15,8 @@ import java.util.stream.Collectors;
 public class DockerScheduler {
     //10초마다 반복하며 container 와 image를 체크하는 class
 
-    private final DockerClient client;
+    private final DockerClient client = DockerDataStore.getInstance().getDockerClient();
 
-    public DockerScheduler() {
-        this.client = DockerProvider.getInstance().dockerClient;
-        DockerProvider.getInstance().setScheduler(this);
-    }
 
     @Scheduled(fixedRate = 10 * 1000)
     private void dockerScheduler() {

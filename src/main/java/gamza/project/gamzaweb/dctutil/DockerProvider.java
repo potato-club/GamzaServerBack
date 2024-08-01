@@ -20,6 +20,9 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,45 +38,12 @@ import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
 //https://github.com/docker-java/docker-java/blob/main/docs/getting_started.md
 //https://docs.docker.com/engine/api/v1.45/#tag/Image/operation/BuildPrune
+@Component
+@RequiredArgsConstructor
 public class DockerProvider {
 
     //don't be use this value in out of class
-    public final DockerClient dockerClient;
-    //    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-//            .withDockerHost("tcp://localhost:2376")
-//            .withDockerTlsVerify(true)
-//            .withDockerCertPath("/opt/homebrew/Cellar/docker/27.0.3")
-//            .withRegistryUsername(registryUser)
-//            .withRegistryPassword(registryPass)
-//            .withRegistryEmail(registryMail)
-//            .withRegistryUrl(registryUrl)
-//            .build();
-
-    private static DockerProvider instance;
-    private DockerScheduler scheduler;
-
-    public void setScheduler(DockerScheduler scheduler) {
-        this.scheduler = scheduler;
-    }
-
-    private DockerProvider() {
-        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
-        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(config.getDockerHost())
-                .sslConfig(config.getSSLConfig())
-                .maxConnections(100)
-                .connectionTimeout(Duration.ofSeconds(30))
-                .responseTimeout(Duration.ofSeconds(45))
-                .build();
-        dockerClient = DockerClientImpl.getInstance(config, httpClient);
-    }
-
-    public static synchronized DockerProvider getInstance() {
-        if (instance == null) {
-            instance = new DockerProvider();
-        }
-        return instance;
-    }
+    private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();
 
     public List<Container> getContainerList() {
         return dockerClient.listContainersCmd().exec();
@@ -90,9 +60,9 @@ public class DockerProvider {
         if (!dockerFile.exists()) {
             throw new NotFoundException("Docker File Not Exist");
         }
-        if (scheduler == null) {
-            throw new NullPointerException("Scheduler is null");
-        }
+//        if (scheduler == null) {
+//            throw new NullPointerException("Scheduler is null");
+//        }
 
         String tempImageId = ""; //todo : make random and push to db
 
