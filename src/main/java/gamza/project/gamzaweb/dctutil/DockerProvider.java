@@ -20,6 +20,7 @@ import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
+import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.Entity.ContainerEntity;
 import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
@@ -40,9 +41,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 
@@ -100,15 +100,35 @@ public class DockerProvider {
 //        return ""; // todo : return db id
 //    }
 
-    public void buildImage(File file, BuildImageResultCallback callback) {
-        System.out.println("buildImage : " + file.exists() + "/" + file.length());
-
-        BuildImageCmd image = dockerClient.buildImageCmd(file);
-        image.exec(callback);
-    }
+//    public void buildImage(File file, BuildImageResultCallback callback) {
+//        System.out.println("buildImage : " + file.exists() + "/" + file.length());
+//
+//        BuildImageCmd image = dockerClient.buildImageCmd(file);
+//        image.exec(callback);
+//    }
 
     public void taggingImage(String imageId, String name, String tag) {
         dockerClient.tagImageCmd(imageId, name, tag).exec();
+    }
+
+
+
+    private void saveImageEntity(String imageId, String key, UserEntity user) {
+        ImageEntity imageEntity = ImageEntity.builder()
+                .imageId(imageId)
+                .user(user)
+                .variableKey(key)
+                .build();
+        imageRepository.save(imageEntity);
+    }
+
+    private void saveContainerEntity(String containerId, String imageId, UserEntity user) {
+        ContainerEntity containerEntity = ContainerEntity.builder()
+                .containerId(containerId)
+                .imageId(imageId)
+                .user(user)
+                .build();
+        containerRepository.save(containerEntity);
     }
 
     public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
@@ -141,16 +161,10 @@ public class DockerProvider {
                     super.onNext(item);
                     System.out.println("onNext: " + item.getImageId());
                     if (item.getImageId() != null) {
+                        saveImageEntity(item.getImageId(), key, userPk);
                         taggingImage(item.getImageId(), name, tag);
                         callback.getImageId(item.getImageId());
                     }
-                    ImageEntity imageEntity = ImageEntity.builder()
-                            .imageId(item.getImageId())
-                            .user(userPk)
-                            .variableKey(key)
-                            .build();
-
-                    imageRepository.save(imageEntity);
                 }
             });
         } catch (Exception e) {
