@@ -51,8 +51,8 @@ public class DockerTestController {
     @PostMapping("/buildImage") /// 변수만 수정
     public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
 
-        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
-
+//        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
+        File dockerfile = new File(dto.getDockerfilePath());
         CompletableFuture<String> result = new CompletableFuture<>();
 
         provider.buildImage(request, dockerfile, dto.getName(), dto.getTag(), dto.getKey(), new DockerProvider.DockerProviderBuildCallback() {
