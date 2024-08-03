@@ -39,7 +39,7 @@ public class ApplicationEntity {
     private String tag;
 
     @Column
-    private String key;
+    private String variableKey;
 
     @ManyToOne()
     @JoinColumn(name = "project_id", nullable = false)

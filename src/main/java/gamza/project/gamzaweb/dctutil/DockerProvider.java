@@ -19,7 +19,18 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
+import gamza.project.gamzaweb.Entity.ContainerEntity;
+import gamza.project.gamzaweb.Entity.ImageEntity;
+import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.DockerRequestException;
+import gamza.project.gamzaweb.Repository.ContainerRepository;
+import gamza.project.gamzaweb.Repository.ImageRepository;
+import gamza.project.gamzaweb.Repository.UserRepository;
+import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -30,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
@@ -44,6 +56,10 @@ public class DockerProvider {
 
     //don't be use this value in out of class
     private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final ImageRepository imageRepository;
+    private final ContainerRepository containerRepository;
 
     public List<Container> getContainerList() {
         return dockerClient.listContainersCmd().exec();
@@ -56,68 +72,32 @@ public class DockerProvider {
     /**
      * Make Automatically image build and start process
      * */
-    public String imageRegister(File dockerFile, String projectName, String versionName, String outerPort, String innerPort) throws Exception {
-        if (!dockerFile.exists()) {
-            throw new NotFoundException("Docker File Not Exist");
-        }
-//        if (scheduler == null) {
-//            throw new NullPointerException("Scheduler is null");
+//    public String imageRegister(File dockerFile, String projectName, String versionName, String outerPort, String innerPort) throws Exception {
+//        if (!dockerFile.exists()) {
+//            throw new NotFoundException("Docker File Not Exist");
 //        }
-
-        String tempImageId = ""; //todo : make random and push to db
-
-        buildImage(dockerFile, new BuildImageResultCallback() {
-            @Override
-            public void onNext(BuildResponseItem item) {
-                super.onNext(item);
-                if (item.getImageId() == null) {
-                    return;
-                }
-                //todo : update temp id to real id
-                taggingImage(item.getImageId(), projectName, versionName);
-
-                String containerId = createContainer(projectName, outerPort, innerPort, versionName);
-                //todo : input container id
-                dockerClient.startContainerCmd(containerId).exec();
-            }
-        });
-
-        return ""; // todo : return db id
-    }
-
-
-
-    public void buildImage(File file, String name, @Nullable String tag, @Nullable String jasyptKey, DockerProviderBuildCallback callback) {
-        BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(file);
-
-        if (jasyptKey != null && !jasyptKey.isEmpty()) {
-            buildImageCmd.withBuildArg("JASYPT_KEY", jasyptKey);
-        }
-
-        buildImageCmd.exec(new BuildImageResultCallback() {
-            @Override
-            public void onNext(BuildResponseItem item) {
-                super.onNext(item);
-                System.out.println("onNext: " + item.getImageId());
-                if (item.getImageId() != null) {
-                    taggingImage(item.getImageId(), name, tag);
-                    callback.getImageId(item.getImageId());
-                }
-            }
-        });
-    }
-//    public void buildImage(File file, String name, @Nullable String tag, DockerProviderBuildCallback callback) {
-//        buildImage(file, new BuildImageResultCallback() {
+////        if (scheduler == null) {
+////            throw new NullPointerException("Scheduler is null");
+////        }
+//
+//        String tempImageId = ""; //todo : make random and push to db
+//
+//        buildImage(dockerFile, new BuildImageResultCallback() {
 //            @Override
 //            public void onNext(BuildResponseItem item) {
 //                super.onNext(item);
-//                System.out.println("onNext: " + item.getImageId());
-//                if (item.getImageId() != null) {
-//                    taggingImage(item.getImageId(), name, tag);
-//                    callback.getImageId(item.getImageId());
+//                if (item.getImageId() == null) {
+//                    return;
 //                }
+//                //todo : update temp id to real id
+//                taggingImage(item.getImageId(), projectName, versionName);
+//
+//                String containerId = createContainer(projectName, outerPort, innerPort, versionName);
+//                dockerClient.startContainerCmd(containerId).exec();
 //            }
 //        });
+//
+//        return ""; // todo : return db id
 //    }
 
     public void buildImage(File file, BuildImageResultCallback callback) {
@@ -131,19 +111,89 @@ public class DockerProvider {
         dockerClient.tagImageCmd(imageId, name, tag).exec();
     }
 
-    public String createContainer(String name, String outerPort, String innerPort, String tag) {
-        ExposedPort tcpOuter = ExposedPort.tcp(Integer.parseInt(innerPort));
+    public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        if (name != null && tag != null) {
+            List<Image> existingImages = dockerClient.listImagesCmd().exec();
+            boolean imageExists = existingImages.stream()
+                    .anyMatch(image -> image.getRepoTags() != null &&
+                            Arrays.asList(image.getRepoTags()).contains(name + ":" + tag));
+
+            if (imageExists) {
+                throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
+            }
+        }
+
+        BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(file);
+
+        if (key != null && !key.isEmpty()) {
+            buildImageCmd.withBuildArg("key", key);
+        }
+
+        try {
+            buildImageCmd.exec(new BuildImageResultCallback() {
+                @Override
+                public void onNext(BuildResponseItem item) {
+                    super.onNext(item);
+                    System.out.println("onNext: " + item.getImageId());
+                    if (item.getImageId() != null) {
+                        taggingImage(item.getImageId(), name, tag);
+                        callback.getImageId(item.getImageId());
+                    }
+                    ImageEntity imageEntity = ImageEntity.builder()
+                            .imageId(item.getImageId())
+                            .user(userPk)
+                            .variableKey(key)
+                            .build();
+
+                    imageRepository.save(imageEntity);
+                }
+            });
+        } catch (Exception e) {
+            throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
+        }
+
+    }
+
+    public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        ExposedPort tcpOuter = ExposedPort.tcp(dto.getInternalPort());
         Ports portBindings = new Ports();
-        portBindings.bind(tcpOuter, Ports.Binding.bindPort(Integer.parseInt(outerPort)));
+        portBindings.bind(tcpOuter, Ports.Binding.bindPort(dto.getOuterPort()));
 
-        CreateContainerResponse container = dockerClient.createContainerCmd(name)
-                .withExposedPorts(tcpOuter)
-                .withHostConfig(newHostConfig()
-                        .withPortBindings(portBindings))
-                .withImage(name + ":" + tag)
-                .exec();
+        // create container from image
+        try {
 
-        return container.getId();
+            CreateContainerResponse container = dockerClient.createContainerCmd(dto.getName())
+                    .withExposedPorts(tcpOuter)
+                    .withHostConfig(newHostConfig()
+                            .withPortBindings(portBindings))
+                    .withImage(dto.getName() + ":" + dto.getTag())
+                    .exec();
+
+            // start the container
+            dockerClient.startContainerCmd(container.getId()).exec();
+
+            ContainerEntity containerEntity = ContainerEntity.builder()
+                    .containerId(container.getId()) // ?
+                    .imageId(dto.getName() + ":" + dto.getTag())
+                    .user(userPk)
+                    .build();
+
+            containerRepository.save(containerEntity);
+
+            return container.getId();
+        } catch (Exception e) {
+            throw new DockerRequestException("3005 FAILED CONTAINER BUILD", ErrorCode.FAILED_CONTAINER_BUILD);
+        }
     }
 
     public void stopContainer(String containerId) {
