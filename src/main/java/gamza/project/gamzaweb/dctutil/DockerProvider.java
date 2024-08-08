@@ -26,6 +26,7 @@ import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.DockerRequestException;
+import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.ContainerRepository;
 import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
@@ -34,6 +35,7 @@ import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -52,6 +54,7 @@ import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 //https://docs.docker.com/engine/api/v1.45/#tag/Image/operation/BuildPrune
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DockerProvider {
 
     //don't be use this value in out of class
@@ -207,6 +210,34 @@ public class DockerProvider {
             return container.getId();
         } catch (Exception e) {
             throw new DockerRequestException("3005 FAILED CONTAINER BUILD", ErrorCode.FAILED_CONTAINER_BUILD);
+        }
+    }
+
+    public void stopContainer(HttpServletRequest request, String containerId) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        if(userPk == null) {
+            throw new UnAuthorizedException("401 ERROR USER NOT FOUNT ", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        Optional<ContainerEntity> userContainer = containerRepository.findByContainerIdAndUser(containerId, userPk);
+        if (userContainer.isEmpty()) {
+            throw new DockerRequestException("3006 FAILED CONTAINER STOP", ErrorCode.FAILED_CONTAINER_STOP);
+        }
+
+        try {
+            StopContainerCmd stopContainer = dockerClient.stopContainerCmd(containerId);
+            stopContainer.exec();
+            containerRepository.delete(userContainer.get());
+        } catch (NotModifiedException e) {
+            e.printStackTrace();
+            //maybe already stopped!
+        } catch (NotFoundException e1) {
+            e1.printStackTrace();
+            //not found exception
         }
     }
 

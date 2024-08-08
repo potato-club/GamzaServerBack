@@ -8,9 +8,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ContainerRepository extends JpaRepository<ContainerEntity, Long> {
 
     @Query("SELECT c.containerId FROM ContainerEntity c WHERE c.user.id = :userId")
-    List<String> findContainerIdsByUserId(@Param("userId") Long userId);}
+    List<String> findContainerIdsByUserId(@Param("userId") Long userId);
+
+    Optional<ContainerEntity> findByContainerIdAndUser(String containerId, UserEntity user);
+}

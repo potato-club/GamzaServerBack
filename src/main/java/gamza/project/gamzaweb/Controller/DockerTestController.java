@@ -10,6 +10,7 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.sun.jna.WString;
+import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDeleteDto;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
@@ -51,7 +52,6 @@ public class DockerTestController {
     @PostMapping("/buildImage") /// 변수만 수정
     public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
 
-//        File dockerfile = new File("/Users/kimseonghun/Desktop/docker/Dockerfile"); // 성훈 테스트 환경 pull 받을시 수정 요망
         File dockerfile = new File(dto.getDockerfilePath());
         CompletableFuture<String> result = new CompletableFuture<>();
 
@@ -91,7 +91,7 @@ public class DockerTestController {
     }
 
     @GetMapping("/removeImage")
-    public String removeImage(@RequestParam("id") String id) {
+    public String removeImage(@RequestBody String id, HttpServletRequest request) {
         provider.removeImage(id);
         return "removed id : " + id;
     }
@@ -135,7 +135,7 @@ public class DockerTestController {
     }
 
 
-    @GetMapping("/removeContainerCheck")
+    @GetMapping("/removeContainerCheck") // continaer 가 꺼진지 켜진지 check 값 보내주는 api로 만들면되려나?
     public ResponseEntity<String> removeContainer(@RequestParam("id") String id) {
         //https://camel-context.tistory.com/20
         CountDownLatch latch = new CountDownLatch(1);
@@ -177,41 +177,47 @@ public class DockerTestController {
         return ResponseEntity.ok("Container check result for ID " + id + ": " + (result[0] ? "success" : "failure"));
     }
 
-    @GetMapping("/stopContainer")
-    public ResponseEntity<String> stopContainer(@RequestParam("id") String id) {
-        //https://camel-context.tistory.com/20
-        CountDownLatch latch = new CountDownLatch(1);
-
-        final String[] result = new String[1];
-
-        // 비동기 작업을 별도로 처리하는 CompletableFuture 생성
-        CompletableFuture.runAsync(() -> {
-            dockerScheduler.addContainerCheckList(id, new DockerScheduler.ContainContainerCallBack() {
-                @Override
-                public void containerCheckResult(boolean checkResult, Container container) {
-                    try {
-                        dockerScheduler.removeImageCheckList(id);
-                        result[0] = container != null ? container.getStatus() : "null Container";
-                        latch.countDown(); // 비동기 작업 완료를 알림
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        });
-
-        provider.stopContainer(id);
-
-        try {
-            latch.await(); // 비동기 작업 완료 대기
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error occurred during container check.");
-        }
-
-        return ResponseEntity.ok("Container check status for ID " + id + ": " + result[0]);
+    @PostMapping("/stopContainer") // 완료
+    public ResponseEntity<String> stopContainer(@RequestBody RequestDockerContainerDeleteDto dto, HttpServletRequest request) {
+        provider.stopContainer(request, dto.getContainerId());
+        return ResponseEntity.status(HttpStatus.OK).body("Container Stop And Delete in DB");
     }
+
+//    @GetMapping("/stopContainer")
+//    public ResponseEntity<String> stopContainer(@RequestParam("id") String id) {
+//        //https://camel-context.tistory.com/20
+//        CountDownLatch latch = new CountDownLatch(1);
+//
+//        final String[] result = new String[1];
+//
+//        // 비동기 작업을 별도로 처리하는 CompletableFuture 생성
+//        CompletableFuture.runAsync(() -> {
+//            dockerScheduler.addContainerCheckList(id, new DockerScheduler.ContainContainerCallBack() {
+//                @Override
+//                public void containerCheckResult(boolean checkResult, Container container) {
+//                    try {
+//                        dockerScheduler.removeImageCheckList(id);
+//                        result[0] = container != null ? container.getStatus() : "null Container";
+//                        latch.countDown(); // 비동기 작업 완료를 알림
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        });
+//
+//        provider.stopContainer(id);
+//
+//        try {
+//            latch.await(); // 비동기 작업 완료 대기
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error occurred during container check.");
+//        }
+//
+//        return ResponseEntity.ok("Container check status for ID " + id + ": " + result[0]);
+//    }
 
 
 //    @GetMapping("/update")
