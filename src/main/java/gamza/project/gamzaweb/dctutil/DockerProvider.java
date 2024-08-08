@@ -261,10 +261,27 @@ public class DockerProvider {
         removeCmd.exec();
     }
 
-    public void removeImage(String imageId) {
+    public void removeImage(String imageId, HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        if (userPk == null) {
+            throw new UnAuthorizedException("401 ERROR USER NOT FOUND", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        Optional<ImageEntity> userImage = imageRepository.findByImageIdAndUser(imageId, userPk);
+
+        if (userImage.isEmpty()) {
+            throw new DockerRequestException("3007 FAILED IMAGE REMOVE", ErrorCode.FAILED_IMAGE_DELETE);
+        }
+
         RemoveImageCmd removeCmd = dockerClient.removeImageCmd(imageId);
         removeCmd.withForce(true); //check :: is force enabled??
         removeCmd.exec();
+
+        imageRepository.delete(userImage.get());
     }
 
     public List<String> getContainerLogs(String containerId, int lines) {
