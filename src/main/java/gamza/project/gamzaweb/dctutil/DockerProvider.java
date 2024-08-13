@@ -63,6 +63,7 @@ public class DockerProvider {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final ContainerRepository containerRepository;
+    private final DockerScheduler dockerScheduler;
 
     public List<Container> getContainerList() {
         return dockerClient.listContainersCmd().exec();
@@ -114,26 +115,18 @@ public class DockerProvider {
         dockerClient.tagImageCmd(imageId, name, tag).exec();
     }
 
-
-
     private void saveImageEntity(String imageId, String key, UserEntity user) {
         ImageEntity imageEntity = ImageEntity.builder()
-                .imageId(imageId)
                 .user(user)
+                .imageId(imageId)
                 .variableKey(key)
                 .build();
+
         imageRepository.save(imageEntity);
     }
 
-    private void saveContainerEntity(String containerId, String imageId, UserEntity user) {
-        ContainerEntity containerEntity = ContainerEntity.builder()
-                .containerId(containerId)
-                .imageId(imageId)
-                .user(user)
-                .build();
-        containerRepository.save(containerEntity);
-    }
 
+    // 이미지를 빌드를 한다 -> 도커 스케쥴러에서 이미지가 있는지 체크한다 -> 이미지 빌드가 다되면 스케쥴러에서 디비에 넣어준다. 유저는 어떻게 넣지
     public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
@@ -241,18 +234,6 @@ public class DockerProvider {
         }
     }
 
-    public void stopContainer(String containerId) {
-        try {
-            StopContainerCmd stopContainer = dockerClient.stopContainerCmd(containerId);
-            stopContainer.exec();
-        } catch (NotModifiedException e) {
-            e.printStackTrace();
-            //maybe already stopped!
-        } catch (NotFoundException e1) {
-            e1.printStackTrace();
-            //not found exception
-        }
-    }
 
     public void removeContainer(String containerId) {
         RemoveContainerCmd removeCmd = dockerClient.removeContainerCmd(containerId);

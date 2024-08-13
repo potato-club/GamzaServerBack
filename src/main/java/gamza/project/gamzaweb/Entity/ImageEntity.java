@@ -21,6 +21,9 @@ public class ImageEntity {
     @Column(nullable = false)
     private String imageId;
 
+    @Column(nullable = false)
+    private String imageName;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;

@@ -1,8 +1,15 @@
 package gamza.project.gamzaweb.dctutil;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.BuildImageCmd;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
+import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Image;
+import gamza.project.gamzaweb.Entity.ImageEntity;
+import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.Repository.ImageRepository;
+import io.micrometer.common.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +23,11 @@ public class DockerScheduler {
     //10초마다 반복하며 container 와 image를 체크하는 class
 
     private final DockerClient client = DockerDataStore.getInstance().getDockerClient();
+    private final ImageRepository imageRepository;
+
+    public DockerScheduler(ImageRepository imageRepository) {
+        this.imageRepository = imageRepository;
+    }
 //    private final
 
 
@@ -48,6 +60,34 @@ public class DockerScheduler {
             }
         });
 
+    }
+
+    @Scheduled(fixedRate = 10 * 1000)
+    private void dockerImageScheduler() {
+        List<Image> dockerImages = client.listImagesCmd().withShowAll(true).exec();
+
+        final Map<String, Image> dockerImageMap = new HashMap<>();
+        dockerImages.forEach(image -> dockerImageMap.put(image.getId(), image));
+
+        checkImageMap.keySet().forEach(id -> {
+            if (dockerImageMap.containsKey(id)) {
+                Image dockerImage = dockerImageMap.get(id);
+
+                // DB에 존재하는지 확인
+                Optional<ImageEntity> existingImage = imageRepository.findByImageId(id);
+                if (existingImage.isEmpty()) {
+                    // 존재하지 않으면, ImageEntity 생성 및 저장
+                    String name = dockerImage.getRepoTags() != null ? dockerImage.getRepoTags()[0].split(":")[0] : null;
+                    String tag = dockerImage.getRepoTags() != null ? dockerImage.getRepoTags()[0].split(":")[1] : null;
+
+                    saveImageEntity(id, name);
+                }
+
+                checkImageMap.get(id).containerCheckResult(true, dockerImage);
+            } else {
+                checkImageMap.get(id).containerCheckResult(false, null);
+            }
+        });
     }
 
     private boolean areAllIdsPresent(List<Image> images, List<String> ids) {
@@ -87,4 +127,6 @@ public class DockerScheduler {
     public interface ContainImageCallBack {
         void containerCheckResult(boolean result, Image image);
     }
+
+
 }
