@@ -77,8 +77,7 @@ public class DockerScheduler {
                 Optional<ImageEntity> existingImage = imageRepository.findByImageId(id);
                 if (existingImage.isEmpty()) {
                     // 존재하지 않으면, ImageEntity 생성 및 저장
-                    String name = dockerImage.getRepoTags() != null ? dockerImage.getRepoTags()[0].split(":")[0] : null;
-                    String tag = dockerImage.getRepoTags() != null ? dockerImage.getRepoTags()[0].split(":")[1] : null;
+                    String name = dockerImage.getRepoTags() != null ? dockerImage.getRepoTags()[0] : null;
 
                     saveImageEntity(id, name);
                 }
@@ -88,6 +87,15 @@ public class DockerScheduler {
                 checkImageMap.get(id).containerCheckResult(false, null);
             }
         });
+    }
+
+    private void saveImageEntity(String imageId, String imageName) {
+        ImageEntity imageEntity = ImageEntity.builder()
+                .imageId(imageId)
+                .name(imageName)
+                .build();
+
+        imageRepository.save(imageEntity);
     }
 
     private boolean areAllIdsPresent(List<Image> images, List<String> ids) {

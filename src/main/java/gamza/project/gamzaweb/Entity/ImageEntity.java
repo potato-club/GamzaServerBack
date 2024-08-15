@@ -22,7 +22,7 @@ public class ImageEntity {
     private String imageId;
 
     @Column(nullable = false)
-    private String imageName;
+    private String name;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

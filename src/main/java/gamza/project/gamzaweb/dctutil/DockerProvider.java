@@ -115,10 +115,9 @@ public class DockerProvider {
         dockerClient.tagImageCmd(imageId, name, tag).exec();
     }
 
-    private void saveImageEntity(String imageId, String key, UserEntity user) {
+    private void saveImageEntity(String key, UserEntity user) {
         ImageEntity imageEntity = ImageEntity.builder()
                 .user(user)
-                .imageId(imageId)
                 .variableKey(key)
                 .build();
 
@@ -157,7 +156,6 @@ public class DockerProvider {
                     super.onNext(item);
                     System.out.println("onNext: " + item.getImageId());
                     if (item.getImageId() != null) {
-                        saveImageEntity(item.getImageId(), key, userPk);
                         taggingImage(item.getImageId(), name, tag);
                         callback.getImageId(item.getImageId());
                     }
