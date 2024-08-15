@@ -16,7 +16,6 @@ import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDeleteDto;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
-import gamza.project.gamzaweb.dctutil.DockerScheduler;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,8 @@ public class DockerTestController {
 
     @Autowired
     DockerProvider provider;
-    @Autowired
-    DockerScheduler dockerScheduler;
+//    @Autowired
+//    DockerScheduler dockerScheduler;
     @Autowired
     private DockerProvider dockerProvider;
 
@@ -146,48 +145,48 @@ public class DockerTestController {
 //    }
 
 
-    @GetMapping("/removeContainerCheck") // continaer 가 꺼진지 켜진지 check 값 보내주는 api로 만들면되려나?
-    @Operation(description = "컨테이너 삭제 체크")
-    public ResponseEntity<String> removeContainer(@RequestParam("id") String id) {
-        //https://camel-context.tistory.com/20
-        CountDownLatch latch = new CountDownLatch(1);
-
-        final boolean[] result = new boolean[1];
-
-        // 비동기 작업을 별도로 처리하는 CompletableFuture 생성
-        CompletableFuture.runAsync(() -> {
-            dockerScheduler.addContainerCheckList(id, new DockerScheduler.ContainContainerCallBack() {
-                @Override
-                public void containerCheckResult(boolean checkResult, Container container) {
-                    try {
-                        dockerScheduler.removeImageCheckList(id);
-                        /**
-                         * 못찾으면 삭제된 것 ( 혹은 잘못넣은 id 일지도?)
-                         * 실제 api는 선행적으로 리스트 체크가 필요
-                         * provider.getContainerList() or imageList
-                         * */
-                        result[0] = !checkResult;
-
-                        latch.countDown(); // 비동기 작업 완료를 알림
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        });
-
-        provider.removeContainer(id);
-
-        try {
-            latch.await(); // 비동기 작업 완료 대기
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error occurred during container check.");
-        }
-
-        return ResponseEntity.ok("Container check result for ID " + id + ": " + (result[0] ? "success" : "failure"));
-    }
+//    @GetMapping("/removeContainerCheck") // continaer 가 꺼진지 켜진지 check 값 보내주는 api로 만들면되려나?
+//    @Operation(description = "컨테이너 삭제 체크")
+//    public ResponseEntity<String> removeContainer(@RequestParam("id") String id) {
+//        //https://camel-context.tistory.com/20
+//        CountDownLatch latch = new CountDownLatch(1);
+//
+//        final boolean[] result = new boolean[1];
+//
+//        // 비동기 작업을 별도로 처리하는 CompletableFuture 생성
+//        CompletableFuture.runAsync(() -> {
+//            dockerScheduler.addContainerCheckList(id, new DockerScheduler.ContainContainerCallBack() {
+//                @Override
+//                public void containerCheckResult(boolean checkResult, Container container) {
+//                    try {
+//                        dockerScheduler.removeImageCheckList(id);
+//                        /**
+//                         * 못찾으면 삭제된 것 ( 혹은 잘못넣은 id 일지도?)
+//                         * 실제 api는 선행적으로 리스트 체크가 필요
+//                         * provider.getContainerList() or imageList
+//                         * */
+//                        result[0] = !checkResult;
+//
+//                        latch.countDown(); // 비동기 작업 완료를 알림
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        });
+//
+//        provider.removeContainer(id);
+//
+//        try {
+//            latch.await(); // 비동기 작업 완료 대기
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Error occurred during container check.");
+//        }
+//
+//        return ResponseEntity.ok("Container check result for ID " + id + ": " + (result[0] ? "success" : "failure"));
+//    }
 
     @PostMapping("/stopContainer") // 완료
     @Operation(description = "컨테이너 스탑")
