@@ -111,19 +111,28 @@ public class DockerProvider {
 //        image.exec(callback);
 //    }
 
+    public String listContainers(HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        List<String> containerIds = containerRepository.findContainerIdsByUserId(userId);
+
+        if (containerIds.isEmpty()) {
+            return "You don't have any containers :(";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("containers.size() : ").append(containerIds.size()).append("\n");
+        for (String containerId : containerIds) {
+            sb.append(containerId).append("\n");
+        }
+        return sb.toString();
+    }
+
     public void taggingImage(String imageId, String name, String tag) {
         dockerClient.tagImageCmd(imageId, name, tag).exec();
     }
-
-    private void saveImageEntity(String key, UserEntity user) {
-        ImageEntity imageEntity = ImageEntity.builder()
-                .user(user)
-                .variableKey(key)
-                .build();
-
-        imageRepository.save(imageEntity);
-    }
-
 
     // 이미지를 빌드를 한다 -> 도커 스케쥴러에서 이미지가 있는지 체크한다 -> 이미지 빌드가 다되면 스케쥴러에서 디비에 넣어준다. 유저는 어떻게 넣지
     public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
@@ -159,6 +168,13 @@ public class DockerProvider {
                         taggingImage(item.getImageId(), name, tag);
                         callback.getImageId(item.getImageId());
                     }
+                    ImageEntity imageEntity = ImageEntity.builder()
+                            .user(userPk)
+                            .imageId(item.getImageId())
+                            .variableKey(key)
+                            .build();
+
+                    imageRepository.save(imageEntity);
                 }
             });
         } catch (Exception e) {

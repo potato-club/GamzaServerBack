@@ -18,7 +18,6 @@ public class SwaggerConfig {
                 .scheme("bearer");
     }
 
-
     private OpenApiCustomizer createOpenApiCustomizer(String title, String version) {
         return openApi -> {
             openApi.info(new Info().title(title).version(version));

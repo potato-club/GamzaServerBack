@@ -17,6 +17,7 @@ import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.DockerScheduler;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,14 @@ public class DockerTestController {
     @Autowired
     private DockerProvider dockerProvider;
 
+    @GetMapping("/list") // 도커리스트 출력
+    @Operation(description = "도커 리스트 출력")
+    public String something(HttpServletRequest request) {
+        return provider.listContainers(request);
+    }
+
     @PostMapping("/buildImage") /// 변수만 수정
+    @Operation(description = "이미지 빌드")
     public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
 
         File dockerfile = new File(dto.getDockerfilePath());
@@ -71,8 +79,15 @@ public class DockerTestController {
         }
     }
 
+    @PostMapping("/create/container")
+    @Operation(description = "컨테이너 생성")
+    public String create(@RequestBody RequestDockerContainerDto requestDockerContainerDto, HttpServletRequest request) {
+        return provider.createContainer(requestDockerContainerDto, request);
+    }
+
 
     @GetMapping("/logs/{containerId}")
+    @Operation(description = "컨테이너 로그")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
                                          @RequestParam(value = "lines", defaultValue = "100") int lines) {
         return provider.getContainerLogs(containerId, lines);
@@ -85,13 +100,8 @@ public class DockerTestController {
 //        return provider.updateNginxConfig(containerId, port, cname);
 //    }
 
-
-    @PostMapping("/create")
-    public String create(@RequestBody RequestDockerContainerDto requestDockerContainerDto, HttpServletRequest request) {
-        return provider.createContainer(requestDockerContainerDto, request);
-    }
-
     @PostMapping("/removeImage")
+    @Operation(description = "이미지 삭제")
     public ResponseEntity<String> removeImage(@RequestBody RequestDockerImageDeleteDto dto, HttpServletRequest request) {
         provider.removeImage(dto.getImageId(), request);
         return ResponseEntity.status(HttpStatus.OK).body("Success Delete Image");
@@ -137,6 +147,7 @@ public class DockerTestController {
 
 
     @GetMapping("/removeContainerCheck") // continaer 가 꺼진지 켜진지 check 값 보내주는 api로 만들면되려나?
+    @Operation(description = "컨테이너 삭제 체크")
     public ResponseEntity<String> removeContainer(@RequestParam("id") String id) {
         //https://camel-context.tistory.com/20
         CountDownLatch latch = new CountDownLatch(1);
@@ -179,6 +190,7 @@ public class DockerTestController {
     }
 
     @PostMapping("/stopContainer") // 완료
+    @Operation(description = "컨테이너 스탑")
     public ResponseEntity<String> stopContainer(@RequestBody RequestDockerContainerDeleteDto dto, HttpServletRequest request) {
         provider.stopContainer(request, dto.getContainerId());
         return ResponseEntity.status(HttpStatus.OK).body("Container Stop And Delete in DB");
@@ -228,14 +240,14 @@ public class DockerTestController {
 //        return provider.createContainer("test_name", "8082", "80", "1.0.0");
 //    }
 
-    @GetMapping("/checker")
-    public String checker() {
-        //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
-        //3c74c4202325
-//        return provider.createContainer("test_name", "8082", "80", "1.0.0");
-        System.out.println("is null ? : " + (DockerDataStore.getInstance().getDockerClient() == null));
-        System.out.println("is null ? : " + (dockerProvider == null));
-        System.out.println("is null ? : " + (dockerScheduler == null));
-        return "return";
-    }
+//    @GetMapping("/checker")
+//    public String checker() {
+//        //f19b857088ef7ebb0e7c6f144391add30ba0d457ed1ce6f4973eba152a837b94
+//        //3c74c4202325
+////        return provider.createContainer("test_name", "8082", "80", "1.0.0");
+//        System.out.println("is null ? : " + (DockerDataStore.getInstance().getDockerClient() == null));
+//        System.out.println("is null ? : " + (dockerProvider == null));
+//        System.out.println("is null ? : " + (dockerScheduler == null));
+//        return "return";
+//    }
 }
