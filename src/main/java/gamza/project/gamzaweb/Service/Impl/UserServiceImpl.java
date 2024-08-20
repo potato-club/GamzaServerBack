@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -64,7 +66,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void setTokenInHeader(String  email, HttpServletResponse response) {
+    public void setTokenInHeader(String email, HttpServletResponse response) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("5003", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION));
 
@@ -75,6 +77,21 @@ public class UserServiceImpl implements UserService {
 
         jwtTokenProvider.setHeaderAccessToken(response, accessToken);
         jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
+    }
+
+    @Override
+    public void approve(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String role = jwtTokenProvider.extractRole(token);
+        System.out.println("role : " + role); // admin 0, member 1, user 2
+
+        if(!role.equals("0")) {
+            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        Optional<UserEntity> user = userRepository.findById(id);
+        user.get().approveUserStatus(); // USER -> MEMBER
+
     }
 
 

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +38,13 @@ public class UserController {
     public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse response) {
         userService.reissueToken(request, response);
         return ResponseEntity.ok().body("Success reissue Token!");
+    }
+
+    @PostMapping("/approve/{id}")
+    @Operation(description = "유저 권한 승인")
+    public ResponseEntity<String> approve(HttpServletRequest request, @PathVariable("id") Long id) {
+        userService.approve(request,id);
+        return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
     }
 
 }

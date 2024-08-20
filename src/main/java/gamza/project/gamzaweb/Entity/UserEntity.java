@@ -46,4 +46,8 @@ public class UserEntity extends BaseTime {
 
     @OneToMany(mappedBy = "user")
     private List<ContainerEntity> containerEntities;
+
+    public void approveUserStatus() {
+        this.userRole = UserRole.MEMBER;
+    }
 }
