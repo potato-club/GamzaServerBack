@@ -19,6 +19,7 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerContainerDto;
 import gamza.project.gamzaweb.Dto.docker.RequestDockerImageDto;
 import gamza.project.gamzaweb.Entity.ContainerEntity;
@@ -36,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -63,6 +65,7 @@ public class DockerProvider {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final ContainerRepository containerRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 //    private final DockerScheduler dockerScheduler;
 
     public List<Container> getContainerList() {
@@ -141,6 +144,13 @@ public class DockerProvider {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
+        ImageEntity imageEntity = ImageEntity.builder()
+                .user(userPk)
+                .name(name)
+                .variableKey(key)
+                .build();
+        imageRepository.save(imageEntity);
+
         if (name != null && tag != null) {
             List<Image> existingImages = dockerClient.listImagesCmd().exec();
             boolean imageExists = existingImages.stream()
@@ -164,17 +174,16 @@ public class DockerProvider {
                 public void onNext(BuildResponseItem item) {
                     super.onNext(item);
                     System.out.println("onNext: " + item.getImageId());
+                    System.out.println("error: " + item.isErrorIndicated()); // 이거던져주면됨 error
                     if (item.getImageId() != null) {
                         taggingImage(item.getImageId(), name, tag);
                         callback.getImageId(item.getImageId());
-                    }
-                    ImageEntity imageEntity = ImageEntity.builder()
-                            .user(userPk)
-                            .imageId(item.getImageId())
-                            .variableKey(key)
-                            .build();
 
-                    imageRepository.save(imageEntity);
+                        ImageBuildEventDto event = new ImageBuildEventDto(
+                                userPk, item.getImageId(),  name, key
+                        );
+                        applicationEventPublisher.publishEvent(event);
+                    }
                 }
             });
         } catch (Exception e) {

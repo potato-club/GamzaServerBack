@@ -122,7 +122,7 @@ public class JwtTokenProvider {
 
     public String extractTokenType(String token){
         JsonElement tokenType = extractValue(token).get("tokenType");
-        return tokenType.getAsString();
+        return tokenType.getAsString(); // 0  1  2
     }
 
     public String resolveAccessToken(HttpServletRequest request) {

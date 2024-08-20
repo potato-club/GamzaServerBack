@@ -14,4 +14,6 @@ public interface UserService {
     void reissueToken(HttpServletRequest request, HttpServletResponse response);
 
     void setTokenInHeader(String email, HttpServletResponse response);
+
+    void approve(HttpServletRequest request, Long id);
 }
