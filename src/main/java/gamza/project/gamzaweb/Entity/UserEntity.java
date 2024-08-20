@@ -32,7 +32,7 @@ public class UserEntity extends BaseTime {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10)
     private UserRole userRole;
 
     @Column(length = 30)
