@@ -1,7 +1,6 @@
 package gamza.project.gamzaweb;
 
 import gamza.project.gamzaweb.dctutil.DockerProvider;
-import gamza.project.gamzaweb.dctutil.DockerScheduler;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;

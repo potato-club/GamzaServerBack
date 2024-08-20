@@ -63,7 +63,7 @@ public class DockerProvider {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final ContainerRepository containerRepository;
-    private final DockerScheduler dockerScheduler;
+//    private final DockerScheduler dockerScheduler;
 
     public List<Container> getContainerList() {
         return dockerClient.listContainersCmd().exec();
