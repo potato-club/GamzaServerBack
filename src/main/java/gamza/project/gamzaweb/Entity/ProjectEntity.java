@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProjectEntity extends BaseTime{
+public class ProjectEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,8 +39,8 @@ public class ProjectEntity extends BaseTime{
     @JoinColumn(name = "user_id")
     private UserEntity leader;
 
-    private LocalDateTime startedDate;
-    private LocalDateTime endedDate;
+    private LocalDate startedDate;
+    private LocalDate endedDate;
 
 //    private ApplicationEntity content;
 
