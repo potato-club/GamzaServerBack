@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
-@CrossOrigin(originPatterns = "http://localhost:3000, localhost:3000")
+@CrossOrigin(origins = "${cors.allowed-origins}")
 public class DockerController {
 
     @GetMapping("/test")

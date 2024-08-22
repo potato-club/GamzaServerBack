@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/project")
 @RequiredArgsConstructor
-@CrossOrigin(originPatterns = "http://localhost:3000, localhost:3000")
+@CrossOrigin(origins = "${cors.allowed-origins}")
 public class ProjectController {
 
     private final ProjectService projectService;

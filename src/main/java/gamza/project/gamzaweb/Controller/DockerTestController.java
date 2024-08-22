@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/doc")
-@CrossOrigin(originPatterns = "http://localhost:3000, localhost:3000")
+@CrossOrigin(origins = "${cors.allowed-origins}")
 public class DockerTestController {
 
     @Autowired
