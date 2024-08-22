@@ -5,6 +5,8 @@ import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
 import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
 import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
 import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,15 +38,25 @@ public class ProjectController {
     @PostMapping("/create")
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(HttpServletRequest request, @RequestBody ProjectRequestDto dto) {
-        projectService.createProject(request, dto);
-        return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
+        try {
+            projectService.createProject(request, dto);
+            return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 생성 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
     }
 
     @PutMapping("/update/{id}")
     @Operation(description = "프로젝트 수정(zip, port 제외한 나머지 값들")
     public ResponseEntity<String> updateProject(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody ProjectUpdateRequestDto dto) {
-        projectService.updateProject(request, dto, id);
-        return ResponseEntity.ok().body("프로젝트가 수정되었습니다.");
+        try {
+            projectService.updateProject(request, dto, id);
+            return ResponseEntity.ok().body("프로젝트가 수정되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 수정 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
     }
 
 
