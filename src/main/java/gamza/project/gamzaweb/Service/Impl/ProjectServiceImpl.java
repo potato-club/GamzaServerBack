@@ -3,6 +3,7 @@ package gamza.project.gamzaweb.Service.Impl;
 import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
 import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
 import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
+import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
@@ -50,12 +51,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     public ProjectListResponseDto getAllProject(Pageable pageable) {
-        // 프로젝트를 페이지네이션하여 조회
         Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
 
-        // 프로젝트가 없을 경우 예외 처리
         if (projectPage.isEmpty()) {
-            throw new ForbiddenException("Project doesn't exist", ErrorCode.FORBIDDEN_EXCEPTION);
+            throw new ForbiddenException("Project doesn't exist", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         List<ProjectResponseDto> collect = projectPage.getContent().stream()
@@ -71,8 +70,28 @@ public class ProjectServiceImpl implements ProjectService {
         // ProjectListResponseDto 반환
         return ProjectListResponseDto.builder()
                 .size(collect.size())
-                .contents(collect)  // 'projects' 대신 'content'로 수정
+                .contents(collect)
                 .build();
+    }
+
+    @Override
+    public void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId).orElseThrow(() ->
+                new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+        ProjectEntity project = projectRepository.findById(id).orElseThrow(() ->
+                new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+
+        if (!project.getLeader().getId().equals(userId)) {
+            throw new ForbiddenException("이 프로젝트를 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate());
+        projectRepository.save(project);
+
     }
 }
 

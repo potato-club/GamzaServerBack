@@ -4,6 +4,9 @@ package gamza.project.gamzaweb.Controller;
 import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
 import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
 import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
+import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +26,7 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping("/list")
+    @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
     public ProjectListResponseDto allProjectList(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "4") int size) {
@@ -34,7 +38,29 @@ public class ProjectController {
     @PostMapping("/create")
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(HttpServletRequest request, @RequestBody ProjectRequestDto dto) {
-        projectService.createProject(request, dto);
-        return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
+        try {
+            projectService.createProject(request, dto);
+            return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 생성 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
     }
+
+    @PutMapping("/update/{id}")
+    @Operation(description = "프로젝트 수정(zip, port 제외한 나머지 값들")
+    public ResponseEntity<String> updateProject(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody ProjectUpdateRequestDto dto) {
+        try {
+            projectService.updateProject(request, dto, id);
+            return ResponseEntity.ok().body("프로젝트가 수정되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 수정 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
+    }
+
+
+//    @GetMapping("/user/list")
+//    @Operation(description = "회원이 만든 프로젝트 출력")
+//    public
 }
