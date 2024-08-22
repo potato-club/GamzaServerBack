@@ -28,7 +28,7 @@ public class RequestUserSignUpDto {
                 .givenName(givenName)
                 .email(email)
                 .password(password)
-                .userRole(UserRole.USER) // default ROLE_USER
+                .userRole(UserRole.USER)
                 .major(major)
                 .student_number(student_number)
                 .build();

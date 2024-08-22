@@ -19,6 +19,8 @@ public class UserController {
 
     private final UserService userService;
 
+    // 유저 회원가입 미승인 리스트 GET API add  -> admin
+
     @PostMapping("/signup")
     @Operation(description = "회원 가입")
     public ResponseEntity<String> signUp(@RequestBody RequestUserSignUpDto dto, HttpServletResponse response) {

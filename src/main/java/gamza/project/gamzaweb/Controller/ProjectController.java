@@ -21,6 +21,8 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
+    // 프로젝트 미승인 전체조회 GET API add  -> admin
+
     @GetMapping("/list")
     @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
     public ProjectListResponseDto allProjectList(
@@ -54,7 +56,6 @@ public class ProjectController {
         }
 
     }
-
 
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
