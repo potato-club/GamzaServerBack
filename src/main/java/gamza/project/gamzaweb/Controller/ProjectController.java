@@ -1,17 +1,13 @@
 package gamza.project.gamzaweb.Controller;
 
 
-import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
-import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -60,7 +56,14 @@ public class ProjectController {
     }
 
 
-//    @GetMapping("/user/list")
-//    @Operation(description = "회원이 만든 프로젝트 출력")
-//    public
+    @GetMapping("/user/list")
+    @Operation(description = "회원이 만든 프로젝트 출력")
+    public ProjectListPerResponseDto personalProject(
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return projectService.personalProject(pageable, request);
+    }
 }
