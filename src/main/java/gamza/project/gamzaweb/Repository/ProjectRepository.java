@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Repository;
 
 import gamza.project.gamzaweb.Entity.ProjectEntity;
+import gamza.project.gamzaweb.Entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,5 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
     Page<ProjectEntity> findByOrderByUpdatedDateDesc(Pageable pageable);
+
 }

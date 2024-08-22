@@ -4,6 +4,7 @@ package gamza.project.gamzaweb.Controller;
 import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
 import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
 import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
+import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping("/list")
+    @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
     public ProjectListResponseDto allProjectList(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "4") int size) {
@@ -37,4 +39,16 @@ public class ProjectController {
         projectService.createProject(request, dto);
         return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
     }
+
+    @PutMapping("/update/{id}")
+    @Operation(description = "프로젝트 수정(zip, port 제외한 나머지 값들")
+    public ResponseEntity<String> updateProject(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody ProjectUpdateRequestDto dto) {
+        projectService.updateProject(request, dto, id);
+        return ResponseEntity.ok().body("프로젝트가 수정되었습니다.");
+    }
+
+
+//    @GetMapping("/user/list")
+//    @Operation(description = "회원이 만든 프로젝트 출력")
+//    public
 }

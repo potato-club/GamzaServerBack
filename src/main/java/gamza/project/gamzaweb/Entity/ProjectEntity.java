@@ -42,6 +42,13 @@ public class ProjectEntity extends BaseTime {
     private LocalDate startedDate;
     private LocalDate endedDate;
 
+    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
+        this.name = name;
+        this.description = description;
+        this.state = state;
+        this.startedDate = startedDate;
+        this.endedDate = endedDate;
+    }
 //    private ApplicationEntity content;
 
 //    private List<FileEntity> images = new ArrayList<>(); // 추후 추가
