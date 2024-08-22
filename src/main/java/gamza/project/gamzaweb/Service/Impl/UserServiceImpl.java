@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
+        
         UserEntity user = dto.toEntity();
         userRepository.save(user);
     }

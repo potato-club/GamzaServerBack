@@ -14,4 +14,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
     Page<ProjectEntity> findByOrderByUpdatedDateDesc(Pageable pageable);
 
+    Page<ProjectEntity> findByLeaderOrderByUpdatedDateDesc(UserEntity user, Pageable pageable);
+
 }

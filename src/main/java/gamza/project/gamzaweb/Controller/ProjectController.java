@@ -1,17 +1,13 @@
 package gamza.project.gamzaweb.Controller;
 
 
-import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
-import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 public class ProjectController {
 
     private final ProjectService projectService;
+
+    // 프로젝트 미승인 전체조회 GET API add  -> admin
 
     @GetMapping("/list")
     @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
@@ -59,8 +57,14 @@ public class ProjectController {
 
     }
 
+    @GetMapping("/user/list")
+    @Operation(description = "회원이 만든 프로젝트 출력")
+    public ProjectListPerResponseDto personalProject(
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
 
-//    @GetMapping("/user/list")
-//    @Operation(description = "회원이 만든 프로젝트 출력")
-//    public
+        Pageable pageable = PageRequest.of(page, size);
+        return projectService.personalProject(pageable, request);
+    }
 }

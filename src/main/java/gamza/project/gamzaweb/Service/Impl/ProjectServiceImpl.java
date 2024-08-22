@@ -1,9 +1,6 @@
 package gamza.project.gamzaweb.Service.Impl;
 
-import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
-import gamza.project.gamzaweb.Dto.project.ProjectResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
@@ -54,7 +51,7 @@ public class ProjectServiceImpl implements ProjectService {
         Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
 
         if (projectPage.isEmpty()) {
-            throw new ForbiddenException("Project doesn't exist", ErrorCode.FAILED_PROJECT_ERROR);
+            throw new ForbiddenException("프로젝트가 존재하지 않습니다.", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         List<ProjectResponseDto> collect = projectPage.getContent().stream()
@@ -71,6 +68,29 @@ public class ProjectServiceImpl implements ProjectService {
         return ProjectListResponseDto.builder()
                 .size(collect.size())
                 .contents(collect)
+                .build();
+    }
+
+    @Override
+    public ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId).orElseThrow(() ->
+                new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+
+        Page<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user, pageable);
+
+        // ProjectEntity 리스트를 ProjectPerResponseDto 리스트로 변환
+        List<ProjectPerResponseDto> projectDtos = projects.stream()
+                .map(project -> new ProjectPerResponseDto(project.getName()))
+                .collect(Collectors.toList());
+
+        // ProjectListPerResponseDto 생성 및 반환
+        return ProjectListPerResponseDto.builder()
+                .size(projectDtos.size())
+                .contents(projectDtos)
                 .build();
     }
 
