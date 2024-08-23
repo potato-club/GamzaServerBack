@@ -22,7 +22,7 @@ public class ApplicationEntity {
 //    @JoinColumn(name = "user_id")
 //    private UserEntity user;
 
-//    private String imageId;
+//    private String imageId; // zip
 
 //    private String containerId;
 

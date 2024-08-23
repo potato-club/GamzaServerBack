@@ -112,7 +112,6 @@ public class UserServiceImpl implements UserService {
         Page<UserEntity> userEntities = userRepository.findByUserRole(UserRole.USER, pageable);
 
         return userEntities.map(ResponseNotApproveDto::new);
-
     }
 
 

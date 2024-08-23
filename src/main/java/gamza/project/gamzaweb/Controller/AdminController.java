@@ -1,6 +1,8 @@
 package gamza.project.gamzaweb.Controller;
 
 import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.project.ProjectListNotApproveResponse;
+import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
+    private final ProjectService projectService;
 
     @PostMapping("/approve/{id}")
     @Operation(description = "유저 권한 승인")
@@ -36,5 +39,16 @@ public class AdminController {
         Pageable pageable = PageRequest.of(page, size);
         return userService.approveList(request, pageable);
 
+    }
+
+    @GetMapping("/project/approve/list")
+    @Operation(description = "미승인 프로젝트 리스트 출력")
+    public Page<ProjectListNotApproveResponse> approveProjectList(
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return projectService.notApproveProjectList(request, pageable);
     }
 }

@@ -1,10 +1,8 @@
 package gamza.project.gamzaweb.Service.Interface;
 
-import gamza.project.gamzaweb.Dto.project.ProjectListPerResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectListResponseDto;
-import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
-import gamza.project.gamzaweb.Dto.project.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.Dto.project.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProjectService {
@@ -16,4 +14,6 @@ public interface ProjectService {
     ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request);
 
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
+
+    Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
 }

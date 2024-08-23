@@ -5,6 +5,7 @@ import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
+import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
@@ -41,6 +42,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .state(dto.getState())
+                .approveState(false)
                 .build();
 
         projectRepository.save(project);
@@ -84,7 +86,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         // ProjectEntity 리스트를 ProjectPerResponseDto 리스트로 변환
         List<ProjectPerResponseDto> projectDtos = projects.stream()
-                .map(project -> new ProjectPerResponseDto(project.getName()))
+                .map(project -> new ProjectPerResponseDto(project.getName(), project.isApproveState()))
                 .collect(Collectors.toList());
 
         // ProjectListPerResponseDto 생성 및 반환
@@ -113,5 +115,22 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(project);
 
     }
+
+    @Override
+    public Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+
+        if(!userRole.equals("0")) {
+            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        Page<ProjectEntity> projectEntities = projectRepository.findByApproveState(false, pageable);
+
+        return projectEntities.map(ProjectListNotApproveResponse::new);
+
+         // 이거 리스트 만들기 전에 프로젝트 승인해주는 api 먼저 만들기
+    }
+
 }
 

@@ -42,6 +42,9 @@ public class ProjectEntity extends BaseTime {
     private LocalDate startedDate;
     private LocalDate endedDate;
 
+    @Column(nullable = false)
+    private boolean approveState; // -> 프로젝트 승인 상태
+
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;
         this.description = description;
