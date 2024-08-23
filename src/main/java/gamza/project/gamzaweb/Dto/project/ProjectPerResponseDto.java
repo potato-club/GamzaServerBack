@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class ProjectPerResponseDto {
 
     private String name;
+    private boolean approveState;
 //    private int internalPort;
 //    private String zip;
 }

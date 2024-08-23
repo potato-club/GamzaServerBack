@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.Service.Impl;
 
 import gamza.project.gamzaweb.Dto.User.RequestUserLoginDto;
 import gamza.project.gamzaweb.Dto.User.RequestUserSignUpDto;
+import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
@@ -14,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +39,7 @@ public class UserServiceImpl implements UserService {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
-        
+
         UserEntity user = dto.toEntity();
         userRepository.save(user);
     }
@@ -95,6 +98,20 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
+    }
+
+    @Override
+    public Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+
+        if(!userRole.equals("0")) {
+            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        Page<UserEntity> userEntities = userRepository.findByUserRole(UserRole.USER, pageable);
+
+        return userEntities.map(ResponseNotApproveDto::new);
     }
 
 
