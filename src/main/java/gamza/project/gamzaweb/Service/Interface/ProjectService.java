@@ -16,4 +16,6 @@ public interface ProjectService {
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
 
     Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
+
+    void approveCreateProject(HttpServletRequest request, Long id);
 }

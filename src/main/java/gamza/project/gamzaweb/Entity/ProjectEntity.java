@@ -52,6 +52,10 @@ public class ProjectEntity extends BaseTime {
         this.startedDate = startedDate;
         this.endedDate = endedDate;
     }
+
+    public void approveCreateProject() {
+        this.approveState = true;
+    }
 //    private ApplicationEntity content;
 
 //    private List<FileEntity> images = new ArrayList<>(); // 추후 추가

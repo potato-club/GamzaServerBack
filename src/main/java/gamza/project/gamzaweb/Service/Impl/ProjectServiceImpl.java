@@ -4,6 +4,7 @@ import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
 import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
@@ -130,6 +131,26 @@ public class ProjectServiceImpl implements ProjectService {
         return projectEntities.map(ProjectListNotApproveResponse::new);
 
          // 이거 리스트 만들기 전에 프로젝트 승인해주는 api 먼저 만들기
+    }
+
+    @Override
+    public void approveCreateProject(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(()-> new BadRequestException("4001 NOT FOUND PROJECT", ErrorCode.FAILED_PROJECT_ERROR));
+
+        if(!userRole.equals("0")) {
+            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        if(project.isApproveState()) {
+            throw new BadRequestException("4001 PROJECT ALREADY APPROVE", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
+        project.approveCreateProject();
+        projectRepository.save(project);
     }
 
 }

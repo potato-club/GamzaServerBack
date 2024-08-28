@@ -38,6 +38,8 @@ public class UserServiceImpl implements UserService {
         if(userRepository.existsByEmail(dto.getEmail())) {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
+
+        // 학번 중복 오류
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         UserEntity user = dto.toEntity();
