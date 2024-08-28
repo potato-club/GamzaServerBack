@@ -30,7 +30,7 @@ public class RequestUserSignUpDto {
                 .password(password)
                 .userRole(UserRole.USER)
                 .major(major)
-                .student_number(student_number)
+                .studentId(student_number)
                 .build();
     }
 

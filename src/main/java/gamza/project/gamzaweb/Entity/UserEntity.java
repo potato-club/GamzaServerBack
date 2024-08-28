@@ -39,7 +39,7 @@ public class UserEntity {
     private String major;
 
     @Column(nullable = false, unique = true)
-    private String student_number;
+    private String studentId;
 
     @OneToMany(mappedBy = "leader")
     private List<ProjectEntity> projects;
