@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
 
-        if(userRepository.existsByStudentId(dto.getStudent_number())) {
+        if(userRepository.existsByStudentId(dto.getStudentId())) {
             throw new BadRequestException("There is a duplicate student number.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 

@@ -74,9 +74,9 @@ public class DockerTestController {
     @Operation(description = "이미지 빌드")
     public String buildImage(
             @RequestPart("file") MultipartFile file, // zip 파일 수신
-            @RequestParam("name") String name,        // 이미지 이름
-            @RequestParam("tag") String tag,          // 태그
-            @RequestParam("key") String key,
+            @RequestPart("name") String name,        // 이미지 이름
+            @RequestPart("tag") String tag,          // 태그
+            @RequestPart("key") String key,
             HttpServletRequest request) {
 
         // 압축 파일을 임시 디렉토리에 저장
