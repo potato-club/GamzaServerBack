@@ -44,6 +44,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(dto.getDescription())
                 .state(dto.getState())
                 .approveState(false)
+                .approveFixedState(true)
                 .build();
 
         projectRepository.save(project);

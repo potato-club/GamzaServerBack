@@ -10,14 +10,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -43,27 +48,71 @@ public class DockerTestController {
         return provider.listContainers(request);
     }
 
-    @PostMapping("/buildImage") /// 변수만 수정
-    @Operation(description = "이미지 빌드")
-    public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
+//    @PostMapping("/buildImage") /// 변수만 수정
+//    @Operation(description = "이미지 빌드")
+//    public String buildImage(@RequestBody RequestDockerImageDto dto, HttpServletRequest request) {
+//
+//        File dockerfile = new File(dto.getDockerfilePath());
+//        CompletableFuture<String> result = new CompletableFuture<>();
+//
+//        provider.buildImage(request, dockerfile, dto.getName(), dto.getTag(), dto.getKey(), new DockerProvider.DockerProviderBuildCallback() {
+//            @Override
+//            public void getImageId(String imageId) {
+//                result.complete(imageId);
+//            }
+//        });
+//
+//        try {
+//            return result.get();
+//        } catch (InterruptedException | ExecutionException e) {
+////            e.printStackTrace();
+//            return e.getLocalizedMessage();
+//        }
+//    }
 
-        File dockerfile = new File(dto.getDockerfilePath());
+    @PostMapping(value = "/buildImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(description = "이미지 빌드")
+    public String buildImage(
+            @RequestPart("file") MultipartFile file, // zip 파일 수신
+            @RequestParam("name") String name,        // 이미지 이름
+            @RequestParam("tag") String tag,          // 태그
+            @RequestParam("key") String key,
+            HttpServletRequest request) {
+
+        // 압축 파일을 임시 디렉토리에 저장
+        Path tempDir;
+        try {
+            tempDir = Files.createTempDirectory("dockerfile-build");
+            dockerProvider.unzip(file, tempDir); // 압축 파일 해제
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to process zip file", e);
+        }
+
+        // Dockerfile 경로 설정
+        File dockerfile = new File(tempDir.toFile(), "Dockerfile");
+        if (!dockerfile.exists()) {
+            throw new IllegalArgumentException("Dockerfile not found in the zip archive");
+        }
+
+        // 비동기 작업을 위한 CompletableFuture
         CompletableFuture<String> result = new CompletableFuture<>();
 
-        provider.buildImage(request, dockerfile, dto.getName(), dto.getTag(), dto.getKey(), new DockerProvider.DockerProviderBuildCallback() {
+        // Docker 이미지를 빌드
+        provider.buildImage(request, dockerfile, name,tag,key, new DockerProvider.DockerProviderBuildCallback() {
             @Override
             public void getImageId(String imageId) {
                 result.complete(imageId);
             }
         });
 
+        // 이미지 빌드 결과 반환
         try {
             return result.get();
         } catch (InterruptedException | ExecutionException e) {
-//            e.printStackTrace();
             return e.getLocalizedMessage();
         }
     }
+
 
     @PostMapping("/create/container")
     @Operation(description = "컨테이너 생성")
