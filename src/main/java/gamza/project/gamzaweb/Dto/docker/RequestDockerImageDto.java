@@ -10,7 +10,7 @@ public class RequestDockerImageDto {
     private String name;
     private String tag;
     private String key;
-    private String dockerfilePath;
+//    private String dockerfilePath;
 
     public ApplicationEntity toEntity() {
         return ApplicationEntity.builder()

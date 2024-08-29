@@ -45,6 +45,11 @@ public class ProjectController {
 
     }
 
+    // zip 압축 푸는거 먼저 해야할듯
+    // 프로젝트 수정 요청 허가 api 나머지값들 / zip, 수정하는 api
+    // 프로젝트 zip, port 제외한 나머지 값들 수정 요청하는 API PUT MAPPING
+    // 프로젝트 zip, port만 수정 요청하는 api PUT MAPPING
+
     @PutMapping("/update/{id}")
     @Operation(description = "프로젝트 수정(zip, port 제외한 나머지 값들")
     public ResponseEntity<String> updateProject(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody ProjectUpdateRequestDto dto) {

@@ -39,16 +39,20 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
@@ -191,6 +195,36 @@ public class DockerProvider {
         }
 
     }
+
+    public Path unzip(MultipartFile file, Path destDir) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                Path newPath = zipSlipProtect(zipEntry, destDir); // 보안 검사를 통해 zip 파일 내 경로 검사
+                if (zipEntry.isDirectory()) {
+                    Files.createDirectories(newPath);
+                } else {
+                    // 파일 해제
+                    Files.createDirectories(newPath.getParent());
+                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+        }
+        return destDir;
+    }
+
+    // zip 파일 내부 경로 보안을 위한 메서드
+    private Path zipSlipProtect(ZipEntry zipEntry, Path destDir) throws IOException {
+        Path targetDirResolved = destDir.resolve(zipEntry.getName());
+        Path normalizePath = targetDirResolved.normalize();
+        if (!normalizePath.startsWith(destDir)) {
+            throw new IOException("Bad zip entry: " + zipEntry.getName());
+        }
+        return normalizePath;
+    }
+
 
     public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
 

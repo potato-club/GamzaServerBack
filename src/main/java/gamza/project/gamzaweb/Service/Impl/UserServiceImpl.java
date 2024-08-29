@@ -6,6 +6,7 @@ import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.NotFoundException;
 import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.UserRepository;
@@ -38,6 +39,12 @@ public class UserServiceImpl implements UserService {
         if(userRepository.existsByEmail(dto.getEmail())) {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
+
+        if(userRepository.existsByStudentId(dto.getStudentId())) {
+            throw new BadRequestException("There is a duplicate student number.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        // 학번 중복 오류
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         UserEntity user = dto.toEntity();

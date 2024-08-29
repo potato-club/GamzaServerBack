@@ -19,7 +19,7 @@ public class RequestUserSignUpDto {
     private String password;
     private UserRole userRole;
     private String major;
-    private String student_number;
+    private String studentId;
 
     @Builder
     public UserEntity toEntity() {
@@ -30,7 +30,7 @@ public class RequestUserSignUpDto {
                 .password(password)
                 .userRole(UserRole.USER)
                 .major(major)
-                .student_number(student_number)
+                .studentId(studentId)
                 .build();
     }
 
