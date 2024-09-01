@@ -54,10 +54,6 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectListResponseDto getAllProject(Pageable pageable) {
         Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
 
-        if (projectPage.isEmpty()) {
-            throw new ForbiddenException("프로젝트가 존재하지 않습니다.", ErrorCode.FAILED_PROJECT_ERROR);
-        }
-
         List<ProjectResponseDto> collect = projectPage.getContent().stream()
                 .map(project -> new ProjectResponseDto(
                         project.getName(),
