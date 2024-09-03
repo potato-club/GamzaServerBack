@@ -4,10 +4,11 @@ import gamza.project.gamzaweb.Dto.project.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProjectService {
 
-    void createProject(HttpServletRequest request, ProjectRequestDto dto);
+    void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
 
     ProjectListResponseDto getAllProject(Pageable pageable);
 

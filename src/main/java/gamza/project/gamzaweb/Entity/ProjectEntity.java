@@ -48,6 +48,13 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState;
 
+    @Column()
+    private String zipPath;
+
+    public void updateDockerfilePath(String dockerFilePath) {
+        this.zipPath = dockerFilePath;
+    }
+
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;
         this.description = description;

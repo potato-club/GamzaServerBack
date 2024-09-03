@@ -16,9 +16,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 
 @Service
@@ -30,25 +37,63 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
 
     @Override
-    public void createProject(HttpServletRequest request, ProjectRequestDto dto) {
+    public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
-        ProjectEntity project = ProjectEntity.builder()
-                .startedDate(dto.getStartedDate())
-                .endedDate(dto.getEndedDate())
-                .leader(user)
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .state(dto.getState())
-                .approveState(false)
-                .approveFixedState(true)
-                .build();
+        try {
+            ProjectEntity project = ProjectEntity.builder()
+                    .startedDate(dto.getStartedDate())
+                    .endedDate(dto.getEndedDate())
+                    .leader(user)
+                    .name(dto.getName())
+                    .description(dto.getDescription())
+                    .state(dto.getState())
+                    .approveState(false)
+                    .approveFixedState(true)
+                    .build();
 
-        projectRepository.save(project);
+            projectRepository.save(project);
+            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName());
+            unzipAndSaveDockerfile(file, tempDir, project);
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+        // zip not null Erro
+    }
+
+    private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ProjectEntity project) throws IOException {
+        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+            ZipEntry zipEntry = zis.getNextEntry();
+            while (zipEntry != null) {
+                Path newPath = zipSlipProtect(zipEntry, destDir);
+                if (zipEntry.isDirectory()) {
+                    Files.createDirectories(newPath);
+                } else {
+                    Files.createDirectories(newPath.getParent());
+                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+                if (zipEntry.getName().equalsIgnoreCase("Dockerfile")) {
+                    project.updateDockerfilePath(newPath.toString());
+                    projectRepository.save(project);
+                }
+                zipEntry = zis.getNextEntry();
+            }
+            zis.closeEntry();
+        }
+    }
+
+    private Path zipSlipProtect(ZipEntry zipEntry, Path destDir) throws IOException {
+        Path targetDirResolved = destDir.resolve(zipEntry.getName());
+        Path normalizePath = targetDirResolved.normalize();
+        if (!normalizePath.startsWith(destDir)) {
+            throw new IOException("Bad zip entry: " + zipEntry.getName());
+        }
+        return normalizePath;
     }
 
     public ProjectListResponseDto getAllProject(Pageable pageable) {
@@ -148,7 +193,13 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.approveCreateProject();
         projectRepository.save(project);
+
+        if(project.getZipPath() != null) {
+
+        }
     }
+
+
 
 }
 
