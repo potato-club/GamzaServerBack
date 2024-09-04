@@ -22,7 +22,7 @@ public class ApplicationEntity {
 //    @JoinColumn(name = "user_id")
 //    private UserEntity user;
 
-//    private String imageId; // zip
+    private String imageId; // zip
 
 //    private String containerId;
 
@@ -47,4 +47,8 @@ public class ApplicationEntity {
 
     @Enumerated(EnumType.STRING)
     private ApplicationType type;
+
+    public void updateDockerfilePath(String dockerFilePath) {
+        this.imageId = dockerFilePath;
+    }
 }

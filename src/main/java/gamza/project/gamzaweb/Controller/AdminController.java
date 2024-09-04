@@ -55,7 +55,7 @@ public class AdminController {
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.approveCreateProject(request, id);
+        projectService.approveExecutionApplication(request, id);
         return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
     }
 

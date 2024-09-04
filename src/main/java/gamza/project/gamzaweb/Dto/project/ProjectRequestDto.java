@@ -17,6 +17,4 @@ public class ProjectRequestDto {
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
-//    private String zip;
-//    private int internalPort; // Application
 }
