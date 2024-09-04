@@ -63,7 +63,7 @@ public class ProjectServiceImpl implements ProjectService {
             e.printStackTrace();
             throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
         }
-        // zip not null Erro
+        // zip not null Error
     }
 
     private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ProjectEntity project) throws IOException {

@@ -32,8 +32,8 @@ public class ProjectEntity extends BaseTime {
     @Enumerated(EnumType.STRING)
     private ProjectState state;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProjectLinkEntity> links;
+//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<ProjectLinkEntity> links;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
