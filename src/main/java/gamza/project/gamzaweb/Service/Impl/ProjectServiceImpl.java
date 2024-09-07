@@ -69,36 +69,36 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
-        try {
-            ApplicationEntity application = ApplicationEntity.builder()
-                    .project(ProjectEntity.builder()
-                            .startedDate(dto.getProjectRequestDto().getStartedDate())
-                            .endedDate(dto.getProjectRequestDto().getEndedDate())
-                            .leader(user)
-                            .name(dto.getProjectRequestDto().getName())
-                            .description(dto.getProjectRequestDto().getDescription())
-                            .state(dto.getProjectRequestDto().getState())
-                            .approveState(false)
-                            .approveFixedState(true)
-                            .build())
-                    .project() // -> 한개의 프로젝트에 여러개의 Application이 되어야하는거 아닌가? 질문 후 수정
-                    .type(dto.getApplicationType())
-                    .variableKey(dto.getVariableKey())
-                    .tag(dto.getTag())
-                    .internalPort(dto.getInternalPort())
-                    .name(dto.getName())
-                    .outerPort(80)
-                    .build();
-
-
-            applicationRepository.save(application);
-            Path tempDir = Files.createTempDirectory("dockerfile_project_" + application.getName());
-            unzipAndSaveDockerfile(file, tempDir, application);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
-        }
+//        try {
+//            ApplicationEntity application = ApplicationEntity.builder()
+//                    .project(ProjectEntity.builder()
+//                            .startedDate(dto.getProjectRequestDto().getStartedDate())
+//                            .endedDate(dto.getProjectRequestDto().getEndedDate())
+//                            .leader(user)
+//                            .name(dto.getProjectRequestDto().getName())
+//                            .description(dto.getProjectRequestDto().getDescription())
+//                            .state(dto.getProjectRequestDto().getState())
+//                            .approveState(false)
+//                            .approveFixedState(true)
+//                            .build())
+//                    .project() // -> 한개의 프로젝트에 여러개의 Application이 되어야하는거 아닌가? 질문 후 수정
+//                    .type(dto.getApplicationType())
+//                    .variableKey(dto.getVariableKey())
+//                    .tag(dto.getTag())
+//                    .internalPort(dto.getInternalPort())
+//                    .name(dto.getName())
+//                    .outerPort(80)
+//                    .build();
+//
+//
+//            applicationRepository.save(application);
+//            Path tempDir = Files.createTempDirectory("dockerfile_project_" + application.getName());
+//            unzipAndSaveDockerfile(file, tempDir, application);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
+//        }
         // zip not null Error
     }
 
