@@ -82,7 +82,7 @@ public class DockerProvider {
 
     /**
      * Make Automatically image build and start process
-     * */
+     */
 //    public String imageRegister(File dockerFile, String projectName, String versionName, String outerPort, String innerPort) throws Exception {
 //        if (!dockerFile.exists()) {
 //            throw new NotFoundException("Docker File Not Exist");
@@ -117,7 +117,6 @@ public class DockerProvider {
 //        BuildImageCmd image = dockerClient.buildImageCmd(file);
 //        image.exec(callback);
 //    }
-
     public String listContainers(HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
@@ -184,7 +183,7 @@ public class DockerProvider {
                         callback.getImageId(item.getImageId());
 
                         ImageBuildEventDto event = new ImageBuildEventDto(
-                                userPk, item.getImageId(),  name, key
+                                userPk, item.getImageId(), name, key
                         );
                         applicationEventPublisher.publishEvent(event);
                     }
@@ -269,7 +268,7 @@ public class DockerProvider {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
-        if(userPk == null) {
+        if (userPk == null) {
             throw new UnAuthorizedException("401 ERROR USER NOT FOUNT ", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
@@ -342,7 +341,6 @@ public class DockerProvider {
 
         return logs;
     }
-
 
 
 //    public String updateNginxConfig(String containerId, String port, String cname) {

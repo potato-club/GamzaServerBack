@@ -25,23 +25,28 @@ public class AdminController {
     @PostMapping("/user/approve/{id}")
     @Operation(description = "유저 권한 승인")
     public ResponseEntity<String> approve(HttpServletRequest request, @PathVariable("id") Long id) {
-        userService.approve(request,id);
+        userService.approve(request, id);
         return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
+    }
+
+    @PostMapping("/user/not/approve/{id}")
+    @Operation(description = "유저 승이 삭제")
+    public ResponseEntity<String> notApprove(HttpServletRequest request, @PathVariable("id") Long id) {
+        userService.notApprove(request, id);
+        return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
     }
 
     @GetMapping("/user/approve/list")
     @Operation(description = "미승인 유저 리스트 출력")
     public Page<ResponseNotApproveDto> approveList(
-                HttpServletRequest request,
-                @RequestParam(name = "page", defaultValue = "0") int page,
-                @RequestParam(name = "size", defaultValue = "6") int size) {
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         return userService.approveList(request, pageable);
 
     }
-
-    // 프로젝트 승인 api 추가 -> admin, 프로젝트 수정 미승인 리스트 api 추가, 프로젝트 수정 미승인 승인해주는 api 추가
 
     @GetMapping("/project/approve/list")
     @Operation(description = "미승인 프로젝트 리스트 출력")
@@ -57,7 +62,7 @@ public class AdminController {
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.approveCreateProject(request, id);
+        projectService.approveExecutionApplication(request, id);
         return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
     }
 

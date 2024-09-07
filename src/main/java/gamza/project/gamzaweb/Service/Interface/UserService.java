@@ -20,5 +20,7 @@ public interface UserService {
 
     void approve(HttpServletRequest request, Long id);
 
+    void notApprove(HttpServletRequest request, Long id);
+
     Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable);
 }

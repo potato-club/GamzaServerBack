@@ -1,13 +1,15 @@
 package gamza.project.gamzaweb.Service.Interface;
 
+import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProjectService {
 
-    void createProject(HttpServletRequest request, ProjectRequestDto dto);
+    void createProject(HttpServletRequest request, ApplicationRequestDto dto, MultipartFile file);
 
     ProjectListResponseDto getAllProject(Pageable pageable);
 
@@ -17,5 +19,5 @@ public interface ProjectService {
 
     Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
 
-    void approveCreateProject(HttpServletRequest request, Long id);
+    void approveExecutionApplication(HttpServletRequest request, Long id);
 }

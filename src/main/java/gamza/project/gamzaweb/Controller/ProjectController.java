@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Controller;
 
 
+import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
@@ -10,8 +11,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/project")
@@ -33,16 +36,19 @@ public class ProjectController {
         return projectService.getAllProject(pageable);
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(description = "프로젝트 생성 API")
-    public ResponseEntity<String> createProject(HttpServletRequest request, @RequestBody ProjectRequestDto dto) {
+    public ResponseEntity<String> createProject(
+            @RequestPart("zip") MultipartFile file,
+            @RequestPart("dto") ApplicationRequestDto dto,
+            HttpServletRequest request) {
         try {
-            projectService.createProject(request, dto);
+            projectService.createProject(request, dto, file);
             return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
         } catch (Exception e) {
+            e.printStackTrace();
             throw new BadRequestException("프로젝트 생성 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
         }
-
     }
 
     // zip 압축 푸는거 먼저 해야할듯

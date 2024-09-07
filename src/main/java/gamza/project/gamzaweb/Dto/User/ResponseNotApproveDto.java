@@ -13,11 +13,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ResponseNotApproveDto {
 
+    private Long id;
     private String familyName;
     private String givenName;
     // github link ?
 
     public ResponseNotApproveDto(UserEntity userEntity) {
+        this.id = userEntity.getId();
         this.familyName = userEntity.getFamilyName();
         this.givenName = userEntity.getGivenName();
     }
