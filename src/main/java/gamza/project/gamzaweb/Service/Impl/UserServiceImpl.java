@@ -108,6 +108,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void notApprove(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String role = jwtTokenProvider.extractRole(token);
+
+        if(!role.equals("0")) {
+            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        UserEntity user = userRepository.findById(id).orElseThrow();
+        user.notApproveUserStatus();
+
+        userRepository.save(user);
+    }
+
+    @Override
     public Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         String userRole = jwtTokenProvider.extractRole(token);

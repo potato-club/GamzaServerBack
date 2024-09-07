@@ -29,6 +29,13 @@ public class AdminController {
         return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
     }
 
+    @PostMapping("/user/not/approve/{id}")
+    @Operation(description = "유저 승이 삭제")
+    public ResponseEntity<String> notApprove(HttpServletRequest request, @PathVariable("id") Long id) {
+        userService.notApprove(request, id);
+        return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
+    }
+
     @GetMapping("/user/approve/list")
     @Operation(description = "미승인 유저 리스트 출력")
     public Page<ResponseNotApproveDto> approveList(

@@ -50,4 +50,8 @@ public class UserEntity {
     public void approveUserStatus() {
         this.userRole = UserRole.MEMBER;
     }
+
+    public void notApproveUserStatus() {
+        this.userRole = UserRole.BLACK_USER;
+    }
 }
