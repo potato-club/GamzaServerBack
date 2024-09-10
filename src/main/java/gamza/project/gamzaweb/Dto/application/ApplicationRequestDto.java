@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.Dto.application;
 
-import gamza.project.gamzaweb.Dto.project.ProjectRequestDto;
 import gamza.project.gamzaweb.Entity.Enums.ApplicationType;
+import gamza.project.gamzaweb.Entity.VariableEntity;
 import lombok.*;
 
 @Data
@@ -10,11 +10,11 @@ import lombok.*;
 @Builder
 public class ApplicationRequestDto {
 
-    private ProjectRequestDto projectRequestDto;
+    private String imageId;
     private String name;
     private int internalPort;
     private String tag;
-    private String variableKey;
+    private VariableEntity variableKey;
     private ApplicationType applicationType;
 
 }

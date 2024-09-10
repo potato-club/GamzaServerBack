@@ -40,7 +40,7 @@ public class ProjectController {
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(
             @RequestPart("zip") MultipartFile file,
-            @RequestPart("dto") ApplicationRequestDto dto,
+            @RequestPart("dto") ProjectRequestDto dto,
             HttpServletRequest request) {
         try {
             projectService.createProject(request, dto, file);

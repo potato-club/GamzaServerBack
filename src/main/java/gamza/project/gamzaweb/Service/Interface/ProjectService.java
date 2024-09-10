@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ProjectService {
 
-    void createProject(HttpServletRequest request, ApplicationRequestDto dto, MultipartFile file);
+    void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
 
     ProjectListResponseDto getAllProject(Pageable pageable);
 
