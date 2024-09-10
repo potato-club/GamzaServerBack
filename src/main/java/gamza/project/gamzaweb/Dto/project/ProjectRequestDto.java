@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Dto.project;
 
+import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ProjectRequestDto {
 
+    private ApplicationRequestDto applicationRequestDto;
     private String name;
     private String description;
     private ProjectState state;

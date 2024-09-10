@@ -39,6 +39,10 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id")
     private UserEntity leader;
 
+    @OneToOne()
+    @JoinColumn(name = "application_id", nullable = false)
+    private ApplicationEntity application;
+
     private LocalDate startedDate;
     private LocalDate endedDate;
 
@@ -63,6 +67,9 @@ public class ProjectEntity extends BaseTime {
     public void approveFixedProject() {
         this.approveFixedState = true;
     }
+
+
+
 //    private ApplicationEntity content;
 
 //    private List<FileEntity> images = new ArrayList<>(); // 추후 추가

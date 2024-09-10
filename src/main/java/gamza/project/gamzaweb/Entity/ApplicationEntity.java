@@ -24,8 +24,6 @@ public class ApplicationEntity {
 
     private String imageId; // zip
 
-//    private String containerId;
-
     @Column(length = 30, nullable = false, unique = true)
     private String name;
 
@@ -38,12 +36,9 @@ public class ApplicationEntity {
     @Column(nullable = false)
     private String tag;
 
-    @Column
-    private String variableKey;
-
     @ManyToOne()
-    @JoinColumn(name = "project_id", nullable = false)
-    private ProjectEntity project;
+    @JoinColumn(name = "variableKey_Id")
+    private VariableEntity variableKey;
 
     @Enumerated(EnumType.STRING)
     private ApplicationType type;

@@ -63,46 +63,43 @@ public class ProjectServiceImpl implements ProjectService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
-    public void createProject(HttpServletRequest request, ApplicationRequestDto dto, MultipartFile file) {
+    public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
-//        try {
-//            ApplicationEntity application = ApplicationEntity.builder()
-//                    .project(ProjectEntity.builder()
-//                            .startedDate(dto.getProjectRequestDto().getStartedDate())
-//                            .endedDate(dto.getProjectRequestDto().getEndedDate())
-//                            .leader(user)
-//                            .name(dto.getProjectRequestDto().getName())
-//                            .description(dto.getProjectRequestDto().getDescription())
-//                            .state(dto.getProjectRequestDto().getState())
-//                            .approveState(false)
-//                            .approveFixedState(true)
-//                            .build())
-//                    .project() // -> 한개의 프로젝트에 여러개의 Application이 되어야하는거 아닌가? 질문 후 수정
-//                    .type(dto.getApplicationType())
-//                    .variableKey(dto.getVariableKey())
-//                    .tag(dto.getTag())
-//                    .internalPort(dto.getInternalPort())
-//                    .name(dto.getName())
-//                    .outerPort(80)
-//                    .build();
-//
-//
-//            applicationRepository.save(application);
-//            Path tempDir = Files.createTempDirectory("dockerfile_project_" + application.getName());
-//            unzipAndSaveDockerfile(file, tempDir, application);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
-//        }
+        try {
+            ProjectEntity project = ProjectEntity.builder()
+                    .application(ApplicationEntity.builder()
+                            .imageId(dto.getApplicationRequestDto().getImageId())
+                            .name(dto.getApplicationRequestDto().getName())
+                            .tag(dto.getApplicationRequestDto().getTag())
+                            .variableKey(dto.getApplicationRequestDto().getVariableKey())
+                            .type(dto.getApplicationRequestDto().getApplicationType())
+                            .build())
+                    .name(dto.getName()) // -> 한개의 프로젝트에 여러개의 Application이 되어야하는거 아닌가? 질문 후 수정
+                    .description(dto.getDescription())
+                    .state(dto.getState())
+                    .leader(user)
+                    .name(dto.getName())
+                    .startedDate(dto.getStartedDate())
+                    .endedDate(dto.getEndedDate())
+                    .build();
+
+
+            projectRepository.save(project);
+            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName());
+            unzipAndSaveDockerfile(file, tempDir, project);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
+        }
         // zip not null Error
     }
 
-    private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ApplicationEntity application) throws IOException {
+    private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ProjectEntity project) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
@@ -114,8 +111,8 @@ public class ProjectServiceImpl implements ProjectService {
                     Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
                 }
                 if (zipEntry.getName().equalsIgnoreCase("Dockerfile")) {
-                    application.updateDockerfilePath(newPath.toString());
-                    applicationRepository.save(application);
+                    project.getApplication().updateDockerfilePath(newPath.toString());
+                    projectRepository.save(project);
                 }
                 zipEntry = zis.getNextEntry();
             }
@@ -209,22 +206,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
-        ApplicationEntity application = getApplicationById(id);
-        checkProjectApprovalState(application);
-        updateProjectApprovalState(application);
+        ProjectEntity project = getProjectById(id);
+        checkProjectApprovalState(project);
 
         // Docker 이미지 빌드
-        buildDockerImageFromProjectZip(request, application);
+        buildDockerImageFromApplicationZip(request, project);
     }
 
-    private void buildDockerImageFromProjectZip(HttpServletRequest request, ApplicationEntity application) {
-        if (application.getImageId() == null) {
+    private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
+        if (project.getApplication().getImageId() == null) {
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         try {
-            Path dockerfilePath = extractDockerfileFromZip(application.getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), application.getName(), application.getTag(), application.getVariableKey(), userPk -> {
+            Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
+            buildDockerImage(request, dockerfilePath.toFile(), project.getApplication().getName(), project.getApplication().getTag(), project.getApplication().getVariableKey().getVariableKey() , userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
@@ -320,20 +316,19 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private ApplicationEntity getApplicationById(Long id) {
-        return applicationRepository.findById(id)
+    private ProjectEntity getProjectById(Long id) {
+        return projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("4001 NOT FOUND PROJECT", ErrorCode.FAILED_PROJECT_ERROR));
     }
 
-    private void checkProjectApprovalState(ApplicationEntity application) {
-        if (application.getProject().isApproveState()) {
-            throw new BadRequestException("4001 PROJECT ALREADY APPROVE", ErrorCode.FAILED_PROJECT_ERROR);
-        }
+    private void checkProjectApprovalState(ProjectEntity project) {
+        project.approveCreateProject();
+        projectRepository.save(project);
     }
 
-    private void updateProjectApprovalState(ApplicationEntity application) {
-        application.getProject().approveCreateProject();
-        projectRepository.save(application.getProject());
+    private void updateProjectApprovalState(ProjectEntity project) {
+        project.approveCreateProject();
+        projectRepository.save(project);
     }
 
 
