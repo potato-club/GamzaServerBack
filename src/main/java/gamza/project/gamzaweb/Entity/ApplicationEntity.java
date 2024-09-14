@@ -36,9 +36,12 @@ public class ApplicationEntity {
     @Column(nullable = false)
     private String tag;
 
-    @ManyToOne()
-    @JoinColumn(name = "variableKey_Id")
-    private VariableEntity variableKey;
+    @Column(nullable = true)
+    private String variableKey;
+
+    @OneToOne
+    @JoinColumn(name = "project_id")
+    private ProjectEntity project;
 
     @Enumerated(EnumType.STRING)
     private ApplicationType type;
@@ -46,4 +49,5 @@ public class ApplicationEntity {
     public void updateDockerfilePath(String dockerFilePath) {
         this.imageId = dockerFilePath;
     }
+
 }

@@ -69,20 +69,25 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
+        // 도커 파일 경로는 unzipSaveDockerfile을 통해서 zip 파일 압축 해제 후 jpa.save 됨
         try {
+
+            ApplicationEntity application = ApplicationEntity.builder()
+                    .name(dto.getApplicationRequestDto().getName())
+                    .tag(dto.getApplicationRequestDto().getTag())
+                    .internalPort(80)
+                    .outerPort(dto.getApplicationRequestDto().getOuterPort())
+                    .variableKey(dto.getApplicationRequestDto().getVariableKey())
+                    .type(dto.getApplicationRequestDto().getApplicationType())
+                    .build();
+
+            // 2. ProjectEntity 생성
             ProjectEntity project = ProjectEntity.builder()
-                    .application(ApplicationEntity.builder()
-                            .imageId(dto.getApplicationRequestDto().getImageId())
-                            .name(dto.getApplicationRequestDto().getName())
-                            .tag(dto.getApplicationRequestDto().getTag())
-                            .variableKey(dto.getApplicationRequestDto().getVariableKey())
-                            .type(dto.getApplicationRequestDto().getApplicationType())
-                            .build())
-                    .name(dto.getName()) // -> 한개의 프로젝트에 여러개의 Application이 되어야하는거 아닌가? 질문 후 수정
+                    .application(application)
+                    .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())
                     .leader(user)
-                    .name(dto.getName())
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
                     .build();
@@ -220,7 +225,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getApplication().getName(), project.getApplication().getTag(), project.getApplication().getVariableKey().getVariableKey() , userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getApplication().getName(), project.getApplication().getTag(), project.getApplication().getVariableKey() , userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });

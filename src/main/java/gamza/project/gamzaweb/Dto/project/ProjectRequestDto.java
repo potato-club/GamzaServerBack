@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
 import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
+import gamza.project.gamzaweb.Entity.ApplicationEntity;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
