@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -73,8 +74,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 도커 파일 경로는 unzipSaveDockerfile을 통해서 zip 파일 압축 해제 후 jpa.save 됨
         try {
-
-
 
             ApplicationEntity application = ApplicationEntity.builder()
                     .name(dto.getApplicationName())
@@ -121,7 +120,8 @@ public class ProjectServiceImpl implements ProjectService {
                     Files.createDirectories(newPath.getParent());
                     Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
                 }
-                if (zipEntry.getName().equalsIgnoreCase("Dockerfile")) {
+                if (zipEntry.getName().endsWith("Dockerfile")) {
+                    System.out.println("Dockerfile path: " + newPath);
                     project.getApplication().updateDockerfilePath(newPath.toString());
                     projectRepository.save(project);
                 }
@@ -139,6 +139,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return normalizePath;
     }
+
 
     public ProjectListResponseDto getAllProject(Pageable pageable) {
         Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
