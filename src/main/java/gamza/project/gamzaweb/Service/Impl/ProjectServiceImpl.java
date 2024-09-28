@@ -81,9 +81,12 @@ public class ProjectServiceImpl implements ProjectService {
                     .type(dto.getApplicationRequestDto().getApplicationType())
                     .build();
 
+            ApplicationEntity savedApplication = applicationRepository.save(application);
+//            ApplicationEntity savedApplicationEntity = applicationRepository.save(application);
+
             // 2. ProjectEntity 생성
             ProjectEntity project = ProjectEntity.builder()
-                    .application(application)
+                    .application(savedApplication)
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())

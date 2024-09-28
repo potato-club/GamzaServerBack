@@ -39,8 +39,8 @@ public class ProjectController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(
-            @RequestPart("zip") MultipartFile file,
-            @RequestPart("dto") ProjectRequestDto dto,
+            @RequestPart(value = "zip", required = false) MultipartFile file,
+            @RequestPart(value = "dto", required = false) ProjectRequestDto dto,
             HttpServletRequest request) {
         try {
             projectService.createProject(request, dto, file);
