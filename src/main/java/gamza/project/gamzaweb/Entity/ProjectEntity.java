@@ -40,7 +40,8 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader;
 
-    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)  // 변경
     private ApplicationEntity application;
 
     private LocalDate startedDate;

@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -63,6 +64,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    @Transactional
     public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
@@ -72,21 +74,21 @@ public class ProjectServiceImpl implements ProjectService {
         // 도커 파일 경로는 unzipSaveDockerfile을 통해서 zip 파일 압축 해제 후 jpa.save 됨
         try {
 
+
+
             ApplicationEntity application = ApplicationEntity.builder()
-                    .name(dto.getApplicationRequestDto().getName())
-                    .tag(dto.getApplicationRequestDto().getTag())
+                    .name(dto.getApplicationName())
+                    .tag(dto.getTag())
                     .internalPort(80)
-                    .outerPort(dto.getApplicationRequestDto().getOuterPort())
-                    .variableKey(dto.getApplicationRequestDto().getVariableKey())
-                    .type(dto.getApplicationRequestDto().getApplicationType())
+                    .outerPort(dto.getOuterPort())
+                    .variableKey(dto.getVariableKey())
+                    .type(dto.getApplicationType())
                     .build();
 
-            ApplicationEntity savedApplication = applicationRepository.save(application);
-//            ApplicationEntity savedApplicationEntity = applicationRepository.save(application);
+            applicationRepository.save(application);
 
-            // 2. ProjectEntity 생성
             ProjectEntity project = ProjectEntity.builder()
-                    .application(savedApplication)
+                    .application(application)
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())
@@ -97,7 +99,8 @@ public class ProjectServiceImpl implements ProjectService {
 
 
             projectRepository.save(project);
-            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName());
+
+            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName()); // 지금 이부분이 오류네
             unzipAndSaveDockerfile(file, tempDir, project);
 
         } catch (Exception e) {
