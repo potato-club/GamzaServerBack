@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.context.ApplicationListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,11 +37,10 @@ public class ProjectEntity extends BaseTime {
 //    private List<ProjectLinkEntity> links;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader;
 
-    @OneToOne()
-    @JoinColumn(name = "application_id", nullable = false)
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private ApplicationEntity application;
 
     private LocalDate startedDate;
@@ -51,6 +51,10 @@ public class ProjectEntity extends BaseTime {
 
     @Column(nullable = false)
     private boolean approveFixedState;
+
+    public void updateApplicationId(ApplicationEntity application) {
+        this.application = application;
+    }
 
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;
