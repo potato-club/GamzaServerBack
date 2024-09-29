@@ -302,6 +302,7 @@ public class ProjectServiceImpl implements ProjectService {
         unzipDockerFile(new File(zipPath), tempDir);
 
         File dockerfile = new File(tempDir.toFile(), "Dockerfile");
+        System.out.println(dockerfile);
         if (!dockerfile.exists()) {
             throw new BadRequestException("Dockerfile not found in the zip archive", ErrorCode.FAILED_PROJECT_ERROR);
         }
