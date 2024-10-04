@@ -24,7 +24,6 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-    // 프로젝트 미승인 전체조회 GET API add  -> admin
 
     @GetMapping("/list")
     @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
@@ -36,7 +35,7 @@ public class ProjectController {
         return projectService.getAllProject(pageable);
     }
 
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create")
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(
             @RequestPart(value = "zip", required = false) MultipartFile file,
@@ -50,11 +49,6 @@ public class ProjectController {
             throw new BadRequestException("프로젝트 생성 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
         }
     }
-
-    // zip 압축 푸는거 먼저 해야할듯
-    // 프로젝트 수정 요청 허가 api 나머지값들 / zip, 수정하는 api
-    // 프로젝트 zip, port 제외한 나머지 값들 수정 요청하는 API PUT MAPPING
-    // 프로젝트 zip, port만 수정 요청하는 api PUT MAPPING
 
     @PutMapping("/update/{id}")
     @Operation(description = "프로젝트 수정(zip, port 제외한 나머지 값들")
