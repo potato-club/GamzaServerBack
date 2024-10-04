@@ -93,12 +93,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void approve(HttpServletRequest request, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request);
-        String role = jwtTokenProvider.extractRole(token);
+//        String role = jwtTokenProvider.extractRole(token);
 //        System.out.println("role : " + role); // admin 0, member 1, user 2
 
-        if(!role.equals("0")) {
-            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
+//        if(!role.equals("0")) {
+//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+//        }
 
         UserEntity user = userRepository.findById(id).orElseThrow();
         user.approveUserStatus(); // USER -> MEMBER
@@ -110,11 +110,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void notApprove(HttpServletRequest request, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request);
-        String role = jwtTokenProvider.extractRole(token);
-
-        if(!role.equals("0")) {
-            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
+//        String role = jwtTokenProvider.extractRole(token);
+//
+//        if(!role.equals("0")) {
+//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+//        }
 
         UserEntity user = userRepository.findById(id).orElseThrow();
         user.notApproveUserStatus();
@@ -125,11 +125,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable) {
         String token = jwtTokenProvider.resolveAccessToken(request);
-        String userRole = jwtTokenProvider.extractRole(token);
-
-        if(!userRole.equals("0")) {
-            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
+//        String userRole = jwtTokenProvider.extractRole(token);
+//
+//        if(!userRole.equals("0")) {
+//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
+//        }
 
         Page<UserEntity> userEntities = userRepository.findByUserRole(UserRole.USER, pageable);
 

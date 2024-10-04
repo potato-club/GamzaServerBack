@@ -39,8 +39,7 @@ public class ApplicationEntity {
     @Column(nullable = true)
     private String variableKey;
 
-    @OneToOne
-    @JoinColumn(name = "project_id")
+    @OneToOne(mappedBy = "application", fetch = FetchType.LAZY)
     private ProjectEntity project;
 
     @Enumerated(EnumType.STRING)

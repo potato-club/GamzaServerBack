@@ -26,6 +26,7 @@ import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
+import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -43,6 +45,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -63,6 +66,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    @Transactional
     public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
@@ -73,20 +77,18 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 
             ApplicationEntity application = ApplicationEntity.builder()
-                    .name(dto.getApplicationRequestDto().getName())
-                    .tag(dto.getApplicationRequestDto().getTag())
+                    .name(dto.getApplicationName())
+                    .tag(dto.getTag())
                     .internalPort(80)
-                    .outerPort(dto.getApplicationRequestDto().getOuterPort())
-                    .variableKey(dto.getApplicationRequestDto().getVariableKey())
-                    .type(dto.getApplicationRequestDto().getApplicationType())
+                    .outerPort(dto.getOuterPort())
+                    .variableKey(dto.getVariableKey())
+                    .type(dto.getApplicationType())
                     .build();
 
-            ApplicationEntity savedApplication = applicationRepository.save(application);
-//            ApplicationEntity savedApplicationEntity = applicationRepository.save(application);
+            applicationRepository.save(application);
 
-            // 2. ProjectEntity 생성
             ProjectEntity project = ProjectEntity.builder()
-                    .application(savedApplication)
+                    .application(application)
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())
@@ -96,9 +98,17 @@ public class ProjectServiceImpl implements ProjectService {
                     .build();
 
 
+            String filePath = FileController.saveFile(file.getInputStream(), project.getName(), application.getTag(), application.getName());
+
+            if(filePath == null) {
+                throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
+            }
+
+            project.getApplication().updateDockerfilePath(filePath);
+
             projectRepository.save(project);
-            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName());
-            unzipAndSaveDockerfile(file, tempDir, project);
+//            Path tempDir = Files.createTempDirectory("dockerfile_project_" + project.getName()); // 지금 이부분이 오류네
+//            unzipAndSaveDockerfile(file, filePath, project);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,35 +117,37 @@ public class ProjectServiceImpl implements ProjectService {
         // zip not null Error
     }
 
-    private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ProjectEntity project) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                Path newPath = zipSlipProtect(zipEntry, destDir);
-                if (zipEntry.isDirectory()) {
-                    Files.createDirectories(newPath);
-                } else {
-                    Files.createDirectories(newPath.getParent());
-                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
-                }
-                if (zipEntry.getName().equalsIgnoreCase("Dockerfile")) {
-                    project.getApplication().updateDockerfilePath(newPath.toString());
-                    projectRepository.save(project);
-                }
-                zipEntry = zis.getNextEntry();
-            }
-            zis.closeEntry();
-        }
-    }
+//    private void unzipAndSaveDockerfile(MultipartFile file, Path destDir, ProjectEntity project) throws IOException {
+//        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+//            ZipEntry zipEntry = zis.getNextEntry();
+//            while (zipEntry != null) {
+//                Path newPath = zipSlipProtect(zipEntry, destDir);
+//                if (zipEntry.isDirectory()) {
+//                    Files.createDirectories(newPath);
+//                } else {
+//                    Files.createDirectories(newPath.getParent());
+//                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
+//                }
+//                if (zipEntry.getName().endsWith("Dockerfile")) {
+//                    System.out.println("Dockerfile path: " + newPath);
+//                    project.getApplication().updateDockerfilePath(newPath.toString());
+//                    projectRepository.save(project);
+//                }
+//                zipEntry = zis.getNextEntry();
+//            }
+//            zis.closeEntry();
+//        }
+//    }
 
-    private Path zipSlipProtect(ZipEntry zipEntry, Path destDir) throws IOException {
-        Path targetDirResolved = destDir.resolve(zipEntry.getName());
-        Path normalizePath = targetDirResolved.normalize();
-        if (!normalizePath.startsWith(destDir)) {
-            throw new IOException("Bad zip entry: " + zipEntry.getName());
-        }
-        return normalizePath;
-    }
+//    private Path zipSlipProtect(ZipEntry zipEntry, Path destDir) throws IOException {
+//        Path targetDirResolved = destDir.resolve(zipEntry.getName());
+//        Path normalizePath = targetDirResolved.normalize();
+//        if (!normalizePath.startsWith(destDir)) {
+//            throw new IOException("Bad zip entry: " + zipEntry.getName());
+//        }
+//        return normalizePath;
+//    }
+
 
     public ProjectListResponseDto getAllProject(Pageable pageable) {
         Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
@@ -202,7 +214,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable) {
-        userValidate.validateUserRole(request);
+//        userValidate.validateUserRole(request);
 
         Page<ProjectEntity> projectEntities = projectRepository.findByApproveState(false, pageable);
 
@@ -213,7 +225,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
+//        userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
         checkProjectApprovalState(project);
 
@@ -278,6 +290,7 @@ public class ProjectServiceImpl implements ProjectService {
                     super.onNext(item);
                     if (item.getImageId() != null) {
                         dockerProvider.taggingImage(item.getImageId(), name, tag);
+
                         callback.getImageId(item.getImageId());
 
                         ImageBuildEventDto event = new ImageBuildEventDto(
@@ -288,19 +301,32 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             });
         } catch (Exception e) {
+            e.printStackTrace();
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
     }
 
 
     private Path extractDockerfileFromZip(String zipPath) throws IOException {
-        Path tempDir = Files.createTempDirectory("dockerfile-extract");
-        unzipDockerFile(new File(zipPath), tempDir);
+        boolean unzipResult = FileController.unzip(zipPath);
 
-        File dockerfile = new File(tempDir.toFile(), "Dockerfile");
-        if (!dockerfile.exists()) {
-            throw new BadRequestException("Dockerfile not found in the zip archive", ErrorCode.FAILED_PROJECT_ERROR);
+        if (!unzipResult) {
+            throw new IOException("Zip 파일 압축 해제를 실패하였습니다.");
         }
+
+        File zipFile = new File(zipPath);
+        String extractedDirectoryPath = zipFile.getParent(); // ZIP 파일과 동일한 폴더
+
+        // 압축 해제된 폴더에서 Dockerfile을 찾음
+        File dockerfile = new File(extractedDirectoryPath, "Dockerfile");
+        System.out.println("Extracted Dockerfile path: " + dockerfile.getAbsolutePath());
+
+        // Dockerfile이 존재하는지 확인
+        if (!dockerfile.exists()) {
+            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+
+        // Dockerfile 경로 반환
         return dockerfile.toPath();
     }
 

@@ -36,7 +36,7 @@ public class ProjectController {
         return projectService.getAllProject(pageable);
     }
 
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create")
     @Operation(description = "프로젝트 생성 API")
     public ResponseEntity<String> createProject(
             @RequestPart(value = "zip", required = false) MultipartFile file,
