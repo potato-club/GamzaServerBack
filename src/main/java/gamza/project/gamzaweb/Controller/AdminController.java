@@ -66,7 +66,14 @@ public class AdminController {
         return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
     }
 
-//
+    @DeleteMapping("/project/remove/{id}")
+    @Operation(description = "프로젝트 삭제 승인")
+    public ResponseEntity<String> RemoveProject(HttpServletRequest request, @PathVariable("id") Long id) {
+        projectService.removeExecutionApplication(request, id);
+        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+    }
+
+
 //    @PostMapping("/project/fixed/{id}")
 //    @Operation(description = "프로젝트 수정 승인")
 
