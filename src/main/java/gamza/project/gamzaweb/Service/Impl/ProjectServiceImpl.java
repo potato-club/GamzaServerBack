@@ -290,6 +290,7 @@ public class ProjectServiceImpl implements ProjectService {
                     super.onNext(item);
                     if (item.getImageId() != null) {
                         dockerProvider.taggingImage(item.getImageId(), name, tag);
+
                         callback.getImageId(item.getImageId());
 
                         ImageBuildEventDto event = new ImageBuildEventDto(
@@ -300,6 +301,7 @@ public class ProjectServiceImpl implements ProjectService {
                 }
             });
         } catch (Exception e) {
+            e.printStackTrace();
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
     }

@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.dctutil;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -58,13 +59,12 @@ public class FileController {
             }
         }
 
-        try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFile))) {
+        try (ZipInputStream zipIn = new ZipInputStream(new FileInputStream(zipFile), Charset.forName("EUC-KR"))) {
             ZipEntry entry = zipIn.getNextEntry();
 
             // 각 ZipEntry를 반복해서 압축 해제
             while (entry != null) {
                 String filePath = destDirectory + File.separator + entry.getName();
-                System.out.println(filePath);
                 if (!entry.isDirectory()) {
                     // 파일인 경우 파일을 저장
                     extractFile(zipIn, filePath);
