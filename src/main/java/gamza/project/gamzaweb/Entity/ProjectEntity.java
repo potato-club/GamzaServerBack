@@ -40,7 +40,8 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader;
 
-    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL)  // Cascade 설정으로 함께 저장/삭제 가능
+    @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정
     private ApplicationEntity application;
 
     private LocalDate startedDate;
@@ -52,9 +53,6 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState;
 
-    public void updateApplicationId(ApplicationEntity application) {
-        this.application = application;
-    }
 
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;

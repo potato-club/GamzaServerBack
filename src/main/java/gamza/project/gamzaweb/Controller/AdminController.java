@@ -30,7 +30,7 @@ public class AdminController {
     }
 
     @PostMapping("/user/not/approve/{id}")
-    @Operation(description = "유저 승이 삭제")
+    @Operation(description = "유저 승인 삭제")
     public ResponseEntity<String> notApprove(HttpServletRequest request, @PathVariable("id") Long id) {
         userService.notApprove(request, id);
         return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
