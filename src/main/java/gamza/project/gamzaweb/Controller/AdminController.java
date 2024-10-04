@@ -74,7 +74,4 @@ public class AdminController {
     }
 
 
-//    @PostMapping("/project/fixed/{id}")
-//    @Operation(description = "프로젝트 수정 승인")
-
 }
