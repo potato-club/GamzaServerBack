@@ -8,19 +8,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ResponseNotApproveDto {
 
-    private Long id;
-    private String familyName;
-    private String givenName;
-    // github link ?
+    private final Long id;
+    private final String major;
+    private final String email;
+    private final String name;
 
     public ResponseNotApproveDto(UserEntity userEntity) {
         this.id = userEntity.getId();
-        this.familyName = userEntity.getFamilyName();
-        this.givenName = userEntity.getGivenName();
+        this.major = userEntity.getMajor();
+        this.email = userEntity.getEmail();
+        this.name = userEntity.getFamilyName() + userEntity.getGivenName();
     }
 }
