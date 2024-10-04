@@ -23,6 +23,7 @@ import gamza.project.gamzaweb.Repository.ProjectRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
@@ -59,6 +60,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final ApplicationRepository applicationRepository;
     private final ImageRepository imageRepository;
     private final UserValidate userValidate;
+    private final ProjectValidate projectValidate;
+
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -220,6 +223,13 @@ public class ProjectServiceImpl implements ProjectService {
         // Docker 이미지 빌드
         buildDockerImageFromApplicationZip(request, project);
     }
+    @Override
+    public void removeExecutionApplication(HttpServletRequest request, Long id) {
+//        userValidate.validateUserRole(request);
+        projectValidate.validateProject(id);
+        projectRepository.deleteById(id);
+    }
+
 
     private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
