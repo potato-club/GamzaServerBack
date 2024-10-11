@@ -112,11 +112,12 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    public ProjectListResponseDto getAllProject(Pageable pageable) {
-        Page<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc(pageable);
+    public ProjectListResponseDto getAllProject() {
+        List<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc();
 
-        List<ProjectResponseDto> collect = projectPage.getContent().stream()
+        List<ProjectResponseDto> collect = projectPage.stream()
                 .map(project -> new ProjectResponseDto(
+                        project.getId(),
                         project.getName(),
                         project.getDescription(),
                         project.getState(),
@@ -127,7 +128,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         // ProjectListResponseDto 반환
         return ProjectListResponseDto.builder()
-                .size(collect.size())
                 .contents(collect)
                 .build();
     }

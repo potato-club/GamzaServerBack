@@ -11,7 +11,7 @@ public interface ProjectService {
 
     void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
 
-    ProjectListResponseDto getAllProject(Pageable pageable);
+    ProjectListResponseDto getAllProject();
 
     ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request);
 
