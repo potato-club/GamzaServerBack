@@ -22,6 +22,7 @@ public class AdminController {
     private final UserService userService;
     private final ProjectService projectService;
 
+
     @PostMapping("/user/approve/{id}")
     @Operation(description = "유저 권한 승인")
     public ResponseEntity<String> approve(HttpServletRequest request, @PathVariable("id") Long id) {
@@ -29,7 +30,7 @@ public class AdminController {
         return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
     }
 
-    @PostMapping("/user/not/approve/{id}")
+    @PostMapping("/user/refuse/{id}")
     @Operation(description = "유저 승인 삭제")
     public ResponseEntity<String> notApprove(HttpServletRequest request, @PathVariable("id") Long id) {
         userService.notApprove(request, id);

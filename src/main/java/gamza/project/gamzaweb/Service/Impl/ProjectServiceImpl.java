@@ -117,6 +117,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<ProjectResponseDto> collect = projectPage.getContent().stream()
                 .map(project -> new ProjectResponseDto(
+                        project.getId(),
                         project.getName(),
                         project.getDescription(),
                         project.getState(),
