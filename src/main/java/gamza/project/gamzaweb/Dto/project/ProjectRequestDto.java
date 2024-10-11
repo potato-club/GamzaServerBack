@@ -21,9 +21,9 @@ public class ProjectRequestDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
 
-    private String applicationName;
+//    private String applicationName;
     private int outerPort;
-    private String tag;
+//    private String tag;
     private String variableKey;
     private ApplicationType applicationType;
 }

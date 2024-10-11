@@ -69,8 +69,8 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 
             ApplicationEntity application = ApplicationEntity.builder()
-                    .name(dto.getApplicationName())
-                    .tag(dto.getTag())
+//                    .name(dto.getApplicationName())
+//                    .tag(dto.getTag())
                     .internalPort(80)
                     .outerPort(dto.getOuterPort())
                     .variableKey(dto.getVariableKey())
@@ -90,7 +90,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .build();
 
 
-            String filePath = FileController.saveFile(file.getInputStream(), project.getName(), application.getTag(), application.getName());
+            String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
 
             if(filePath == null) {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
@@ -219,7 +219,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getApplication().getName(), project.getApplication().getTag(), project.getApplication().getVariableKey() , userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getVariableKey() , userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
@@ -229,7 +229,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, @Nullable String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
+    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name,  @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
@@ -241,21 +241,21 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
         imageRepository.save(imageEntity);
 
-        if (name != null && tag != null && isImageExists(name, tag)) {
+        if (isImageExists(name)) {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
 
-        executeDockerBuild(dockerfile, name, tag, key, callback, userPk);
+        executeDockerBuild(dockerfile, name, key, callback, userPk);
     }
 
-    private boolean isImageExists(String name, String tag) {
+    private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
                 .anyMatch(image -> image.getRepoTags() != null &&
-                        Arrays.asList(image.getRepoTags()).contains(name + ":" + tag));
+                        Arrays.asList(image.getRepoTags()).contains(name));
     }
 
-    private void executeDockerBuild(File dockerfile, String name, @Nullable String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
+    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
 
         if (key != null && !key.isEmpty()) {
@@ -268,7 +268,7 @@ public class ProjectServiceImpl implements ProjectService {
                 public void onNext(BuildResponseItem item) {
                     super.onNext(item);
                     if (item.getImageId() != null) {
-                        dockerProvider.taggingImage(item.getImageId(), name, tag);
+                        dockerProvider.taggingImage(item.getImageId(), name);
 
                         callback.getImageId(item.getImageId());
 

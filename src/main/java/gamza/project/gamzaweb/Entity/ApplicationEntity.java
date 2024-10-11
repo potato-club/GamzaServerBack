@@ -24,8 +24,8 @@ public class ApplicationEntity {
 
     private String imageId; // zip
 
-    @Column(length = 30, nullable = false, unique = true)
-    private String name;
+//    @Column(length = 30, nullable = false, unique = true)
+//    private String name; // application Name
 
     @Column(nullable = false, unique = true)
     private int outerPort;
@@ -33,8 +33,8 @@ public class ApplicationEntity {
     @Column(nullable = false)
     private int internalPort;
 
-    @Column(nullable = false)
-    private String tag;
+//    @Column(nullable = false)
+//    private String tag;
 
     @Column(nullable = true)
     private String variableKey;

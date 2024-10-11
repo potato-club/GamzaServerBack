@@ -136,8 +136,8 @@ public class DockerProvider {
         return sb.toString();
     }
 
-    public void taggingImage(String imageId, String name, String tag) {
-        dockerClient.tagImageCmd(imageId, name, tag).exec();
+    public void taggingImage(String imageId, String name) {
+        dockerClient.tagImageCmd(imageId, name, null).exec(); // 이렇게 해도 되나..?
     }
 
     // 이미지를 빌드를 한다 -> 도커 스케쥴러에서 이미지가 있는지 체크한다 -> 이미지 빌드가 다되면 스케쥴러에서 디비에 넣어준다. 유저는 어떻게 넣지
