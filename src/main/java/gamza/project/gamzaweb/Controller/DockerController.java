@@ -26,31 +26,31 @@ public class DockerController {
 
     private final DockerProvider provider;
 
-    @GetMapping("/list") // 도커리스트 출력
-    @Operation(description = "도커 리스트 출력")
-    public String dockerList(HttpServletRequest request) {
-        return provider.listContainers(request);
-    }
-
-    @PostMapping("/removeImage")
-    @Operation(description = "이미지 삭제 (추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
-    public ResponseEntity<String> removeImage(@RequestBody RequestDockerImageDeleteDto dto, HttpServletRequest request) {
-        provider.removeImage(dto.getImageId(), request);
-        return ResponseEntity.status(HttpStatus.OK).body("Success Delete Image");
-    }
-
-    @PostMapping("/create/container")
-    @Operation(description = "컨테이너 생성(추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
-    public String create(@RequestBody RequestDockerContainerDto requestDockerContainerDto, HttpServletRequest request) {
-        return provider.createContainer(requestDockerContainerDto, request);
-    }
-
-    @PostMapping("/stopContainer") // 완료
-    @Operation(description = "컨테이너 스탑(추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
-    public ResponseEntity<String> stopContainer(@RequestBody RequestDockerContainerDeleteDto dto, HttpServletRequest request) {
-        provider.stopContainer(request, dto.getContainerId());
-        return ResponseEntity.status(HttpStatus.OK).body("Container Stop And Delete in DB");
-    }
+//    @GetMapping("/list") // 도커리스트 출력
+//    @Operation(description = "도커 리스트 출력")
+//    public String dockerList(HttpServletRequest request) {
+//        return provider.listContainers(request);
+//    }
+//
+//    @PostMapping("/removeImage")
+//    @Operation(description = "이미지 삭제 (추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
+//    public ResponseEntity<String> removeImage(@RequestBody RequestDockerImageDeleteDto dto, HttpServletRequest request) {
+//        provider.removeImage(dto.getImageId(), request);
+//        return ResponseEntity.status(HttpStatus.OK).body("Success Delete Image");
+//    }
+//
+//    @PostMapping("/create/container")
+//    @Operation(description = "컨테이너 생성(추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
+//    public String create(@RequestBody RequestDockerContainerDto requestDockerContainerDto, HttpServletRequest request) {
+//        return provider.createContainer(requestDockerContainerDto, request);
+//    }
+//
+//    @PostMapping("/stopContainer") // 완료
+//    @Operation(description = "컨테이너 스탑(추후 삭제될 API 스케줄러를 사용하여 자동화될 예정)")
+//    public ResponseEntity<String> stopContainer(@RequestBody RequestDockerContainerDeleteDto dto, HttpServletRequest request) {
+//        provider.stopContainer(request, dto.getContainerId());
+//        return ResponseEntity.status(HttpStatus.OK).body("Container Stop And Delete in DB");
+//    }
 
     @GetMapping("/logs/{containerId}")
     @Operation(description = "컨테이너 로그")

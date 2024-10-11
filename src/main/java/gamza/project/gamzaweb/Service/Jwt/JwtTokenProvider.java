@@ -75,7 +75,7 @@ public class JwtTokenProvider {
 
     public String createToken(Long id, UserRole role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("id", id);
+        jsonObject.addProperty("id", id); // claims
         jsonObject.addProperty("role", role.ordinal());
         jsonObject.addProperty("tokenType", tokenType);
 

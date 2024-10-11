@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ProjectResponseDto {
 
+    private Long id;
     private String name;
     private String description;
     private ProjectState state;
@@ -20,6 +21,7 @@ public class ProjectResponseDto {
     private LocalDate endedDate;
 
     public ProjectResponseDto(ProjectEntity project) {
+        this.id = project.getId();
         this.name = project.getName();
         this.description = project.getDescription();
         this.state = project.getState();
