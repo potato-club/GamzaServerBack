@@ -26,13 +26,9 @@ public class ProjectController {
 
 
     @GetMapping("/list")
-    @Operation(description = "메인 페이지 프로젝트 출력 (페이지네이션 default = 4)")
-    public ProjectListResponseDto allProjectList(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "4") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return projectService.getAllProject(pageable);
+    @Operation(description = "메인 페이지 프로젝트 출력")
+    public ProjectListResponseDto allProjectList(){
+        return projectService.getAllProject();
     }
 
     @PostMapping(value = "/create")

@@ -13,6 +13,5 @@ import java.util.List;
 @Builder
 public class ProjectListResponseDto {
 
-    private int size;
     private List<ProjectResponseDto> contents;
 }
