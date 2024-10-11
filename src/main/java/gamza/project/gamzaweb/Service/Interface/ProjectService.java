@@ -23,4 +23,6 @@ public interface ProjectService {
 
     void removeExecutionApplication(HttpServletRequest request, Long id);
 
+    void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
+
 }

@@ -12,9 +12,7 @@ import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
-import gamza.project.gamzaweb.Error.requestError.BadRequestException;
-import gamza.project.gamzaweb.Error.requestError.DockerRequestException;
-import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
+import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.ApplicationRepository;
 import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
@@ -37,16 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 
 @Service
@@ -198,6 +191,24 @@ public class ProjectServiceImpl implements ProjectService {
 //        userValidate.validateUserRole(request);
         projectValidate.validateProject(id);
         projectRepository.deleteById(id);
+    }
+
+    @Override
+    public void removeTeamProjectInMyPage(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("해당 프로젝트가 존재하지 않습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        if (!project.getLeader().equals(user)) {
+            throw new InvalidTokenException("프로젝트 삭제 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        projectRepository.delete(project);
     }
 
 

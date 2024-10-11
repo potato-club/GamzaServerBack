@@ -14,7 +14,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
     List<ProjectEntity> findByOrderByUpdatedDateDesc();
 
-
     Page<ProjectEntity> findByLeaderOrderByUpdatedDateDesc(UserEntity user, Pageable pageable);
 
     Page<ProjectEntity> findByApproveState(boolean approveState, Pageable pageable);
