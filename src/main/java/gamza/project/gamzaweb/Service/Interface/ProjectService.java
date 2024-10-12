@@ -25,4 +25,6 @@ public interface ProjectService {
 
     void removeExecutionApplication(HttpServletRequest request, Long id);
 
+    void deleteProjectById(HttpServletRequest request, Long projectId);
+
 }
