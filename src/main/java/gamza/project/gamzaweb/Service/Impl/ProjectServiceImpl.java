@@ -133,15 +133,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request) {
+    public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
 
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 
-
-        Page<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user, pageable);
+        List<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user);
 
         List<ProjectPerResponseDto> projectDtos = projects.stream()
                 .map(project -> new ProjectPerResponseDto(project.getName(), project.isApproveState()))
