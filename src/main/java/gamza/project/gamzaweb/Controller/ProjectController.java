@@ -70,6 +70,13 @@ public class ProjectController {
         return projectService.getProjectById(request, id);
     }
 
+    @DeleteMapping("/user/list/{projectId}")
+    @Operation(description = "회원이 만든 특정 프로젝트 삭제")
+    public ResponseEntity<String> deleteProject(HttpServletRequest request, @PathVariable Long projectId) {
+        projectService.deleteProjectById(request, projectId);
+        return ResponseEntity.ok("프로젝트 삭제 완료");
+    }
+
 
 
 }
