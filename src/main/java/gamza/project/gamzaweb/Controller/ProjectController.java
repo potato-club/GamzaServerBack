@@ -60,12 +60,8 @@ public class ProjectController {
 
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
-    public ProjectListPerResponseDto personalProject(
-            HttpServletRequest request,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "6") int size) {
+    public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        return projectService.personalProject(pageable, request);
+        return projectService.personalProject(request);
     }
 }
