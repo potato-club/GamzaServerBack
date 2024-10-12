@@ -18,8 +18,6 @@ public class ProjectDetailResponseDto {
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
-    private boolean approveState;
-    private boolean approveFixedState;
 
     public ProjectDetailResponseDto(ProjectEntity project) {
         this.id = project.getId();
@@ -28,7 +26,5 @@ public class ProjectDetailResponseDto {
         this.state = project.getState();
         this.startedDate = project.getStartedDate();
         this.endedDate = project.getEndedDate();
-        this.approveState = project.isApproveState();
-        this.approveFixedState = project.isApproveFixedState();
     }
 }
