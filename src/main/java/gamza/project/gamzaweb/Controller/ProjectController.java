@@ -64,4 +64,13 @@ public class ProjectController {
 
         return projectService.personalProject(request);
     }
+
+    @GetMapping("/{id}")
+    @Operation(description = "프로젝트 조회")
+    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, @PathVariable Long id) {
+        return projectService.getProjectById(request, id);
+    }
+
+
+
 }

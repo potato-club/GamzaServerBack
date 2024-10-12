@@ -133,6 +133,22 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+
+        if (!project.getLeader().getId().equals(userId)) {
+            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        return new ProjectDetailResponseDto(project);
+    }
+
+
+    @Override
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
