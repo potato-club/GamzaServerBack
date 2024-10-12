@@ -127,8 +127,11 @@ public class JwtTokenProvider {
 
     public String resolveAccessToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
-        if(request.getHeader("Authorization") != null && extractTokenType(authorizationHeader).equals("access")) {
-            return authorizationHeader;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7).trim(); // Bearer 부분 제거 및 공백 제거
+            if (extractTokenType(token).equals("access")) {
+                return token;
+            }
         }
         return null;
     }
