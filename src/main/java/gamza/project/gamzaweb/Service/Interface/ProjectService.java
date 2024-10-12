@@ -13,7 +13,7 @@ public interface ProjectService {
 
     ProjectListResponseDto getAllProject();
 
-    ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request);
+    ProjectListPerResponseDto personalProject(HttpServletRequest request);
 
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
 
