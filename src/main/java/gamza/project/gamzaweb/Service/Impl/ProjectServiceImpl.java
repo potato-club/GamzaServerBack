@@ -105,8 +105,9 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    @Override
     public ProjectListResponseDto getAllProject() {
-        List<ProjectEntity> projectPage = projectRepository.findByOrderByUpdatedDateDesc();
+        List<ProjectEntity> projectPage = projectRepository.findByApproveStateTrueOrderByUpdatedDateDesc();
 
         List<ProjectResponseDto> collect = projectPage.stream()
                 .map(project -> new ProjectResponseDto(
@@ -125,25 +126,75 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
     }
 
+
     @Override
-    public ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request) {
+    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(id)
+                .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
+
+        if (!project.getLeader().getId().equals(userId)) {
+            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        return new ProjectDetailResponseDto(project);
+    }
+
+
+    @Override
+    public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
 
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 
+        List<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user);
 
-        Page<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user, pageable);
+        // 승인된 프로젝트와 미승인된 프로젝트를 나눔
+        //.zip 추후 수정해야함: zip 파일 이름으로
+        List<ProjectPerResponseDto> waitProjects = projects.stream()
+                .filter(project -> !project.isApproveState()) // 미승인된 프로젝트
+                .map(project ->
+                        new ProjectPerResponseDto(project.getName(),
+                                project.isApproveState(),
+                                project.getApplication().getOuterPort(),
+                                ".zip"))
+                .collect(Collectors.toList());
 
-        List<ProjectPerResponseDto> projectDtos = projects.stream()
-                .map(project -> new ProjectPerResponseDto(project.getName(), project.isApproveState()))
+        List<ProjectPerResponseDto> completeProjects = projects.stream()
+                .filter(ProjectEntity::isApproveState) // 승인된 프로젝트
+                .map(project ->
+                        new ProjectPerResponseDto(project.getName(),
+                                project.isApproveState(),
+                                project.getApplication().getOuterPort(),
+                                ".zip"))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
-                .size(projectDtos.size())
-                .contents(projectDtos)
+                .size(projects.size())
+                .waitProjects(waitProjects)
+                .completeProjects(completeProjects)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteProjectById(HttpServletRequest request, Long projectId) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+
+        // 프로젝트 리더인지 확인
+        if (!project.getLeader().getId().equals(userId)) {
+            throw new ForbiddenException("프로젝트 리더만 삭제할 수 있습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        projectRepository.delete(project);
     }
 
     @Override

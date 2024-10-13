@@ -13,15 +13,19 @@ public interface ProjectService {
 
     ProjectListResponseDto getAllProject();
 
-    ProjectListPerResponseDto personalProject(Pageable pageable, HttpServletRequest request);
+    ProjectListPerResponseDto personalProject(HttpServletRequest request);
 
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
 
     Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
 
+    ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
+
     void approveExecutionApplication(HttpServletRequest request, Long id);
 
     void removeExecutionApplication(HttpServletRequest request, Long id);
+
+    void deleteProjectById(HttpServletRequest request, Long projectId);
 
     void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
 

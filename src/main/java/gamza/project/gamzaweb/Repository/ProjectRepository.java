@@ -8,13 +8,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
     List<ProjectEntity> findByOrderByUpdatedDateDesc();
+    List<ProjectEntity> findByApproveStateTrueOrderByUpdatedDateDesc();
+    Optional<ProjectEntity> findByIdAndApproveStateTrue(Long id);
 
-    Page<ProjectEntity> findByLeaderOrderByUpdatedDateDesc(UserEntity user, Pageable pageable);
+
+    List<ProjectEntity> findByLeaderOrderByUpdatedDateDesc(UserEntity user);
 
     Page<ProjectEntity> findByApproveState(boolean approveState, Pageable pageable);
 
