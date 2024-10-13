@@ -70,11 +70,11 @@ public class ProjectServiceImpl implements ProjectService {
 
             ApplicationEntity application = ApplicationEntity.builder()
 //                    .name(dto.getApplicationName())
-//                    .tag(dto.getTag())
+                    .tag(dto.getTag())
                     .internalPort(80)
                     .outerPort(dto.getOuterPort())
                     .variableKey(dto.getVariableKey())
-                    .type(dto.getApplicationType())
+//                    .type(dto.getApplicationType())
                     .build();
 
             applicationRepository.save(application);
@@ -270,7 +270,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getVariableKey() , userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag() , project.getApplication().getVariableKey() , userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
@@ -280,7 +280,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name,  @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
+    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
@@ -296,7 +296,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
 
-        executeDockerBuild(dockerfile, name, key, callback, userPk);
+        executeDockerBuild(dockerfile, name, key, tag, callback, userPk);
     }
 
     private boolean isImageExists(String name) {
@@ -306,7 +306,7 @@ public class ProjectServiceImpl implements ProjectService {
                         Arrays.asList(image.getRepoTags()).contains(name));
     }
 
-    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
+    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
 
         if (key != null && !key.isEmpty()) {
@@ -319,7 +319,7 @@ public class ProjectServiceImpl implements ProjectService {
                 public void onNext(BuildResponseItem item) {
                     super.onNext(item);
                     if (item.getImageId() != null) {
-                        dockerProvider.taggingImage(item.getImageId(), name);
+                        dockerProvider.taggingImage(item.getImageId(), name, tag);
 
                         callback.getImageId(item.getImageId());
 

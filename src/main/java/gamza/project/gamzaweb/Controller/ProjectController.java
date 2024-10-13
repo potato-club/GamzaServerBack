@@ -66,6 +66,6 @@ public class ProjectController {
             @RequestParam(name = "size", defaultValue = "6") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        return projectService.personalProject(pageable, request);
+        return projectService.personalProject(request);
     }
 }

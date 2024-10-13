@@ -23,7 +23,7 @@ public class ProjectRequestDto {
 
 //    private String applicationName;
     private int outerPort;
-//    private String tag;
+    private String tag;
     private String variableKey;
-    private ApplicationType applicationType;
+//    private ApplicationType applicationType;
 }
