@@ -24,8 +24,8 @@ public class ApplicationEntity {
 
     private String imageId; // zip
 
-    @Column(length = 30, nullable = false, unique = true)
-    private String name;
+//    @Column(length = 30, nullable = false, unique = true)
+//    private String name; // application Name
 
     @Column(nullable = false, unique = true)
     private int outerPort;
@@ -42,8 +42,8 @@ public class ApplicationEntity {
     @OneToOne(mappedBy = "application", fetch = FetchType.LAZY)
     private ProjectEntity project;
 
-    @Enumerated(EnumType.STRING)
-    private ApplicationType type;
+//    @Enumerated(EnumType.STRING)
+//    private ApplicationType type;
 
     public void updateDockerfilePath(String dockerFilePath) {
         this.imageId = dockerFilePath;

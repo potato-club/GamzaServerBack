@@ -38,7 +38,7 @@ public class ProjectEntity extends BaseTime {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity leader;
+    private UserEntity leader; // 프로젝트 생성자가 팀장임
 
     @OneToOne(cascade = CascadeType.ALL)  // Cascade 설정으로 함께 저장/삭제 가능
     @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정

@@ -13,7 +13,7 @@ public class RequestDockerContainerDto {
 
     public ApplicationEntity toEntity() {
         return ApplicationEntity.builder()
-                .name(name)
+//                .name(name)
                 .outerPort(outerPort)
                 .internalPort(internalPort)
                 .tag(tag)

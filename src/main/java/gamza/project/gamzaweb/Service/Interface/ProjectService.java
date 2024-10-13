@@ -27,4 +27,6 @@ public interface ProjectService {
 
     void deleteProjectById(HttpServletRequest request, Long projectId);
 
+    void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
+
 }
