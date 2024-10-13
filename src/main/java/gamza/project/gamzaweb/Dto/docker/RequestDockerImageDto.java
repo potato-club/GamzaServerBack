@@ -14,7 +14,7 @@ public class RequestDockerImageDto {
 
     public ApplicationEntity toEntity() {
         return ApplicationEntity.builder()
-                .name(name)
+//                .name(name)
                 .tag(tag)
                 .variableKey(key)
                 .build();

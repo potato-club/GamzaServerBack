@@ -12,9 +12,9 @@ public class FileController {
     public static String defaultPath = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 
     // return file path
-    public static String saveFile(InputStream inputStream, String projectId, String tag, String fileName) {
+    public static String saveFile(InputStream inputStream, String projectId, String fileName) {
         // 저장할 디렉터리 경로를 구성
-        String directoryPath = defaultPath + File.separator + projectId + File.separator + tag;
+        String directoryPath = defaultPath + File.separator + projectId;
         File directory = new File(directoryPath);
 
         boolean mkdirResult = false;

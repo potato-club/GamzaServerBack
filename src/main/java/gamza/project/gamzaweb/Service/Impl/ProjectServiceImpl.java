@@ -12,9 +12,7 @@ import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
-import gamza.project.gamzaweb.Error.requestError.BadRequestException;
-import gamza.project.gamzaweb.Error.requestError.DockerRequestException;
-import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
+import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.ApplicationRepository;
 import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
@@ -37,16 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 
 @Service
@@ -76,12 +69,12 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 
             ApplicationEntity application = ApplicationEntity.builder()
-                    .name(dto.getApplicationName())
+//                    .name(dto.getApplicationName())
                     .tag(dto.getTag())
                     .internalPort(80)
                     .outerPort(dto.getOuterPort())
                     .variableKey(dto.getVariableKey())
-                    .type(dto.getApplicationType())
+//                    .type(dto.getApplicationType())
                     .build();
 
             applicationRepository.save(application);
@@ -97,7 +90,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .build();
 
 
-            String filePath = FileController.saveFile(file.getInputStream(), project.getName(), application.getTag(), application.getName());
+            String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
 
             if(filePath == null) {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
@@ -251,6 +244,24 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.deleteById(id);
     }
 
+    @Override
+    public void removeTeamProjectInMyPage(HttpServletRequest request, Long id) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("해당 유저가 존재하지 않습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("해당 프로젝트가 존재하지 않습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        if (!project.getLeader().equals(user)) {
+            throw new InvalidTokenException("프로젝트 삭제 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        projectRepository.delete(project);
+    }
+
 
     private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
@@ -259,7 +270,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getApplication().getName(), project.getApplication().getTag(), project.getApplication().getVariableKey() , userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag() , project.getApplication().getVariableKey() , userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
@@ -269,7 +280,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, @Nullable String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
+    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
@@ -281,21 +292,21 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
         imageRepository.save(imageEntity);
 
-        if (name != null && tag != null && isImageExists(name, tag)) {
+        if (isImageExists(name)) {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
 
-        executeDockerBuild(dockerfile, name, tag, key, callback, userPk);
+        executeDockerBuild(dockerfile, name, key, tag, callback, userPk);
     }
 
-    private boolean isImageExists(String name, String tag) {
+    private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
                 .anyMatch(image -> image.getRepoTags() != null &&
-                        Arrays.asList(image.getRepoTags()).contains(name + ":" + tag));
+                        Arrays.asList(image.getRepoTags()).contains(name));
     }
 
-    private void executeDockerBuild(File dockerfile, String name, @Nullable String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
+    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
 
         if (key != null && !key.isEmpty()) {
