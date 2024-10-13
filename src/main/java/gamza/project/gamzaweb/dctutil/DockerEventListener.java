@@ -20,13 +20,16 @@ public class DockerEventListener {
         Optional<ImageEntity> optionalImageEntity = imageRepository.findByNameAndUser(event.getName(), event.getUserPk());
         if (optionalImageEntity.isPresent()) {
             ImageEntity imageEntity = optionalImageEntity.get(); // 실제 ImageEntity 객체를 가져옴
-            ImageEntity updatedImageEntity = ImageEntity.builder()
-                    .user(imageEntity.getUser())
-                    .imageId(event.getImageId()) // 새로 업데이트된 imageId
-                    .name(imageEntity.getName())
-                    .variableKey(imageEntity.getVariableKey())
-                    .build();
-            imageRepository.save(updatedImageEntity); // 업데이트된 엔티티 저장
+
+            imageEntity.updatedImageId(event.getImageId());
+            imageRepository.save(imageEntity);
+//            ImageEntity updatedImageEntity = ImageEntity.builder()
+//                    .user(imageEntity.getUser())
+//                    .imageId(event.getImageId()) // 새로 업데이트된 imageId
+//                    .name(imageEntity.getName())
+//                    .variableKey(imageEntity.getVariableKey())
+//                    .build();
+//            imageRepository.save(updatedImageEntity); // 업데이트된 엔티티 저장
         }
     }
 

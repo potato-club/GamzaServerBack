@@ -314,22 +314,47 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         try {
+//            buildImageCmd.exec(new BuildImageResultCallback() {
+//                @Override
+//                public void onNext(BuildResponseItem item) {
+//                    super.onNext(item);
+//                    if (item.getImageId() != null) {
+//                        dockerProvider.taggingImage(item.getImageId(), name, tag);
+//
+//                        callback.getImageId(item.getImageId()); // 이부분이 서버에서 콜백이 안되네
+//
+//                        ImageBuildEventDto event = new ImageBuildEventDto(
+//                                userPk, item.getImageId(), name, key
+//                        );
+//                        applicationEventPublisher.publishEvent(event);
+//                    }
+//                }
+//            });
             buildImageCmd.exec(new BuildImageResultCallback() {
                 @Override
                 public void onNext(BuildResponseItem item) {
                     super.onNext(item);
                     if (item.getImageId() != null) {
                         dockerProvider.taggingImage(item.getImageId(), name, tag);
+                        callback.getImageId(item.getImageId()); // 여기서 콜백 호출
 
-                        callback.getImageId(item.getImageId());
-
-                        ImageBuildEventDto event = new ImageBuildEventDto(
-                                userPk, item.getImageId(), name, key
-                        );
+                        ImageBuildEventDto event = new ImageBuildEventDto(userPk, item.getImageId(), name, key);
                         applicationEventPublisher.publishEvent(event);
                     }
                 }
-            });
+
+                @Override
+                public void onComplete() {
+                    super.onComplete();
+                    System.out.println("Docker build completed successfully");
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    super.onError(throwable);
+                    System.err.println("Docker build failed: " + throwable.getMessage());
+                }
+            }).awaitCompletion();
         } catch (Exception e) {
             e.printStackTrace();
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
