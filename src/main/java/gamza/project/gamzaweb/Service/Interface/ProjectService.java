@@ -21,6 +21,9 @@ public interface ProjectService {
 
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
 
+    ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
+
+
     void approveExecutionApplication(HttpServletRequest request, Long id);
 
     void removeExecutionApplication(HttpServletRequest request, Long id);

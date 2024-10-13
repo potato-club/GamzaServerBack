@@ -8,7 +8,6 @@ import java.util.List;
 @Builder
 public class ProjectListPerResponseDto {
 
-    private int size;
     private List<ProjectPerResponseDto> waitProjects;
     private List<ProjectPerResponseDto> completeProjects;
 }
