@@ -26,4 +26,8 @@ public class ImageEntity {
 
     private String variableKey;
 
+    public void updatedImageId(String imageId) {
+        this.imageId = imageId;
+    }
+
 }
