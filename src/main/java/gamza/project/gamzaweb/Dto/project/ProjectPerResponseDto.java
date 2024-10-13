@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProjectPerResponseDto {
 
-    private String name;
-    private boolean approveState;
-    private int internalPort;
-    private String zip;
+    private Long id;
+    private String title;
+    private int port;
+    private String file;
 }

@@ -131,7 +131,6 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
-
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(id)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
 
@@ -142,6 +141,25 @@ public class ProjectServiceImpl implements ProjectService {
         return new ProjectDetailResponseDto(project);
     }
 
+    @Override
+    public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
+                .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
+
+        if (!project.getLeader().getId().equals(userId)) {
+            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        ApplicationEntity application = project.getApplication();
+        if (application == null) {
+            throw new NotFoundException("Application이 이 프로젝트에 연결되지 않았습니다.", ErrorCode.NOT_FOUND_EXCEPTION);
+        }
+
+        return new ApplicationDetailResponseDto(application);
+    }
 
     @Override
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
@@ -158,8 +176,9 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectPerResponseDto> waitProjects = projects.stream()
                 .filter(project -> !project.isApproveState()) // 미승인된 프로젝트
                 .map(project ->
-                        new ProjectPerResponseDto(project.getName(),
-                                project.isApproveState(),
+                        new ProjectPerResponseDto(
+                                project.getId(),
+                                project.getName(),
                                 project.getApplication().getOuterPort(),
                                 ".zip"))
                 .collect(Collectors.toList());
@@ -167,14 +186,14 @@ public class ProjectServiceImpl implements ProjectService {
         List<ProjectPerResponseDto> completeProjects = projects.stream()
                 .filter(ProjectEntity::isApproveState) // 승인된 프로젝트
                 .map(project ->
-                        new ProjectPerResponseDto(project.getName(),
-                                project.isApproveState(),
+                        new ProjectPerResponseDto(
+                                project.getId(),
+                                project.getName(),
                                 project.getApplication().getOuterPort(),
                                 ".zip"))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
-                .size(projects.size())
                 .waitProjects(waitProjects)
                 .completeProjects(completeProjects)
                 .build();

@@ -60,12 +60,27 @@ public class ProjectController {
 
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
-    public ProjectListPerResponseDto personalProject(
-            HttpServletRequest request,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "6") int size) {
+    public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
 
-        Pageable pageable = PageRequest.of(page, size);
         return projectService.personalProject(request);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(description = "프로젝트 조회")
+    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, @PathVariable Long id) {
+        return projectService.getProjectById(request, id);
+    }
+
+    @GetMapping("/app/{projectId}")
+    @Operation(description = "어플리케이션 조회, 프로젝트 id로 조회하면 됨")
+    public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, @PathVariable Long projectId) {
+        return projectService.getApplicationByProjId(request, projectId);
+    }
+
+    @DeleteMapping("/user/list/{projectId}")
+    @Operation(description = "회원이 만든 특정 프로젝트 삭제")
+    public ResponseEntity<String> deleteProject(HttpServletRequest request, @PathVariable Long projectId) {
+        projectService.deleteProjectById(request, projectId);
+        return ResponseEntity.ok("프로젝트 삭제 완료");
     }
 }
