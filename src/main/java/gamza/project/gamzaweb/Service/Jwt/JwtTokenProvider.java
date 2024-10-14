@@ -138,8 +138,11 @@ public class JwtTokenProvider {
 
     public String resolveRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("RefreshToken");
-        if(request.getHeader("RefreshToken") != null && extractTokenType(authorizationHeader).equals("refresh")) {
-            return authorizationHeader;
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7).trim();
+            if (extractTokenType(token).equals("refresh")) {
+                return token;
+            }
         }
         return null;
     }
