@@ -138,8 +138,11 @@ public class JwtTokenProvider {
 
     public String resolveRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("RefreshToken");
-        if(request.getHeader("RefreshToken") != null && extractTokenType(authorizationHeader).equals("refresh")) {
-            return authorizationHeader;
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7).trim();
+            if (extractTokenType(token).equals("refresh")) {
+                return token;
+            }
         }
         return null;
     }
@@ -183,6 +186,18 @@ public class JwtTokenProvider {
             Long id = extractId(refreshToken);
             Optional<UserEntity> user = userRepository.findById(id);
             return createAccessToken(id, user.get().getUserRole());
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
+        }
+    }
+
+    public String reissueRT(String refreshToken, HttpServletResponse response) {
+        try {
+            this.validateRefreshToken(refreshToken);
+            Long id = extractId(refreshToken);
+            Optional<UserEntity> user = userRepository.findById(id);
+            return createRefreshToken(id, user.get().getUserRole());
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
