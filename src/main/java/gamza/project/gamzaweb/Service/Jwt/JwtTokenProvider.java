@@ -192,6 +192,18 @@ public class JwtTokenProvider {
         }
     }
 
+    public String reissueRT(String refreshToken, HttpServletResponse response) {
+        try {
+            this.validateRefreshToken(refreshToken);
+            Long id = extractId(refreshToken);
+            Optional<UserEntity> user = userRepository.findById(id);
+            return createRefreshToken(id, user.get().getUserRole());
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
+        }
+    }
+
     @SneakyThrows
     private String encrypt(String plainToken) {
         SecretKeySpec secretKeySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");

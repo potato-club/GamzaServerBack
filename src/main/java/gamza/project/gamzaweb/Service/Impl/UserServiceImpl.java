@@ -73,7 +73,9 @@ public class UserServiceImpl implements UserService {
         jwtTokenProvider.validateRefreshToken(refreshToken);
 
         String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
+        String newRT = jwtTokenProvider.reissueRT(refreshToken, response);
         jwtTokenProvider.setHeaderAccessToken(response, newAT);
+        jwtTokenProvider.setHeaderRefreshToken(response, newRT);
     }
 
     @Override
