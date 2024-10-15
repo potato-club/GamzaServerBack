@@ -12,6 +12,7 @@ import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserValidate userValidate;
 
     @Override
     @Transactional
@@ -94,14 +96,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void approve(HttpServletRequest request, Long id) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
-//        String role = jwtTokenProvider.extractRole(token);
-//        System.out.println("role : " + role); // admin 0, member 1, user 2
-
-//        if(!role.equals("0")) {
-//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-//        }
-
+        userValidate.validateUserRole(request);
         UserEntity user = userRepository.findById(id).orElseThrow();
         user.approveUserStatus(); // USER -> MEMBER
 
@@ -111,12 +106,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void notApprove(HttpServletRequest request, Long id) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
-//        String role = jwtTokenProvider.extractRole(token);
-//
-//        if(!role.equals("0")) {
-//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-//        }
+        userValidate.validateUserRole(request);
 
         UserEntity user = userRepository.findById(id).orElseThrow();
         user.notApproveUserStatus();
@@ -126,12 +116,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
-//        String userRole = jwtTokenProvider.extractRole(token);
-//
-//        if(!userRole.equals("0")) {
-//            throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
-//        }
+        userValidate.validateUserRole(request);
 
         Page<UserEntity> userEntities = userRepository.findByUserRole(UserRole.USER, pageable);
 
