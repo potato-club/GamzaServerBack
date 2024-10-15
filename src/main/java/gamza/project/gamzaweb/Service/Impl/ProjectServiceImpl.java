@@ -238,7 +238,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable) {
-//        userValidate.validateUserRole(request);
+        userValidate.validateUserRole(request);
 
         Page<ProjectEntity> projectEntities = projectRepository.findByApproveState(false, pageable);
 
@@ -249,7 +249,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
-//        userValidate.validateUserRole(request);
+        userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
         checkProjectApprovalState(project);
 
@@ -258,7 +258,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
     @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
-//        userValidate.validateUserRole(request);
+        userValidate.validateUserRole(request);
         projectValidate.validateProject(id);
         projectRepository.deleteById(id);
     }
