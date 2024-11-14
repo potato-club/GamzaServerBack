@@ -1,8 +1,11 @@
 package gamza.project.gamzaweb.Service.Jwt;
 
+import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
+import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
@@ -27,28 +30,32 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtTokenProvider.resolveAccessToken(request);
-        String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-        if (accessToken == null && refreshToken != null && path.contains("/reissue")) {
-            try {
+        try {
+            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
                 jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
-            } catch (ExpiredRefreshTokenException e) {
-                errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
-                setResponse(response, errorCode);
-                return;
             }
+        } catch (ExpiredJwtException e) {
+            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
+            return;
         }
 
         try {
-            if (accessToken == null && refreshToken != null) {
-                if (path.contains("/reissue") && jwtTokenProvider.validateRefreshToken(refreshToken)) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
+            String accessToken = jwtTokenProvider.resolveAccessToken(request);
+            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
+            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+
+            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
+                setAuthentication(accessToken);
             } else if (accessToken == null && refreshToken == null) {
                 filterChain.doFilter(request, response);
                 return;
@@ -57,6 +64,7 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
                     this.setAuthentication(accessToken);
                 }
             }
+            filterChain.doFilter(request, response);
         } catch (MalformedJwtException e) {
             errorCode = ErrorJwtCode.INVALID_JWT_FORMAT;
             setResponse(response, errorCode);
