@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequiredArgsConstructor
 @RestControllerAdvice
 public class ErrorExceptionHandler {
+
     @ExceptionHandler({BadRequestException.class})
     public ResponseEntity<ErrorEntity> exceptionHandler(final BadRequestException e) {
         ErrorEntity errorEntity = ErrorEntity.builder()
@@ -19,6 +20,7 @@ public class ErrorExceptionHandler {
                 .status(e.getErrorCode().getHttpStatus())
                 .body(errorEntity);
     }
+
     @ExceptionHandler({DuplicateException.class})
     public ResponseEntity<ErrorEntity> exceptionHandler(final DuplicateException e) {
         ErrorEntity errorEntity = ErrorEntity.builder()
@@ -29,6 +31,7 @@ public class ErrorExceptionHandler {
                 .status(e.getErrorCode().getHttpStatus())
                 .body(errorEntity);
     }
+
     @ExceptionHandler({ForbiddenException.class})
     public ResponseEntity<ErrorEntity> exceptionHandler(final ForbiddenException e) {
         ErrorEntity errorEntity = ErrorEntity.builder()
@@ -39,6 +42,7 @@ public class ErrorExceptionHandler {
                 .status(e.getErrorCode().getHttpStatus())
                 .body(errorEntity);
     }
+
     @ExceptionHandler({JwtException.class})
     public ResponseEntity<ErrorEntity> exceptionHandler(final JwtException e) {
         ErrorEntity errorEntity = ErrorEntity.builder()
@@ -60,6 +64,7 @@ public class ErrorExceptionHandler {
                 .status(e.getErrorCode().getHttpStatus())
                 .body(errorEntity);
     }
+
     @ExceptionHandler({InvalidTokenException.class})
     public ResponseEntity<ErrorEntity> exceptionHandler(final InvalidTokenException e) {
         ErrorEntity errorEntity = ErrorEntity.builder()
