@@ -6,12 +6,16 @@ import com.google.gson.JsonObject;
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.ErrorJwtCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
+import gamza.project.gamzaweb.Error.requestError.JwsException;
+import gamza.project.gamzaweb.Error.requestError.JwtException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +77,30 @@ public class JwtTokenProvider {
         }
     }
 
+    public Cookie createAccessCookie(Long userId, UserRole role) {
+        String cookieName = "accessToken";
+        String cookieValue = createAccessToken(userId, role);
+        Cookie cookie = new Cookie(cookieName, cookieValue);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60); // 1hour
+        return cookie;
+    }
+
+    public Cookie createRefreshCookie(Long userId, UserRole role) {
+        String cookieName = "refreshToken";
+        String cookieValue = createRefreshToken(userId, role);
+        Cookie cookie = new Cookie(cookieName, cookieValue);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24); // 1day
+        return cookie;
+    }
+
     public String createToken(Long id, UserRole role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", id); // claims
@@ -91,16 +119,24 @@ public class JwtTokenProvider {
     }
 
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-        response.setHeader("Authorization",  accessToken);
+        response.setHeader("Authorization", accessToken);
     }
 
     public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
-        response.setHeader("RefreshToken",  refreshToken);
+        response.setHeader("RefreshToken", refreshToken);
+    }
+
+    public void setRefreshCookie(HttpServletResponse response, Cookie refrehsTokenCookie) {
+        response.addCookie(refrehsTokenCookie);
+    }
+
+    public void setAccessCookie(HttpServletResponse response, Cookie accessTokenCookie) {
+        response.addCookie(accessTokenCookie);
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(this.extractUserEmail(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "" , userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     public Long extractId(String token) {
@@ -120,7 +156,7 @@ public class JwtTokenProvider {
         return userId.getEmail();
     }
 
-    public String extractTokenType(String token){
+    public String extractTokenType(String token) {
         JsonElement tokenType = extractValue(token).get("tokenType");
         return tokenType.getAsString(); // 0  1  2
     }
@@ -138,7 +174,7 @@ public class JwtTokenProvider {
 
     public String resolveRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("RefreshToken");
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7).trim();
             if (extractTokenType(token).equals("refresh")) {
                 return token;
@@ -170,7 +206,7 @@ public class JwtTokenProvider {
         } catch (MalformedJwtException e) {
             throw new MalformedJwtException("Invalid JWT token");
         } catch (ExpiredJwtException e) {
-            throw new ExpiredJwtException(null, null, "AccessToken is Expired");
+            throw new ExpiredRefreshTokenException("5001", ErrorCode.EXPIRED_ACCESS_TOKEN);
         } catch (UnsupportedJwtException ex) {
             throw new UnsupportedJwtException("JWT token is unsupported");
         } catch (IllegalArgumentException e) {
@@ -243,12 +279,11 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    private JsonObject extractValue(String token)  {
+    private JsonObject extractValue(String token) {
         String subject = extractAllClaims(token).getSubject();
         String decrypted = decrypt(subject);
         return new Gson().fromJson(decrypted, JsonObject.class);
     }
-
 
 
 }
