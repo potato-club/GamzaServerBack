@@ -13,6 +13,7 @@ import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import gamza.project.gamzaweb.Validate.UserValidate;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,6 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("There is a duplicate student number.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
-        // 학번 중복 오류
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         UserEntity user = dto.toEntity();
@@ -87,8 +87,14 @@ public class UserServiceImpl implements UserService {
 
         UserRole role = user.getUserRole();
 
+        Cookie refreshTokenCookie = jwtTokenProvider.createRefreshCookie(user.getId(), role);
+        Cookie accessTokenCookie = jwtTokenProvider.createAccessCookie(user.getId(), role);
+
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), role);
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), role);
+
+        jwtTokenProvider.setRefreshCookie(response, refreshTokenCookie);
+        jwtTokenProvider.setAccessCookie(response, accessTokenCookie);
 
         jwtTokenProvider.setHeaderAccessToken(response, accessToken);
         jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);

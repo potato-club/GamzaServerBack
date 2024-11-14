@@ -13,7 +13,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.json.simple.JSONObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,19 +49,10 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
             if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-
-            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
                 setAuthentication(accessToken);
             } else if (accessToken == null && refreshToken == null) {
                 filterChain.doFilter(request, response);
                 return;
-            } else {
-                if (jwtTokenProvider.validateAccessToken(accessToken)) {
-                    this.setAuthentication(accessToken);
-                }
             }
             filterChain.doFilter(request, response);
         } catch (MalformedJwtException e) {

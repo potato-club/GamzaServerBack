@@ -15,6 +15,7 @@ import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.IllegalFormatException;
 import java.util.Optional;
 
 @Component
@@ -77,6 +77,30 @@ public class JwtTokenProvider {
         }
     }
 
+    public Cookie createAccessCookie(Long userId, UserRole role) {
+        String cookieName = "accessToken";
+        String cookieValue = createAccessToken(userId, role);
+        Cookie cookie = new Cookie(cookieName, cookieValue);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60); // 1hour
+        return cookie;
+    }
+
+    public Cookie createRefreshCookie(Long userId, UserRole role) {
+        String cookieName = "refreshToken";
+        String cookieValue = createRefreshToken(userId, role);
+        Cookie cookie = new Cookie(cookieName, cookieValue);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24); // 1day
+        return cookie;
+    }
+
     public String createToken(Long id, UserRole role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", id); // claims
@@ -100,6 +124,14 @@ public class JwtTokenProvider {
 
     public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
         response.setHeader("RefreshToken", refreshToken);
+    }
+
+    public void setRefreshCookie(HttpServletResponse response, Cookie refrehsTokenCookie) {
+        response.addCookie(refrehsTokenCookie);
+    }
+
+    public void setAccessCookie(HttpServletResponse response, Cookie accessTokenCookie) {
+        response.addCookie(accessTokenCookie);
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
