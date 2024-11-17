@@ -35,6 +35,12 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
+            if (refreshToken == null) {
+                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+                return;
+            }
+
             if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
                 jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
@@ -47,6 +53,11 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
+            if (accessToken == null) {
+                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+                return;
+            }
 
             if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
                 setAuthentication(accessToken);
