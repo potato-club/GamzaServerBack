@@ -33,6 +33,11 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
+        if (path.startsWith("/user/login") || path.startsWith("/user/signUp")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
