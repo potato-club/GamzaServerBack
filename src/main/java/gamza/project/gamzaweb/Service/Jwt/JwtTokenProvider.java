@@ -9,7 +9,6 @@ import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
-import gamza.project.gamzaweb.Error.requestError.JwsException;
 import gamza.project.gamzaweb.Error.requestError.JwtException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
@@ -118,13 +117,13 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-        response.setHeader("Authorization", accessToken);
-    }
-
-    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
-        response.setHeader("RefreshToken", refreshToken);
-    }
+//    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+//        response.setHeader("Authorization", accessToken);
+//    }
+//
+//    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+//        response.setHeader("RefreshToken", refreshToken);
+//    }
 
     public void setRefreshCookie(HttpServletResponse response, Cookie refrehsTokenCookie) {
         response.addCookie(refrehsTokenCookie);
@@ -216,27 +215,28 @@ public class JwtTokenProvider {
         }
     }
 
-    public String reissueAT(String refreshToken, HttpServletResponse response) {
+    public Cookie reissueAT(String refreshToken, HttpServletResponse response) {
         try {
             this.validateRefreshToken(refreshToken);
             Long id = extractId(refreshToken);
             Optional<UserEntity> user = userRepository.findById(id);
-            return createAccessToken(id, user.get().getUserRole());
+            return createAccessCookie(id, user.get().getUserRole());
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
+            throw new JwtException("5001", ErrorJwtCode.EXPIRED_ACCESS_TOKEN);
+//            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
         }
     }
 
-    public String reissueRT(String refreshToken, HttpServletResponse response) {
+    public Cookie reissueRT(String refreshToken, HttpServletResponse response) {
         try {
             this.validateRefreshToken(refreshToken);
             Long id = extractId(refreshToken);
             Optional<UserEntity> user = userRepository.findById(id);
-            return createRefreshToken(id, user.get().getUserRole());
+            return createRefreshCookie(id, user.get().getUserRole());
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return ErrorCode.EXPIRED_REFRESH_TOKEN.getMessage();
+            throw new JwtException("5002", ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
         }
     }
 
