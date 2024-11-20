@@ -4,8 +4,8 @@ import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
+import gamza.project.gamzaweb.Error.requestError.JwtException;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
@@ -33,44 +33,34 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-        if (path.startsWith("/user/login") || path.startsWith("/user/signUp")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-
-            if (refreshToken == null) {
-                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-                return;
-            }
-
-            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
+            if (refreshToken != null && path.contains("/reissue")) {
                 jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
+                return;
             }
         } catch (ExpiredJwtException e) {
-            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
+            errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
+            setResponse(response, errorCode);
             return;
         }
+// 빈 토큰이면 잘못된걸로 분리
 
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
-            if (accessToken == null) {
-                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-                return;
-            }
-
-            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
-                setAuthentication(accessToken);
-            } else if (accessToken == null && refreshToken == null) {
+            if (refreshToken == null && accessToken == null) {
                 filterChain.doFilter(request, response);
-                return;
+            } else if (accessToken != null && refreshToken == null) {
+                jwtTokenProvider.validateAccessToken(accessToken);
+                filterChain.doFilter(request, response);
+            } else if (accessToken != null && refreshToken != null) {
+                setResponse(response, ErrorJwtCode.UNSUPPORTED_JWT_TOKEN);
             }
             filterChain.doFilter(request, response);
+
         } catch (MalformedJwtException e) {
             errorCode = ErrorJwtCode.INVALID_JWT_FORMAT;
             setResponse(response, errorCode);
@@ -96,14 +86,44 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-
         filterChain.doFilter(request, response);
 
-    }
 
-    private void setAuthentication(String token) {
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        try {
+//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+//
+//            if (refreshToken == null && path.contains("/reissue")) {
+//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+//                return;
+//            }
+//
+//            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
+//                jwtTokenProvider.validateRefreshToken(refreshToken);
+//                filterChain.doFilter(request, response);
+//            }
+//
+//        } catch (ExpiredJwtException e) {
+//            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
+//            return;
+//        }
+
+//        try {
+//            String accessToken = jwtTokenProvider.resolveAccessToken(request);
+//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+//
+//            if (accessToken == null) {
+//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+//                return;
+//            }
+//
+//            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
+//                setAuthentication(accessToken);
+//            } else if (accessToken == null && refreshToken == null) {
+//                filterChain.doFilter(request, response);
+//                return;
+//            }
+
+
     }
 
     private void setResponse(HttpServletResponse response, ErrorJwtCode errorCode) throws IOException {

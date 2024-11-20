@@ -28,12 +28,6 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/user/**");
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
@@ -41,6 +35,10 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                .requestMatchers("/user/**").permitAll()
+//                .requestMatchers("/", "/api*", "/api-docs/**", "/swagger-ui/**").permitAll()
+//                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .anyRequest().permitAll()
         );
 
@@ -51,7 +49,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
