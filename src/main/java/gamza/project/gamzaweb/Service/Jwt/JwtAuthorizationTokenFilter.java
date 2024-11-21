@@ -31,6 +31,10 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
+        if (path.contains("/test")) {
+            filterChain.doFilter(request, response);
+        }
+
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 

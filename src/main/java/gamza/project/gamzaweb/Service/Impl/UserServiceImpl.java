@@ -88,15 +88,15 @@ public class UserServiceImpl implements UserService {
         UserRole role = user.getUserRole();
 
         Cookie refreshTokenCookie = jwtTokenProvider.createRefreshCookie(user.getId(), role);
-        Cookie accessTokenCookie = jwtTokenProvider.createAccessCookie(user.getId(), role);
+//        Cookie accessTokenCookie = jwtTokenProvider.createAccessCookie(user.getId(), role);
 
-//        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), role);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId(), role);
 //        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), role);
 
         jwtTokenProvider.setRefreshCookie(response, refreshTokenCookie);
-        jwtTokenProvider.setAccessCookie(response, accessTokenCookie);
+//        jwtTokenProvider.setAccessCookie(response, accessTokenCookie);
 
-//        jwtTokenProvider.setHeaderAccessToken(response, accessToken);
+        jwtTokenProvider.setHeaderAccessToken(response, accessToken);
 //        jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
     }
 
