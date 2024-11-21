@@ -117,9 +117,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-//    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-//        response.setHeader("Authorization", accessToken);
-//    }
+    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader("Authorization", accessToken);
+    }
 //
 //    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
 //        response.setHeader("RefreshToken", refreshToken);
