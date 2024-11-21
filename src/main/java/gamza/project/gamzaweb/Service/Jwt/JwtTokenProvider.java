@@ -82,7 +82,7 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(cookieName, cookieValue);
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60); // 1hour
         return cookie;
@@ -94,7 +94,7 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(cookieName, cookieValue);
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 24); // 1day
         return cookie;
