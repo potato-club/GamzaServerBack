@@ -14,8 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -35,6 +33,12 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
+
+            if (refreshToken != null && refreshToken.trim().isEmpty()) {
+                setResponse(response, ErrorJwtCode.INVALID_VALUE); // 빈 값에 대한 에러 반환
+                return;
+            }
+
             if (refreshToken != null && path.contains("/reissue")) {
                 jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
@@ -45,21 +49,25 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         }
-// 빈 토큰이면 잘못된걸로 분리
 
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
+
+
+
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
             if (refreshToken == null && accessToken == null) {
                 filterChain.doFilter(request, response);
+                return;
             } else if (accessToken != null && refreshToken == null) {
                 jwtTokenProvider.validateAccessToken(accessToken);
                 filterChain.doFilter(request, response);
+                return;
             } else if (accessToken != null && refreshToken != null) {
                 setResponse(response, ErrorJwtCode.UNSUPPORTED_JWT_TOKEN);
+                return;
             }
-            filterChain.doFilter(request, response);
 
         } catch (MalformedJwtException e) {
             errorCode = ErrorJwtCode.INVALID_JWT_FORMAT;
@@ -79,52 +87,18 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             return;
         } catch (RuntimeException e) {
             e.printStackTrace();
-            errorCode = ErrorJwtCode.RUNTIME_EXCEPTION;
+            errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+
         filterChain.doFilter(request, response);
 
-
-//        try {
-//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-//
-//            if (refreshToken == null && path.contains("/reissue")) {
-//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-//                return;
-//            }
-//
-//            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
-//                jwtTokenProvider.validateRefreshToken(refreshToken);
-//                filterChain.doFilter(request, response);
-//            }
-//
-//        } catch (ExpiredJwtException e) {
-//            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
-//            return;
-//        }
-
-//        try {
-//            String accessToken = jwtTokenProvider.resolveAccessToken(request);
-//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-//
-//            if (accessToken == null) {
-//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-//                return;
-//            }
-//
-//            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
-//                setAuthentication(accessToken);
-//            } else if (accessToken == null && refreshToken == null) {
-//                filterChain.doFilter(request, response);
-//                return;
-//            }
-
-
     }
+
 
     private void setResponse(HttpServletResponse response, ErrorJwtCode errorCode) throws IOException {
         JSONObject json = new JSONObject();
