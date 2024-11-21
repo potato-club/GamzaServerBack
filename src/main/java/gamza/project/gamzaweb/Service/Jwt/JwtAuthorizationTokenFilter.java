@@ -4,8 +4,8 @@ import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
+import gamza.project.gamzaweb.Error.requestError.JwtException;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
@@ -14,8 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,44 +31,48 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-        if (path.startsWith("/user/login") || path.startsWith("/user/signUp")) {
+        if (path.contains("/test")) {
             filterChain.doFilter(request, response);
-            return;
         }
 
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
-            if (refreshToken == null) {
-                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+            if (refreshToken != null && refreshToken.trim().isEmpty()) {
+                setResponse(response, ErrorJwtCode.INVALID_VALUE); // 빈 값에 대한 에러 반환
                 return;
             }
 
-            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
+            if (refreshToken != null && path.contains("/reissue")) {
                 jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
+                return;
             }
         } catch (ExpiredJwtException e) {
-            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
+            errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
+            setResponse(response, errorCode);
             return;
         }
 
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
+
+
+
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
-            if (accessToken == null) {
-                setResponse(response, ErrorJwtCode.INVALID_VALUE);
+            if (refreshToken == null && accessToken == null) {
+                filterChain.doFilter(request, response);
+                return;
+            } else if (accessToken != null && refreshToken == null) {
+                jwtTokenProvider.validateAccessToken(accessToken);
+                filterChain.doFilter(request, response);
+                return;
+            } else if (accessToken != null && refreshToken != null) {
+                setResponse(response, ErrorJwtCode.UNSUPPORTED_JWT_TOKEN);
                 return;
             }
 
-            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
-                setAuthentication(accessToken);
-            } else if (accessToken == null && refreshToken == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-            filterChain.doFilter(request, response);
         } catch (MalformedJwtException e) {
             errorCode = ErrorJwtCode.INVALID_JWT_FORMAT;
             setResponse(response, errorCode);
@@ -89,7 +91,7 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             return;
         } catch (RuntimeException e) {
             e.printStackTrace();
-            errorCode = ErrorJwtCode.RUNTIME_EXCEPTION;
+            errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;
         } catch (Exception e) {
@@ -101,10 +103,6 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
     }
 
-    private void setAuthentication(String token) {
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
 
     private void setResponse(HttpServletResponse response, ErrorJwtCode errorCode) throws IOException {
         JSONObject json = new JSONObject();

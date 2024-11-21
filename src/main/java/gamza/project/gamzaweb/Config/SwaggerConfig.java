@@ -26,8 +26,6 @@ public class SwaggerConfig {
             openApi.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
             openApi.addServersItem(new Server().url("https://api.gamza.club").description("Production Server"));
             openApi.addServersItem(new Server().url("http://3.34.207.58:8080").description("TestServer Server"));
-
-
         };
     }
 
@@ -37,7 +35,7 @@ public class SwaggerConfig {
                 .group("all")
                 .pathsToMatch("/**")
                 .displayName("All API")
-                .addOpenApiCustomizer(createOpenApiCustomizer("모든 API", "v0.4"))
+                .addOpenApiCustomizer(createOpenApiCustomizer("모든 API", "v0.5"))
                 .build();
     }
 }

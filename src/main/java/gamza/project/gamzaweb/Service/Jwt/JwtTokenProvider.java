@@ -82,7 +82,7 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(cookieName, cookieValue);
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60); // 1hour
         return cookie;
@@ -117,9 +117,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-//    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
-//        response.setHeader("Authorization", accessToken);
-//    }
+    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader("Authorization", accessToken);
+    }
 //
 //    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
 //        response.setHeader("RefreshToken", refreshToken);
