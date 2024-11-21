@@ -35,10 +35,8 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-//                .requestMatchers("/user/**").permitAll()
-//                .requestMatchers("/", "/api*", "/api-docs/**", "/swagger-ui/**").permitAll()
-//                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers("/", "/api*", "/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui/index.html").permitAll()
                 .anyRequest().permitAll()
         );
 

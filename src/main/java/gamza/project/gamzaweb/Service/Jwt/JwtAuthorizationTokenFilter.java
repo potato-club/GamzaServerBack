@@ -14,8 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -40,12 +38,12 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
             errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
             setResponse(response, errorCode);
             return;
         }
-// 빈 토큰이면 잘못된걸로 분리
 
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
@@ -86,45 +84,11 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+
         filterChain.doFilter(request, response);
 
-
-//        try {
-//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-//
-//            if (refreshToken == null && path.contains("/reissue")) {
-//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-//                return;
-//            }
-//
-//            if (refreshToken != null && jwtTokenProvider.validateRefreshToken(refreshToken) && path.contains("/reissue")) {
-//                jwtTokenProvider.validateRefreshToken(refreshToken);
-//                filterChain.doFilter(request, response);
-//            }
-//
-//        } catch (ExpiredJwtException e) {
-//            setResponse(response, ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
-//            return;
-//        }
-
-//        try {
-//            String accessToken = jwtTokenProvider.resolveAccessToken(request);
-//            String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
-//
-//            if (accessToken == null) {
-//                setResponse(response, ErrorJwtCode.INVALID_VALUE);
-//                return;
-//            }
-//
-//            if (accessToken != null && jwtTokenProvider.validateAccessToken(accessToken)) {
-//                setAuthentication(accessToken);
-//            } else if (accessToken == null && refreshToken == null) {
-//                filterChain.doFilter(request, response);
-//                return;
-//            }
-
-
     }
+
 
     private void setResponse(HttpServletResponse response, ErrorJwtCode errorCode) throws IOException {
         JSONObject json = new JSONObject();
