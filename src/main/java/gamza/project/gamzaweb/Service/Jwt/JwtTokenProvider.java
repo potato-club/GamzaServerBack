@@ -120,10 +120,10 @@ public class JwtTokenProvider {
     public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
         response.setHeader("Authorization", accessToken);
     }
-//
-//    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
-//        response.setHeader("RefreshToken", refreshToken);
-//    }
+
+    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+        response.setHeader("RefreshToken", refreshToken);
+    }
 
     public void setRefreshCookie(HttpServletResponse response, Cookie refrehsTokenCookie) {
         response.addCookie(refrehsTokenCookie);
@@ -215,12 +215,12 @@ public class JwtTokenProvider {
         }
     }
 
-    public Cookie reissueAT(String refreshToken, HttpServletResponse response) {
+    public String reissueAT(String refreshToken, HttpServletResponse response) {
         try {
             this.validateRefreshToken(refreshToken);
             Long id = extractId(refreshToken);
             Optional<UserEntity> user = userRepository.findById(id);
-            return createAccessCookie(id, user.get().getUserRole());
+            return createAccessToken(id, user.get().getUserRole());
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             throw new JwtException("5001", ErrorJwtCode.EXPIRED_ACCESS_TOKEN);
@@ -228,12 +228,12 @@ public class JwtTokenProvider {
         }
     }
 
-    public Cookie reissueRT(String refreshToken, HttpServletResponse response) {
+    public String reissueRT(String refreshToken, HttpServletResponse response) {
         try {
             this.validateRefreshToken(refreshToken);
             Long id = extractId(refreshToken);
             Optional<UserEntity> user = userRepository.findById(id);
-            return createRefreshCookie(id, user.get().getUserRole());
+            return createRefreshToken(id, user.get().getUserRole());
         } catch (ExpiredJwtException e) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             throw new JwtException("5002", ErrorJwtCode.EXPIRED_REFRESH_TOKEN);
