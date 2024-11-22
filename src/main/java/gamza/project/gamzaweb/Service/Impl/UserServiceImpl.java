@@ -74,10 +74,13 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
         jwtTokenProvider.validateRefreshToken(refreshToken);
 
-        Cookie newAT = jwtTokenProvider.reissueAT(refreshToken, response);
-        Cookie newRT = jwtTokenProvider.reissueRT(refreshToken, response);
-        jwtTokenProvider.setAccessCookie(response, newAT);
-        jwtTokenProvider.setRefreshCookie(response, newRT);
+        String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
+        String newRT = jwtTokenProvider.reissueRT(refreshToken, response);
+
+//        Cookie newAT = jwtTokenProvider.reissueAT(refreshToken, response);
+//        Cookie newRT = jwtTokenProvider.reissueRT(refreshToken, response);
+        jwtTokenProvider.setHeaderAccessToken(response, newAT);
+        jwtTokenProvider.setHeaderRefreshToken(response, newRT);
     }
 
     @Override
@@ -87,17 +90,17 @@ public class UserServiceImpl implements UserService {
 
         UserRole role = user.getUserRole();
 
-        Cookie refreshTokenCookie = jwtTokenProvider.createRefreshCookie(user.getId(), role);
+//        Cookie refreshTokenCookie = jwtTokenProvider.createRefreshCookie(user.getId(), role);
 //        Cookie accessTokenCookie = jwtTokenProvider.createAccessCookie(user.getId(), role);
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), role);
-//        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), role);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), role);
 
-        jwtTokenProvider.setRefreshCookie(response, refreshTokenCookie);
+//        jwtTokenProvider.setRefreshCookie(response, refreshTokenCookie);
 //        jwtTokenProvider.setAccessCookie(response, accessTokenCookie);
 
         jwtTokenProvider.setHeaderAccessToken(response, accessToken);
-//        jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
+        jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
     }
 
     @Override
