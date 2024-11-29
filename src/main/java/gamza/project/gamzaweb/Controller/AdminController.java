@@ -76,5 +76,16 @@ public class AdminController {
         return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
     }
 
+    @GetMapping("/request")
+    public String getRequestInfo(HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr(); // 요청자의 IP 주소
+        String userAgent = request.getHeader("User-Agent"); // 요청자의 User-Agent 정보
+        String method = request.getMethod(); // HTTP 메서드 (GET, POST 등)
+        String url = request.getRequestURL().toString(); // 요청 URL
+
+        return String.format("IP: %s, User-Agent: %s, Method: %s, URL: %s",
+                ipAddress, userAgent, method, url);
+    }
+
 
 }

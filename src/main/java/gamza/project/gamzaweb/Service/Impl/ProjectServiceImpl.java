@@ -77,6 +77,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .build();
 
             applicationRepository.save(application);
+            applicationRepository.flush();
 
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
