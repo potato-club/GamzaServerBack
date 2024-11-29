@@ -46,7 +46,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
-    private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();;
+    private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();
+    ;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
@@ -69,12 +70,10 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 
             ApplicationEntity application = ApplicationEntity.builder()
-//                    .name(dto.getApplicationName())
                     .tag(dto.getTag())
                     .internalPort(80)
                     .outerPort(dto.getOuterPort())
                     .variableKey(dto.getVariableKey())
-//                    .type(dto.getApplicationType())
                     .build();
 
             applicationRepository.save(application);
@@ -92,13 +91,14 @@ public class ProjectServiceImpl implements ProjectService {
 
             String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
 
-            if(filePath == null) {
+            if (filePath == null) {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
             }
 
             project.getApplication().updateDockerfilePath(filePath);
 
             projectRepository.save(project);
+
 
         } catch (Exception e) {
             throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
@@ -256,6 +256,7 @@ public class ProjectServiceImpl implements ProjectService {
         // Docker 이미지 빌드
         buildDockerImageFromApplicationZip(request, project);
     }
+
     @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
@@ -289,7 +290,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag() , project.getApplication().getVariableKey() , userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag(), project.getApplication().getVariableKey(), userPk -> {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
