@@ -7,10 +7,10 @@ import lombok.Data;
 public class ImageBuildEventDto {
     private UserEntity userPk;
     private String imageId;
-    private  String name;
-    private  String key;
+    private String name;
+    private String key;
 
-    public ImageBuildEventDto(UserEntity userPk,String imageId, String name, String key) {
+    public ImageBuildEventDto(UserEntity userPk, String imageId, String name, String key) {
         this.userPk = userPk;
         this.imageId = imageId;
         this.name = name;

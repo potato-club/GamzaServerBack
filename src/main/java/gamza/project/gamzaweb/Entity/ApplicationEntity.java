@@ -40,6 +40,7 @@ public class ApplicationEntity {
     private String variableKey;
 
     @OneToOne(mappedBy = "application", fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")  // 외래 키 컬럼명 설정
     private ProjectEntity project;
 
 //    @Enumerated(EnumType.STRING)
