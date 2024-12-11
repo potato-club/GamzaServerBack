@@ -252,7 +252,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
-        Page<ProjectEntity> projectEntities = projectRepository.findByApproveFixedState(false, pageable);
+        Page<ProjectEntity> projectEntities = projectRepository.findByApproveFixedStateAndApproveState(false, false, pageable);
 
         return projectEntities.map(FixedProjectListNotApproveResponse::new);
 
