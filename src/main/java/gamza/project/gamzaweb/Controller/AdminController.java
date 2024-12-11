@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Controller;
 
 import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.project.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.Dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.UserService;
@@ -51,7 +52,7 @@ public class AdminController {
 
     }
 
-    @GetMapping("/project/approve/list")
+    @GetMapping("/project/create/list")
     @Operation(description = "미승인 프로젝트 리스트 출력")
     public Page<ProjectListNotApproveResponse> approveProjectList(
             HttpServletRequest request,
@@ -75,6 +76,31 @@ public class AdminController {
         projectService.removeExecutionApplication(request, id);
         return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
     }
+
+    @GetMapping("/project/modify/list")
+    @Operation(description = "수정 미승인 프로젝트 리스트 출력")
+    public Page<FixedProjectListNotApproveResponse> approveFixedProjectList(
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return projectService.notApproveFixedProjectList(request, pageable);
+    }
+
+//    @PostMapping("/project/fixed/{id}")
+//    @Operation(description = "프로젝트 수정 승인")
+//    public ResponseEntity<String> approveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
+//        projectService.approveFixedExecutionApplication(request, id);
+//        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
+//    }
+
+//    @DeleteMapping("/project/fixed/remove/{id}")
+//    @Operation(description = "프로젝트 수정 삭제")
+//    public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
+//        projectService.removeFixedExecutionApplication(request, id);
+//        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+//    }
 
     @GetMapping("/request")
     public String getRequestInfo(HttpServletRequest request) {
