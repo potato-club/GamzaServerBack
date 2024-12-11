@@ -232,8 +232,8 @@ public class ProjectServiceImpl implements ProjectService {
             throw new ForbiddenException("이 프로젝트를 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
 
-        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate());
-        projectRepository.save(project);
+//        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate());
+//        projectRepository.save(project);
 
     }
 
@@ -249,6 +249,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
+        userValidate.validateUserRole(request);
+
+        Page<ProjectEntity> projectEntities = projectRepository.findByApproveFixedState(false, pageable);
+
+        return projectEntities.map(FixedProjectListNotApproveResponse::new);
+
+    }
+
+    @Override
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
@@ -260,6 +270,25 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+        projectValidate.validateProject(id);
+        projectRepository.deleteById(id);
+    }
+
+    @Override
+    public void approveFixedExecutionApplication(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+        ProjectEntity project = getProjectById(id);
+        checkProjectApprovalState(project);
+
+
+        // Docker 이미지 빌드
+        buildDockerImageFromApplicationZip(request, project);
+    }
+
+
+    @Override
+    public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
         projectValidate.validateProject(id);
         projectRepository.deleteById(id);
