@@ -2,7 +2,13 @@ package gamza.project.gamzaweb.Dto.project;
 
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class FixedProjectListNotApproveResponse {
     private Long id;
     private String userName;
