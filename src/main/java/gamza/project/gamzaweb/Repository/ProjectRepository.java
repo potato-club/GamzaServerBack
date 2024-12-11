@@ -25,6 +25,8 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
 
     Page<ProjectEntity> findByApproveState(boolean approveState, Pageable pageable);
 
-    Page<ProjectEntity> findByApproveFixedStateAndApproveState(boolean approveFixedState, boolean approveState, Pageable pageable);
+    Page<ProjectEntity> findByFixedStateAndApproveState(boolean fixedState, boolean approveState, Pageable pageable);
+
+    Page<ProjectEntity> findByFixedStateAndApproveFixedState(boolean fixedState, boolean approveFixedState, Pageable pageable);
 
 }

@@ -83,7 +83,7 @@ public class AdminController {
             HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
-
+System.out.println("와ㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏㅏ");
         Pageable pageable = PageRequest.of(page, size);
         return projectService.notApproveFixedProjectList(request, pageable);
     }
