@@ -51,6 +51,9 @@ public class ProjectEntity extends BaseTime {
     private boolean approveState; // -> 프로젝트 승인 상태
 
     @Column(nullable = false)
+    private boolean fixedState;
+
+    @Column(nullable = false)
     private boolean approveFixedState;
 
 
