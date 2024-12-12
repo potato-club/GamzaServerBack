@@ -26,6 +26,7 @@ import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.FileWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -308,10 +309,8 @@ public class ProjectServiceImpl implements ProjectService {
         if (!project.getLeader().equals(user)) {
             throw new InvalidTokenException("프로젝트 삭제 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
-
         projectRepository.delete(project);
     }
-
 
     private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
@@ -324,6 +323,11 @@ public class ProjectServiceImpl implements ProjectService {
                 // 이미지 빌드 성공 후 콜백
                 System.out.println("Docker image built successfully: " + userPk);
             });
+
+            // Docker 빌드 성공 후 Nginx 설정 처리
+            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
+            reloadNginx();
+
         } catch (IOException e) {
             e.printStackTrace();
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
@@ -411,6 +415,57 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    private void generateNginxConfig(String applicationName, int applicationPort) {
+        String configContent = """
+        server {
+            listen 80;
+            listen [::]:80;
+            server_name %s.gamza.club;
+            return 301 https://$host$request_uri;
+        }
+        server {
+            listen 443 ssl http2;
+            listen [::]:443 ssl http2;
+            server_name %s.gamza.club;
+            ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
+            
+            location / {
+                proxy_pass http://localhost:%d;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
+            }
+        }
+    """.formatted(applicationName, applicationName, applicationPort);
+
+        try (FileWriter writer = new FileWriter("/etc/nginx/conf.d/" + applicationName + ".conf")) {
+            writer.write(configContent);
+            System.out.println("Nginx config generated for: " + applicationName);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to generate Nginx config for: " + applicationName, e);
+        }
+    }
+
+    private void reloadNginx() {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("bash", "-c", "nginx -s reload");
+
+        try {
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                System.out.println("Nginx reloaded successfully.");
+            } else {
+                System.err.println("Failed to reload Nginx. Exit code: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to reload Nginx", e);
+        }
+    }
 
     private Path extractDockerfileFromZip(String zipPath) throws IOException {
         boolean unzipResult = FileController.unzip(zipPath);
@@ -449,4 +504,3 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 }
-
