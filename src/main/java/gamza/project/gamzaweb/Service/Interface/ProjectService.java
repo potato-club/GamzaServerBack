@@ -25,6 +25,7 @@ public interface ProjectService {
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
 
+//    void onContainerCreated(String containerId);
 
     void approveExecutionApplication(HttpServletRequest request, Long id);
 
