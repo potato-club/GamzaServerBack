@@ -80,43 +80,6 @@ public class DockerProvider {
         return dockerClient.listImagesCmd().exec();
     }
 
-    /**
-     * Make Automatically image build and start process
-     */
-//    public String imageRegister(File dockerFile, String projectName, String versionName, String outerPort, String innerPort) throws Exception {
-//        if (!dockerFile.exists()) {
-//            throw new NotFoundException("Docker File Not Exist");
-//        }
-////        if (scheduler == null) {
-////            throw new NullPointerException("Scheduler is null");
-////        }
-//
-//        String tempImageId = ""; //todo : make random and push to db
-//
-//        buildImage(dockerFile, new BuildImageResultCallback() {
-//            @Override
-//            public void onNext(BuildResponseItem item) {
-//                super.onNext(item);
-//                if (item.getImageId() == null) {
-//                    return;
-//                }
-//                //todo : update temp id to real id
-//                taggingImage(item.getImageId(), projectName, versionName);
-//
-//                String containerId = createContainer(projectName, outerPort, innerPort, versionName);
-//                dockerClient.startContainerCmd(containerId).exec();
-//            }
-//        });
-//
-//        return ""; // todo : return db id
-//    }
-
-//    public void buildImage(File file, BuildImageResultCallback callback) {
-//        System.out.println("buildImage : " + file.exists() + "/" + file.length());
-//
-//        BuildImageCmd image = dockerClient.buildImageCmd(file);
-//        image.exec(callback);
-//    }
     public String listContainers(HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
@@ -138,90 +101,6 @@ public class DockerProvider {
 
     public void taggingImage(String imageId, String name, String tag) {
         dockerClient.tagImageCmd(imageId, name, tag).exec(); // 이렇게 해도 되나..?
-    }
-
-    // 이미지를 빌드를 한다 -> 도커 스케쥴러에서 이미지가 있는지 체크한다 -> 이미지 빌드가 다되면 스케쥴러에서 디비에 넣어준다. 유저는 어떻게 넣지
-    public void buildImage(HttpServletRequest request, File file, String name, @Nullable String tag, @Nullable String key, DockerProviderBuildCallback callback) {
-
-        String token = jwtTokenProvider.resolveAccessToken(request);
-        Long userId = jwtTokenProvider.extractId(token);
-        UserEntity userPk = userRepository.findUserEntityById(userId);
-
-        ImageEntity imageEntity = ImageEntity.builder()
-                .user(userPk)
-                .name(name)
-                .variableKey(key)
-                .build();
-        imageRepository.save(imageEntity);
-
-        if (name != null && tag != null) {
-            List<Image> existingImages = dockerClient.listImagesCmd().exec();
-            boolean imageExists = existingImages.stream()
-                    .anyMatch(image -> image.getRepoTags() != null &&
-                            Arrays.asList(image.getRepoTags()).contains(name + ":" + tag));
-
-            if (imageExists) {
-                throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
-            }
-        }
-
-        BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(file);
-
-        if (key != null && !key.isEmpty()) {
-            buildImageCmd.withBuildArg("key", key);
-        }
-
-        try {
-            buildImageCmd.exec(new BuildImageResultCallback() {
-                @Override
-                public void onNext(BuildResponseItem item) {
-                    super.onNext(item);
-                    System.out.println("onNext: " + item.getImageId());
-                    System.out.println("error: " + item.isErrorIndicated()); // 이거던져주면됨 error
-                    if (item.getImageId() != null) {
-                        taggingImage(item.getImageId(), name, tag);
-                        callback.getImageId(item.getImageId());
-
-                        ImageBuildEventDto event = new ImageBuildEventDto(
-                                userPk, item.getImageId(), name, key
-                        );
-                        applicationEventPublisher.publishEvent(event);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
-        }
-
-    }
-
-    public Path unzip(MultipartFile file, Path destDir) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                Path newPath = zipSlipProtect(zipEntry, destDir); // 보안 검사를 통해 zip 파일 내 경로 검사
-                if (zipEntry.isDirectory()) {
-                    Files.createDirectories(newPath);
-                } else {
-                    // 파일 해제
-                    Files.createDirectories(newPath.getParent());
-                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
-                }
-                zipEntry = zis.getNextEntry();
-            }
-            zis.closeEntry();
-        }
-        return destDir;
-    }
-
-    // zip 파일 내부 경로 보안을 위한 메서드
-    private Path zipSlipProtect(ZipEntry zipEntry, Path destDir) throws IOException {
-        Path targetDirResolved = destDir.resolve(zipEntry.getName());
-        Path normalizePath = targetDirResolved.normalize();
-        if (!normalizePath.startsWith(destDir)) {
-            throw new IOException("Bad zip entry: " + zipEntry.getName());
-        }
-        return normalizePath;
     }
 
 

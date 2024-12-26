@@ -25,7 +25,7 @@ public class SwaggerConfig {
             openApi.schemaRequirement("bearerAuth", createAPIKeyScheme());
             openApi.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
             openApi.addServersItem(new Server().url("https://api.gamza.club").description("Production Server"));
-            openApi.addServersItem(new Server().url("http://3.34.207.58:8080").description("TestServer Server"));
+            openApi.addServersItem(new Server().url("https://gamzaweb.shop/").description("TestServer Server"));
         };
     }
 
