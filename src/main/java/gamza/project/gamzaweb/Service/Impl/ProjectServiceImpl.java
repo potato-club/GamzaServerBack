@@ -332,9 +332,9 @@ public class ProjectServiceImpl implements ProjectService {
                 System.out.println("Docker image built successfully: " + userPk);
             });
 
-            // Docker 빌드 성공 후 Nginx 설정 처리
-            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
-            reloadNginx();
+//             Docker 빌드 성공 후 Nginx 설정 처리
+//            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
+//            reloadNginx();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -443,7 +443,8 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private void generateNginxConfig(String applicationName, int applicationPort) {
+
+    private void  generateNginxConfig(String applicationName, int applicationPort) {
         String configContent = """
         server {
             listen 80;
