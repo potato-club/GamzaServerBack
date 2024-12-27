@@ -7,12 +7,15 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Image;
+import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.ApplicationRepository;
+import gamza.project.gamzaweb.Repository.ContainerRepository;
 import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
@@ -57,6 +60,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ImageRepository imageRepository;
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
+    private final ContainerRepository containerRepository;
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -327,14 +331,8 @@ public class ProjectServiceImpl implements ProjectService {
                 // Docker 빌드 성공 후 Nginx 설정 처리
                 generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
 
-//                CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
-//                        .withExposedPorts(project.exposePort)
-//                        .withHostConfig(newHostConfig()
-//                                .withPortBindings(project.innerPort))
-//                        .withImage(imageId)
-//                        .exec();
-//
-//                dockerClient.startContainerCmd(container.getId()).exec();
+                // 컨테이너 start
+                createContainer(request, project, imageId);
 
                 reloadNginx();
 
@@ -346,6 +344,29 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    private void createContainer(HttpServletRequest request, ProjectEntity project, String imageId) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
+                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+                .withHostConfig(newHostConfig()
+                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
+                                ExposedPort.tcp(project.getApplication().getInternalPort()))))
+                .withImage(imageId)
+                .exec();
+
+        dockerClient.startContainerCmd(container.getId()).exec();
+
+        ContainerEntity containerEntity = ContainerEntity.builder()
+                .containerId(container.getId())
+                .imageId(project.getName() + ":" + project.getApplication().getTag())
+                .user(userPk)
+                .build();
+
+        containerRepository.save(containerEntity);
+    }
 
     private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
