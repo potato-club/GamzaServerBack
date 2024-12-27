@@ -9,6 +9,7 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.HostConfig;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
@@ -167,6 +168,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         return new ApplicationDetailResponseDto(application);
     }
+
+//    @Override
+//    public void onContainerCreated(String containerId) {
+//
+//    }
 
     @Override
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
@@ -328,13 +334,13 @@ public class ProjectServiceImpl implements ProjectService {
             buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag(), project.getApplication().getVariableKey(), imageId -> {
                 // 이미지 빌드 성공 후 콜백
 
-                // Docker 빌드 성공 후 Nginx 설정 처리
-                generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
 
                 // 컨테이너 start
                 createContainer(request, project, imageId);
 
-                reloadNginx();
+//             Docker 빌드 성공 후 Nginx 설정 처리
+//            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
+//            reloadNginx();
 
                 System.out.println("Docker image built successfully: " + imageId);
             });
@@ -387,6 +393,42 @@ public class ProjectServiceImpl implements ProjectService {
         executeDockerBuild(dockerfile, name, key, tag, callback, userPk);
     }
 
+    private void createContainerFromImage(String imageName, String containerName, String portMapping, UserEntity user, DockerProvider.DockerProviderBuildCallback callback) {
+        try {
+            // Docker 이미지 조회
+            List<Image> existingImages = dockerClient.listImagesCmd().exec();
+            String imageId = existingImages.stream()
+                    .filter(image -> Arrays.asList(image.getRepoTags()).contains(imageName))
+                    .map(Image::getId)
+                    .findFirst()
+                    .orElseThrow(() -> new DockerRequestException("3003 IMAGE NOT FOUND", ErrorCode.FAILED_IMAGE_FOUND));
+
+            // 컨테이너 생성
+            CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
+                    .withName(containerName)
+                    .withHostConfig(HostConfig.newHostConfig()
+                            .withPortBindings(PortBinding.parse(portMapping)))
+                    .exec();
+
+            // 컨테이너 실행
+            dockerClient.startContainerCmd(container.getId()).exec();
+
+            // 컨테이너 정보를 DB에 저장
+//            saveContainerInfoToDatabase(container.getId(), imageId, user);
+//
+//             성공 시 콜백 호출
+//            callback.onContainerCreated(container.getId());
+
+            System.out.println("Container created and started successfully: " + containerName);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+//            throw new DockerRequestException("3002 FAILED CONTAINER CREATION", ErrorCode.FAILED_CONTAINER_CREATION);
+        }
+    }
+
+
+
     private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
@@ -427,14 +469,15 @@ public class ProjectServiceImpl implements ProjectService {
                     super.onError(throwable);
                     System.err.println("Docker build failed: " + throwable.getMessage());
                 }
-            }).awaitCompletion();
+            }).awaitCompletion(); // 이미지가 빌드되는 동안 대기 -> 스케줄러로 변경해야하는 부분
         } catch (Exception e) {
             e.printStackTrace();
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
     }
 
-    private void generateNginxConfig(String applicationName, int applicationPort) {
+
+    private void  generateNginxConfig(String applicationName, int applicationPort) {
         String configContent = """
         server {
             listen 80;
