@@ -5,18 +5,18 @@ import com.github.dockerjava.api.command.BuildImageCmd;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.BuildResponseItem;
-import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
+import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.HostConfig;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
-import gamza.project.gamzaweb.Entity.ApplicationEntity;
-import gamza.project.gamzaweb.Entity.ImageEntity;
-import gamza.project.gamzaweb.Entity.ProjectEntity;
-import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.Entity.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.ApplicationRepository;
+import gamza.project.gamzaweb.Repository.ContainerRepository;
 import gamza.project.gamzaweb.Repository.ImageRepository;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import gamza.project.gamzaweb.Repository.UserRepository;
@@ -45,6 +45,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
+
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +61,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ImageRepository imageRepository;
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
+    private final ContainerRepository containerRepository;
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -320,6 +323,7 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
     }
 
+    //
     private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
@@ -327,19 +331,47 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag(), project.getApplication().getVariableKey(), userPk -> {
+            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag(), project.getApplication().getVariableKey(), imageId -> {
                 // 이미지 빌드 성공 후 콜백
-                System.out.println("Docker image built successfully: " + userPk);
-            });
+
+
+                // 컨테이너 start
+                createContainer(request, project, imageId);
 
 //             Docker 빌드 성공 후 Nginx 설정 처리
 //            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
 //            reloadNginx();
 
+                System.out.println("Docker image built successfully: " + imageId);
+            });
         } catch (IOException e) {
             e.printStackTrace();
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }
+    }
+
+    private void createContainer(HttpServletRequest request, ProjectEntity project, String imageId) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+        UserEntity userPk = userRepository.findUserEntityById(userId);
+
+        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
+                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+                .withHostConfig(newHostConfig()
+                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
+                                ExposedPort.tcp(project.getApplication().getInternalPort()))))
+                .withImage(imageId)
+                .exec();
+
+        dockerClient.startContainerCmd(container.getId()).exec();
+
+        ContainerEntity containerEntity = ContainerEntity.builder()
+                .containerId(container.getId())
+                .imageId(project.getName() + ":" + project.getApplication().getTag())
+                .user(userPk)
+                .build();
+
+        containerRepository.save(containerEntity);
     }
 
     private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
@@ -418,10 +450,11 @@ public class ProjectServiceImpl implements ProjectService {
                     super.onNext(item);
                     if (item.getImageId() != null) {
                         dockerProvider.taggingImage(item.getImageId(), name, tag);
-                        callback.getImageId(item.getImageId()); // 여기서 콜백 호출
 
                         ImageBuildEventDto event = new ImageBuildEventDto(userPk, item.getImageId(), name, key);
                         applicationEventPublisher.publishEvent(event);
+
+                        callback.getImageId(item.getImageId()); // 여기서 콜백 호출
                     }
                 }
 
