@@ -20,12 +20,4 @@ public class ProjectResponseDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
 
-//    public ProjectResponseDto(ProjectEntity project) {
-//        this.id = project.getId();
-//        this.name = project.getName();
-//        this.description = project.getDescription();
-//        this.state = project.getState();
-//        this.startedDate = project.getStartedDate();
-//        this.endedDate = project.getEndedDate();
-//    }
 }

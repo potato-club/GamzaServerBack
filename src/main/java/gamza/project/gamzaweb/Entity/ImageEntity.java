@@ -26,6 +26,10 @@ public class ImageEntity {
 
     private String variableKey;
 
+    @ManyToOne()
+    @JoinColumn(name = "project_id", nullable = false) // 1229 성훈 추가
+    private ProjectEntity project;
+
     public void updatedImageId(String imageId) {
         this.imageId = imageId;
     }
