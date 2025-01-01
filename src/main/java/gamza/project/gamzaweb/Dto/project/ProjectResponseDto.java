@@ -3,12 +3,15 @@ package gamza.project.gamzaweb.Dto.project;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectResponseDto {
@@ -19,13 +22,8 @@ public class ProjectResponseDto {
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
+    private List<String> imageIds;
 
-//    public ProjectResponseDto(ProjectEntity project) {
-//        this.id = project.getId();
-//        this.name = project.getName();
-//        this.description = project.getDescription();
-//        this.state = project.getState();
-//        this.startedDate = project.getStartedDate();
-//        this.endedDate = project.getEndedDate();
-//    }
+
+
 }

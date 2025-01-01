@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.Repository;
 
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.QuerydslRepository.ProjectCustomRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<ProjectEntity, Long> {
+public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, ProjectCustomRepository {
 
     List<ProjectEntity> findByOrderByUpdatedDateDesc();
 

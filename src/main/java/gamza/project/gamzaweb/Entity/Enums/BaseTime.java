@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Entity;
+package gamza.project.gamzaweb.Entity.Enums;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
