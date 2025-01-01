@@ -115,12 +115,8 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-
-    // TODO : qureyDSL 사용해서 이미지 없는것들은 반환 안하도록 수정하기
-
     @Override
     public ProjectListResponseDto getAllProject() {
-//        List<ProjectEntity> projectPage = projectRepository.findByApproveStateTrueOrderByUpdatedDateDesc();
         List<ProjectEntity> projectPage = projectRepository.findProjectsWithImages();
 
         System.out.println(projectPage);
@@ -129,6 +125,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .map(project -> {
                     List<String> imageIds = project.getImageEntity().stream()
                             .map(ImageEntity::getImageId)
+                            .filter(imageId -> imageId != null)
                             .toList();
 
                     return new ProjectResponseDto(
@@ -145,22 +142,6 @@ public class ProjectServiceImpl implements ProjectService {
         return ProjectListResponseDto.builder()
                 .contents(collect)
                 .build();
-
-//        List<ProjectResponseDto> collect = projectPage.stream()
-//                .map(project -> new ProjectResponseDto(
-//                        project.getId(),
-//                        project.getName(),
-//                        project.getDescription(),
-//                        project.getState(),
-//                        project.getStartedDate(),
-//                        project.getEndedDate()
-//                ))
-//                .collect(Collectors.toList());
-//
-//        // ProjectListResponseDto 반환
-//        return ProjectListResponseDto.builder()
-//                .contents(collect)
-//                .build();
     }
 
 

@@ -20,7 +20,7 @@ public class ProjectCustomRepositoryImpl implements ProjectCustomRepository {
 
         return jpaQueryFactory
                 .selectFrom(project)
-                .leftJoin(project.imageEntity, image).fetchJoin()
+                .join(project.imageEntity, image).fetchJoin()
                 .where(project.approveState.eq(true)
                         .and(image.imageId.isNotNull()))
                 .distinct()
