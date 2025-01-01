@@ -29,7 +29,9 @@ import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.FileWriter;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -110,25 +112,52 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+
+    // TODO : qureyDSL 사용해서 이미지 없는것들은 반환 안하도록 수정하기
+
     @Override
     public ProjectListResponseDto getAllProject() {
-        List<ProjectEntity> projectPage = projectRepository.findByApproveStateTrueOrderByUpdatedDateDesc();
+//        List<ProjectEntity> projectPage = projectRepository.findByApproveStateTrueOrderByUpdatedDateDesc();
+        List<ProjectEntity> projectPage = projectRepository.findProjectsWithImages();
+
+        System.out.println(projectPage);
 
         List<ProjectResponseDto> collect = projectPage.stream()
-                .map(project -> new ProjectResponseDto(
-                        project.getId(),
-                        project.getName(),
-                        project.getDescription(),
-                        project.getState(),
-                        project.getStartedDate(),
-                        project.getEndedDate()
-                ))
-                .collect(Collectors.toList());
+                .map(project -> {
+                    List<String> imageIds = project.getImageEntity().stream()
+                            .map(ImageEntity::getImageId)
+                            .toList();
 
-        // ProjectListResponseDto 반환
+                    return new ProjectResponseDto(
+                            project.getId(),
+                            project.getName(),
+                            project.getDescription(),
+                            project.getState(),
+                            project.getStartedDate(),
+                            project.getEndedDate(),
+                            imageIds
+                    );
+                })
+                .collect(Collectors.toList());
         return ProjectListResponseDto.builder()
                 .contents(collect)
                 .build();
+
+//        List<ProjectResponseDto> collect = projectPage.stream()
+//                .map(project -> new ProjectResponseDto(
+//                        project.getId(),
+//                        project.getName(),
+//                        project.getDescription(),
+//                        project.getState(),
+//                        project.getStartedDate(),
+//                        project.getEndedDate()
+//                ))
+//                .collect(Collectors.toList());
+//
+//        // ProjectListResponseDto 반환
+//        return ProjectListResponseDto.builder()
+//                .contents(collect)
+//                .build();
     }
 
 
@@ -396,7 +425,6 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-
     private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
@@ -444,31 +472,31 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    private void  generateNginxConfig(String applicationName, int applicationPort) {
+    private void generateNginxConfig(String applicationName, int applicationPort) {
         String configContent = """
-        server {
-            listen 80;
-            listen [::]:80;
-            server_name %s.gamza.club;
-            return 301 https://$host$request_uri;
-        }
-        server {
-            listen 443 ssl http2;
-            listen [::]:443 ssl http2;
-            server_name %s.gamza.club;
-            ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
-            
-            location / {
-                proxy_pass http://localhost:%d;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host $host;
-                proxy_cache_bypass $http_upgrade;
-            }
-        }
-    """.formatted(applicationName, applicationName, applicationPort);
+                    server {
+                        listen 80;
+                        listen [::]:80;
+                        server_name %s.gamza.club;
+                        return 301 https://$host$request_uri;
+                    }
+                    server {
+                        listen 443 ssl http2;
+                        listen [::]:443 ssl http2;
+                        server_name %s.gamza.club;
+                        ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
+                        ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
+                
+                        location / {
+                            proxy_pass http://localhost:%d;
+                            proxy_http_version 1.1;
+                            proxy_set_header Upgrade $http_upgrade;
+                            proxy_set_header Connection 'upgrade';
+                            proxy_set_header Host $host;
+                            proxy_cache_bypass $http_upgrade;
+                        }
+                    }
+                """.formatted(applicationName, applicationName, applicationPort);
 
         try (FileWriter writer = new FileWriter("/etc/nginx/conf.d/" + applicationName + ".conf")) {
             writer.write(configContent);
