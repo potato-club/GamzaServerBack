@@ -1,15 +1,14 @@
 package gamza.project.gamzaweb.Entity;
 
+import gamza.project.gamzaweb.Entity.Enums.BaseTime;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.context.ApplicationListener;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -33,8 +32,8 @@ public class ProjectEntity extends BaseTime {
     @Enumerated(EnumType.STRING)
     private ProjectState state;
 
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<ProjectLinkEntity> links;
+    @OneToMany() // 성훈 1229 추가
+    private List<ImageEntity> imageEntity;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -56,7 +55,6 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState;
 
-
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;
         this.description = description;
@@ -73,11 +71,6 @@ public class ProjectEntity extends BaseTime {
         this.approveFixedState = true;
     }
 
-
-
-//    private ApplicationEntity content;
-
-//    private List<FileEntity> images = new ArrayList<>(); // 추후 추가
 
 
 }
