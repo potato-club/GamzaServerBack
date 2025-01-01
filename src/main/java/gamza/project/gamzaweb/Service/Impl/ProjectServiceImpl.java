@@ -360,19 +360,20 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
-            buildDockerImage(request, dockerfilePath.toFile(), project.getName(), project.getApplication().getTag(), project.getApplication().getVariableKey(), imageId -> {
-                // 이미지 빌드 성공 후 콜백
 
-
-                // 컨테이너 start
-                createContainer(request, project, imageId);
+            buildDockerImage(
+                    request,
+                    dockerfilePath.toFile(),
+                    project,
+                    imageId -> {
+                        createContainer(request, project, imageId);
 
 //             Docker 빌드 성공 후 Nginx 설정 처리
 //            generateNginxConfig(project.getName(), project.getApplication().getOuterPort());
 //            reloadNginx();
 
-                System.out.println("Docker image built successfully: " + imageId);
-            });
+                        System.out.println("Docker image built successfully: " + imageId);
+                    });
         } catch (IOException e) {
             e.printStackTrace();
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
@@ -403,23 +404,25 @@ public class ProjectServiceImpl implements ProjectService {
         containerRepository.save(containerEntity);
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, String name, String tag, @Nullable String key, DockerProvider.DockerProviderBuildCallback callback) {
+    private void buildDockerImage(HttpServletRequest request, File dockerfile, ProjectEntity project, DockerProvider.DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
+
         ImageEntity imageEntity = ImageEntity.builder()
+                .project(project)
                 .user(userPk)
-                .name(name)
-                .variableKey(key)
+                .name(project.getName())
+                .variableKey(project.getApplication().getVariableKey())
                 .build();
         imageRepository.save(imageEntity);
 
-        if (isImageExists(name)) {
+        if (isImageExists(project.getName())) {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
 
-        executeDockerBuild(dockerfile, name, key, tag, callback, userPk);
+        executeDockerBuild(dockerfile, project.getName(), project.getApplication().getVariableKey(), project.getApplication().getTag(), callback, userPk);
     }
 
     private void createContainerFromImage(String imageName, String containerName, String portMapping, UserEntity user, DockerProvider.DockerProviderBuildCallback callback) {
@@ -483,6 +486,7 @@ public class ProjectServiceImpl implements ProjectService {
                         applicationEventPublisher.publishEvent(event);
 
                         callback.getImageId(item.getImageId()); // 여기서 콜백 호출
+
                     }
                 }
 
