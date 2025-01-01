@@ -32,7 +32,7 @@ public class ProjectEntity extends BaseTime {
     @Enumerated(EnumType.STRING)
     private ProjectState state;
 
-    @OneToMany() // 성훈 1229 추가
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true) // mappedBy 설정 추가
     private List<ImageEntity> imageEntity;
 
     @ManyToOne
