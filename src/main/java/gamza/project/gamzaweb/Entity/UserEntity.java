@@ -5,6 +5,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,11 +42,14 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String studentId;
 
-    @OneToMany(mappedBy = "leader")
-    private List<ProjectEntity> projects;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CollaboratorEntity> projects = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
-    private List<ContainerEntity> containerEntities;
+//    @OneToMany(mappedBy = "leader") // 사용처가 없는데 왜잇지 이거?
+//    private List<ProjectEntity> projects;
+//
+//    @OneToMany(mappedBy = "user")
+//    private List<ContainerEntity> containerEntities;
 
     public void approveUserStatus() {
         this.userRole = UserRole.MEMBER;

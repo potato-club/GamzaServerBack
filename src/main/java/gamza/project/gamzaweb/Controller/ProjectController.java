@@ -82,4 +82,12 @@ public class ProjectController {
         projectService.deleteProjectById(request, projectId);
         return ResponseEntity.ok("프로젝트 삭제 완료");
     }
+
+    // TODO : 프로젝트 생성시 유저 넣기 (O)
+    // TODO : 이 유저가 승인된 유저 리스트중 프로젝트 참여 인원으로 추가 제거할 수 있도록 만들기
+    // TODO : 해당 프로젝트에 참여한 유저 리스트 볼 수 있도록 나타내기 -? 한개의 프로젝트 조회시 참여 인원 모두 나타내면 되지않나?
+
+
+    @PutMapping("/project/collaborator/{id}")
+    @Operation
 }
