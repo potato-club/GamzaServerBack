@@ -1,5 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
+import gamza.project.gamzaweb.Dto.User.ResponseCollaboratorDto;
+import gamza.project.gamzaweb.Entity.CollaboratorEntity;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,7 @@ public class ProjectResponseDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
     private List<String> imageIds;
+    private List<ResponseCollaboratorDto> collaborators;
 
 
 

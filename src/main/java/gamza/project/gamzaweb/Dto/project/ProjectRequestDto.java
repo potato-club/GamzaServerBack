@@ -14,16 +14,13 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectRequestDto {
-//삭제해야함
     private String name;
     private String description;
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
-
-//    private String applicationName;
     private int outerPort;
     private String tag;
     private String variableKey;
-//    private ApplicationType applicationType;
+
 }

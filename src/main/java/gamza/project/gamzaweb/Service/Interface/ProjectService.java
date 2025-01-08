@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Service.Interface;
 
+import gamza.project.gamzaweb.Dto.User.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,10 @@ public interface ProjectService {
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
+
+    void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
+
+    void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 
 //    void onContainerCreated(String containerId);
 
