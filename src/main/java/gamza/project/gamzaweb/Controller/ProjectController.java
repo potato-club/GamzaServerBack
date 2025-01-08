@@ -85,7 +85,7 @@ public class ProjectController {
     }
 
     // TODO : 프로젝트 생성시 유저 넣기 (O)
-    // TODO : 이 유저가 승인된 유저 리스트중 프로젝트 참여 인원으로 추가 할 수 있도록 만들기 (TEST)
+    // TODO : 이 유저가 승인된 유저 리스트중 프로젝트 참여 인원으로 추가 할 수 있도록 만들기 (O)
     // TODO : 해당 프로젝트에 참여한 유저 리스트 볼 수 있도록 나타내기 -? 한개의 프로젝트 조회시 참여 인원 모두 나타내면 되지않나? (API 수정예정)
     // TODO : 해당 프로젝트에 존재하는 참여 유저 삭제하는 DELETE API 만들기 (예정 목까지 만들자)
 
@@ -99,6 +99,13 @@ public class ProjectController {
     public ResponseEntity<String> addProjectCollaborator(HttpServletRequest request, @PathVariable("projectId") Long projectId, @RequestBody RequestAddCollaboratorDto dto) {
         projectService.addProjectCollaborator(request, projectId, dto);
         return ResponseEntity.ok("프로젝트 참여 인원이 추가되었습니다.");
+    }
+
+    @DeleteMapping("/collaborator/{projectId}")
+    @Operation(description = "해당 프로젝트에 참여 인원 삭제하기 (프로젝트 생성자, 어드민만 가능)")
+    public ResponseEntity<String> deleteProjectCollaborator(HttpServletRequest request, @PathVariable("projectId") Long projectId, @RequestBody RequestAddCollaboratorDto dto) {
+        projectService.deleteProjectCollaborator(request, projectId, dto);
+        return ResponseEntity.ok("프로젝트 참여 인원이 삭제되었습니다.");
     }
 
 }

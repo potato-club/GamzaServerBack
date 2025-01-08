@@ -28,6 +28,8 @@ public interface ProjectService {
 
     void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 
+    void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
+
 //    void onContainerCreated(String containerId);
 
     void approveExecutionApplication(HttpServletRequest request, Long id);
