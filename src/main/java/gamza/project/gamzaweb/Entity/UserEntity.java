@@ -45,12 +45,6 @@ public class UserEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CollaboratorEntity> projects = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "leader") // 사용처가 없는데 왜잇지 이거?
-//    private List<ProjectEntity> projects;
-//
-//    @OneToMany(mappedBy = "user")
-//    private List<ContainerEntity> containerEntities;
-
     public void approveUserStatus() {
         this.userRole = UserRole.MEMBER;
     }

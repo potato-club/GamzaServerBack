@@ -10,6 +10,7 @@ import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.HostConfig;
+import gamza.project.gamzaweb.Dto.User.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
@@ -45,6 +46,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
@@ -179,10 +182,30 @@ public class ProjectServiceImpl implements ProjectService {
         return new ApplicationDetailResponseDto(application);
     }
 
-//    @Override
-//    public void onContainerCreated(String containerId) {
-//
-//    }
+    @Override
+    @Transactional
+    public void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        if (!project.getLeader().equals(user) || !userRole.equals("0")) {
+            throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        UserEntity collaborator = userRepository.findById(dto.getCollaboratorId())
+                .orElseThrow(() -> new UnAuthorizedException("추가하려는 해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+        project.updateProjectCollaborator(collaborator);
+        projectRepository.save(project);
+
+    }
 
     @Override
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
