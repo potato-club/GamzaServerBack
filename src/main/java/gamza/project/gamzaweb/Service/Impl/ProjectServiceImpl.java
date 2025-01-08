@@ -11,6 +11,7 @@ import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.HostConfig;
 import gamza.project.gamzaweb.Dto.User.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.Dto.User.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
@@ -127,6 +128,13 @@ public class ProjectServiceImpl implements ProjectService {
                             .filter(imageId -> imageId != null)
                             .toList();
 
+                    List<ResponseCollaboratorDto> collaboratorDtos = project.getCollaborators().stream()
+                            .map(collaborator -> ResponseCollaboratorDto.builder()
+                                    .id(collaborator.getUser().getId())    // User PK 값
+                                    .name(collaborator.getUser().getFamilyName() + collaborator.getUser().getFamilyName()) // User 이름
+                                    .build())
+                            .toList();
+
                     return new ProjectResponseDto(
                             project.getId(),
                             project.getName(),
@@ -134,7 +142,8 @@ public class ProjectServiceImpl implements ProjectService {
                             project.getState(),
                             project.getStartedDate(),
                             project.getEndedDate(),
-                            imageIds
+                            imageIds,
+                            collaboratorDtos
                     );
                 })
                 .collect(Collectors.toList());
