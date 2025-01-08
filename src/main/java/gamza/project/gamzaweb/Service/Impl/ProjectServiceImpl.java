@@ -10,16 +10,14 @@ import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.HostConfig;
+import gamza.project.gamzaweb.Dto.User.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.Dto.User.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
-import gamza.project.gamzaweb.Repository.ApplicationRepository;
-import gamza.project.gamzaweb.Repository.ContainerRepository;
-import gamza.project.gamzaweb.Repository.ImageRepository;
-import gamza.project.gamzaweb.Repository.ProjectRepository;
-import gamza.project.gamzaweb.Repository.UserRepository;
+import gamza.project.gamzaweb.Repository.*;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
@@ -45,6 +43,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
@@ -55,11 +55,11 @@ import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 public class ProjectServiceImpl implements ProjectService {
 
     private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();
-    ;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final ApplicationRepository applicationRepository;
+    private final CollaboratorRepository collaboratorRepository;
     private final ImageRepository imageRepository;
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
@@ -128,6 +128,13 @@ public class ProjectServiceImpl implements ProjectService {
                             .filter(imageId -> imageId != null)
                             .toList();
 
+                    List<ResponseCollaboratorDto> collaboratorDtos = project.getCollaborators().stream()
+                            .map(collaborator -> ResponseCollaboratorDto.builder()
+                                    .id(collaborator.getUser().getId())    // User PK 값
+                                    .name(collaborator.getUser().getFamilyName() + collaborator.getUser().getFamilyName()) // User 이름
+                                    .build())
+                            .toList();
+
                     return new ProjectResponseDto(
                             project.getId(),
                             project.getName(),
@@ -135,7 +142,8 @@ public class ProjectServiceImpl implements ProjectService {
                             project.getState(),
                             project.getStartedDate(),
                             project.getEndedDate(),
-                            imageIds
+                            imageIds,
+                            collaboratorDtos
                     );
                 })
                 .collect(Collectors.toList());
@@ -179,10 +187,55 @@ public class ProjectServiceImpl implements ProjectService {
         return new ApplicationDetailResponseDto(application);
     }
 
-//    @Override
-//    public void onContainerCreated(String containerId) {
-//
-//    }
+    @Override
+    @Transactional
+    public void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
+        String userRole = jwtTokenProvider.extractRole(token);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        if (!project.getLeader().equals(user) || !userRole.equals("0")) {
+            throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        UserEntity collaborator = userRepository.findById(dto.getCollaboratorId())
+                .orElseThrow(() -> new UnAuthorizedException("추가하려는 해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+        project.updateProjectCollaborator(collaborator);
+        projectRepository.save(project);
+
+    }
+
+    @Override
+    @Transactional
+    public void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
+        String userRole = jwtTokenProvider.extractRole(token);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        if (!project.getLeader().equals(user) || !userRole.equals("0")) {
+            throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
+        CollaboratorEntity deleteCollaborator = collaboratorRepository.findByProjectIdAndUserId(project.getId(), dto.getCollaboratorId())
+                .orElseThrow(() -> new BadRequestException("잘못된 요청입니다. 삭제하려는 해당 유저가 존재하지 않습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+        collaboratorRepository.delete(deleteCollaborator);
+
+
+    }
 
     @Override
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {

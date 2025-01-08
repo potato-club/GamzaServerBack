@@ -5,6 +5,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,11 +42,8 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String studentId;
 
-    @OneToMany(mappedBy = "leader")
-    private List<ProjectEntity> projects;
-
-    @OneToMany(mappedBy = "user")
-    private List<ContainerEntity> containerEntities;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CollaboratorEntity> projects = new ArrayList<>();
 
     public void approveUserStatus() {
         this.userRole = UserRole.MEMBER;

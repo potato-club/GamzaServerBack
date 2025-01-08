@@ -20,8 +20,6 @@ public class QUserEntity extends EntityPathBase<UserEntity> {
 
     public static final QUserEntity userEntity = new QUserEntity("userEntity");
 
-    public final ListPath<ContainerEntity, QContainerEntity> containerEntities = this.<ContainerEntity, QContainerEntity>createList("containerEntities", ContainerEntity.class, QContainerEntity.class, PathInits.DIRECT2);
-
     public final StringPath email = createString("email");
 
     public final StringPath familyName = createString("familyName");
@@ -34,7 +32,7 @@ public class QUserEntity extends EntityPathBase<UserEntity> {
 
     public final StringPath password = createString("password");
 
-    public final ListPath<ProjectEntity, QProjectEntity> projects = this.<ProjectEntity, QProjectEntity>createList("projects", ProjectEntity.class, QProjectEntity.class, PathInits.DIRECT2);
+    public final ListPath<CollaboratorEntity, QCollaboratorEntity> projects = this.<CollaboratorEntity, QCollaboratorEntity>createList("projects", CollaboratorEntity.class, QCollaboratorEntity.class, PathInits.DIRECT2);
 
     public final StringPath studentId = createString("studentId");
 

@@ -30,6 +30,8 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final BooleanPath approveState = createBoolean("approveState");
 
+    public final ListPath<CollaboratorEntity, QCollaboratorEntity> collaborators = this.<CollaboratorEntity, QCollaboratorEntity>createList("collaborators", CollaboratorEntity.class, QCollaboratorEntity.class, PathInits.DIRECT2);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDate = _super.createdDate;
 

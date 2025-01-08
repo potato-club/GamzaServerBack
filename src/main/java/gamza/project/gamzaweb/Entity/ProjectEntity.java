@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,6 +40,11 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader; // 프로젝트 생성자가 팀장임
 
+
+    @Column()
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CollaboratorEntity> collaborators = new ArrayList<>();
+
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)  // Cascade 설정으로 함께 저장/삭제 가능
     @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정
     private ApplicationEntity application;
@@ -54,6 +60,11 @@ public class ProjectEntity extends BaseTime {
 
     @Column(nullable = false)
     private boolean approveFixedState;
+
+    public void updateProjectCollaborator(UserEntity collaborator) {
+        CollaboratorEntity collaboratorEntity = new CollaboratorEntity(this, collaborator);
+        this.collaborators.add(collaboratorEntity);
+    }
 
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
         this.name = name;
