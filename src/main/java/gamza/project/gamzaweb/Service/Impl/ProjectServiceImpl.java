@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -86,6 +87,15 @@ public class ProjectServiceImpl implements ProjectService {
             applicationRepository.save(application);
             applicationRepository.flush();
 
+
+//            List<CollaboratorEntity> collaboratorEntities = dto.getCollaborators().stream()
+//                    .map(collaboratorDto -> {
+//                        UserEntity collaboratorUser = userRepository.findById(collaboratorDto.getCollaboratorId())
+//                                .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 존재하지않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+//                        return new CollaboratorEntity(null, collaboratorUser);
+//                    })
+//                    .toList();
+
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
                     .name(dto.getName())
@@ -95,6 +105,23 @@ public class ProjectServiceImpl implements ProjectService {
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
                     .build();
+
+            List<CollaboratorEntity> collaborators = new ArrayList<>();
+
+            for(RequestAddCollaboratorDto collaboratorDto : dto.getCollaborators()) {
+                UserEntity collaborator = userRepository.findById(collaboratorDto.getCollaboratorId())
+                        .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+                CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
+                        .project(project)
+                        .user(collaborator)
+                        .build();
+
+                collaborators.add(collaboratorEntity);
+            }
+
+            project.addProjectCollaborator(collaborators);
+
 
 
             String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
@@ -107,8 +134,8 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectRepository.save(project);
 
-
         } catch (Exception e) {
+            e.printStackTrace();
             throw new BadRequestException("Fail Created Project (DockerFile Error)", ErrorCode.FAILED_PROJECT_ERROR);
         }
     }

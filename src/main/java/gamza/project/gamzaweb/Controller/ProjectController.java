@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/project")
 @RequiredArgsConstructor
@@ -81,7 +83,7 @@ public class ProjectController {
     }
 
     // TODO : 프로젝트 생성시 참여 인원 추가 API 생성
-    // TODO : 유저 리스트를 출력 하는 API가 필요할거같다.
+    // TODO : 유저 리스트를 출력 하는 API가 필요할거같다. (O)
 
     // TODO : S3 를 활용해서 zip파일을 다운받을 수 있는 API 설계, GET API 하나를 만들고 /project/download/zip/{projectId} 이런식으로 해야할듯
     // TODO : 위 서비스를 진행하려면 프로젝트 만들떄 zip파일을 s3에 저장하는 API 를 추가해야함..
