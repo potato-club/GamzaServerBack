@@ -1,9 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
-import gamza.project.gamzaweb.Dto.User.ResponseCollaboratorDto;
-import gamza.project.gamzaweb.Entity.CollaboratorEntity;
+import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
-import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
