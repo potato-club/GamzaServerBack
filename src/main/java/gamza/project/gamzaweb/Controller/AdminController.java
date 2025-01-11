@@ -1,18 +1,16 @@
 package gamza.project.gamzaweb.Controller;
 
-import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.User.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.Dto.project.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.Dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

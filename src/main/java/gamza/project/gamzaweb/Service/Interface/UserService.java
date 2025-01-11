@@ -1,8 +1,9 @@
 package gamza.project.gamzaweb.Service.Interface;
 
-import gamza.project.gamzaweb.Dto.User.RequestUserLoginDto;
-import gamza.project.gamzaweb.Dto.User.RequestUserSignUpDto;
-import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.User.request.RequestUserLoginDto;
+import gamza.project.gamzaweb.Dto.User.request.RequestUserSignUpDto;
+import gamza.project.gamzaweb.Dto.User.response.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.User.response.ResponseUserList;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,8 @@ public interface UserService {
     void approve(HttpServletRequest request, Long id);
 
     void notApprove(HttpServletRequest request, Long id);
+
+    ResponseUserList userList();
 
     Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable);
 }

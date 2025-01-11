@@ -1,8 +1,10 @@
 package gamza.project.gamzaweb.Service.Impl;
 
-import gamza.project.gamzaweb.Dto.User.RequestUserLoginDto;
-import gamza.project.gamzaweb.Dto.User.RequestUserSignUpDto;
-import gamza.project.gamzaweb.Dto.User.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.User.request.RequestUserLoginDto;
+import gamza.project.gamzaweb.Dto.User.request.RequestUserSignUpDto;
+import gamza.project.gamzaweb.Dto.User.response.ResponseNotApproveDto;
+import gamza.project.gamzaweb.Dto.User.response.ResponseUser;
+import gamza.project.gamzaweb.Dto.User.response.ResponseUserList;
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
@@ -13,7 +15,6 @@ import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import gamza.project.gamzaweb.Validate.UserValidate;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,11 +41,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void signUp(RequestUserSignUpDto dto, HttpServletResponse response) {
-        if(userRepository.existsByEmail(dto.getEmail())) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
             throw new UnAuthorizedException("S404", ErrorCode.NOT_ALLOW_ACCESS_EXCEPTION);
         }
 
-        if(userRepository.existsByStudentId(dto.getStudentId())) {
+        if (userRepository.existsByStudentId(dto.getStudentId())) {
             throw new BadRequestException("There is a duplicate student number.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
@@ -56,13 +58,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public void login(RequestUserLoginDto dto, HttpServletResponse response) {
 
-        if(!userRepository.existsByEmail(dto.getEmail())) {
+        if (!userRepository.existsByEmail(dto.getEmail())) {
             throw new UnAuthorizedException("L401-1", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
         UserEntity user = userRepository.findByEmail(dto.getEmail()).orElseThrow();
 
-        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new UnAuthorizedException("L401-2", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
@@ -121,6 +123,24 @@ public class UserServiceImpl implements UserService {
         user.notApproveUserStatus();
 
         userRepository.save(user);
+    }
+
+    @Override
+    public ResponseUserList userList() {
+
+        List<UserEntity> userEntities = userRepository.findAllByOrderByFamilyNameAsc();
+
+        List<ResponseUser> responseUsers = userEntities.stream()
+                .map(user -> ResponseUser.builder()
+                        .id(user.getId())
+                        .name(user.getFamilyName() + user.getGivenName())
+                        .build())
+                .toList();
+
+        return ResponseUserList.builder()
+                .userList(responseUsers)
+                .build();
+
     }
 
     @Override

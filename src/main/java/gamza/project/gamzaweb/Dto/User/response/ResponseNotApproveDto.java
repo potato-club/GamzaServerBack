@@ -1,11 +1,10 @@
-package gamza.project.gamzaweb.Dto.User;
+package gamza.project.gamzaweb.Dto.User.response;
 
 
 import gamza.project.gamzaweb.Entity.UserEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
