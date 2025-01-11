@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.User;
+package gamza.project.gamzaweb.Dto.User.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

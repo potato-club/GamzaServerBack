@@ -1,8 +1,7 @@
 package gamza.project.gamzaweb.Controller;
 
 
-import gamza.project.gamzaweb.Dto.User.RequestAddCollaboratorDto;
-import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
+import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
@@ -10,12 +9,11 @@ import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/project")
@@ -84,10 +82,8 @@ public class ProjectController {
         return ResponseEntity.ok("프로젝트 삭제 완료");
     }
 
-    // TODO : 프로젝트 생성시 유저 넣기 (O)
-    // TODO : 이 유저가 승인된 유저 리스트중 프로젝트 참여 인원으로 추가 할 수 있도록 만들기 (O)
-    // TODO : 해당 프로젝트에 참여한 유저 리스트 볼 수 있도록 나타내기 -? 한개의 프로젝트 조회시 참여 인원 모두 나타내면 되지않나? (API 수정예정)
-    // TODO : 해당 프로젝트에 존재하는 참여 유저 삭제하는 DELETE API 만들기 (O)
+    // TODO : 프로젝트 생성시 참여 인원 추가 API 생성
+    // TODO : 유저 리스트를 출력 하는 API가 필요할거같다. (O)
 
     // TODO : S3 를 활용해서 zip파일을 다운받을 수 있는 API 설계, GET API 하나를 만들고 /project/download/zip/{projectId} 이런식으로 해야할듯
     // TODO : 위 서비스를 진행하려면 프로젝트 만들떄 zip파일을 s3에 저장하는 API 를 추가해야함..

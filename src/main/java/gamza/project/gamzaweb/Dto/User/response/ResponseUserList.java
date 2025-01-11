@@ -1,15 +1,19 @@
-package gamza.project.gamzaweb.Dto.User;
+package gamza.project.gamzaweb.Dto.User.response;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Getter
+import java.util.List;
+
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseCollaboratorDto {
-    private Long id;
-    private String name;
+public class ResponseUserList {
+
+    private List<ResponseUser> userList;
+
 }

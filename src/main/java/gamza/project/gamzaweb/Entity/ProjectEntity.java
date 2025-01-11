@@ -40,9 +40,9 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader; // 프로젝트 생성자가 팀장임
 
-
     @Column()
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CollaboratorEntity> collaborators = new ArrayList<>();
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)  // Cascade 설정으로 함께 저장/삭제 가능
@@ -72,6 +72,10 @@ public class ProjectEntity extends BaseTime {
         this.state = state;
         this.startedDate = startedDate;
         this.endedDate = endedDate;
+    }
+
+    public void addProjectCollaborator(List<CollaboratorEntity> collaborators) {
+        this.collaborators.addAll(collaborators);
     }
 
     public void approveCreateProject() {
