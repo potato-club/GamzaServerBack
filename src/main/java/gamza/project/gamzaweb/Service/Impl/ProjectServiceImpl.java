@@ -592,15 +592,15 @@ public class ProjectServiceImpl implements ProjectService {
         server {
             listen 80;
             listen [::]:80;
-            server_name %s.gamza.club;
+            server_name %s.gamzaweb.shop;
             return 301 https://$host$request_uri;
         }
         server {
             listen 443 ssl http2;
             listen [::]:443 ssl http2;
-            server_name %s.gamza.club;
-            ssl_certificate /etc/letsencrypt/live/gamza.shop/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/gamza.shop/privkey.pem;
+            server_name %s.gamza.shop;
+            ssl_certificate /etc/letsencrypt/live/gamzaweb.shop/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/gamzaweb.shop/privkey.pem;
 
             location / {
                 proxy_pass http://localhost:%d;
