@@ -448,14 +448,6 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
-//        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
-//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
-//                .withHostConfig(newHostConfig()
-//                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
-//                                ExposedPort.tcp(project.getApplication().getInternalPort()))))
-//                .withImage(imageId)
-//                .exec();
-
         CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
                 .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
@@ -595,54 +587,51 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     private void generateNginxConfig(String applicationName, int applicationPort) {
+        String configPath = "/etc/nginx/conf.d/" + applicationName + ".conf";
         String configContent = """
-                    server {
-                        listen 80;
-                        listen [::]:80;
-                        server_name %s.gamza.club;
-                        return 301 https://$host$request_uri;
-                    }
-                    server {
-                        listen 443 ssl http2;
-                        listen [::]:443 ssl http2;
-                        server_name %s.gamza.club;
-                
-                        location / {
-                            proxy_pass http://localhost:%d;
-                            proxy_http_version 1.1;
-                            proxy_set_header Upgrade $http_upgrade;
-                            proxy_set_header Connection 'upgrade';
-                            proxy_set_header Host $host;
-                            proxy_cache_bypass $http_upgrade;
-                        }
-                    }
-                """.formatted(applicationName, applicationName, applicationPort);
+        server {
+            listen 80;
+            listen [::]:80;
+            server_name %s.gamza.club;
+            return 301 https://$host$request_uri;
+        }
+        server {
+            listen 443 ssl http2;
+            listen [::]:443 ssl http2;
+            server_name %s.gamza.club;
 
-        try (FileWriter writer = new FileWriter("/etc/nginx/conf.d/" + applicationName + ".conf")) {
-            writer.write(configContent);
-            System.out.println("Nginx config generated for: " + applicationName);
+            location / {
+                proxy_pass http://localhost:%d;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
+            }
+        }
+        """.formatted(applicationName, applicationName, applicationPort);
+
+        try {
+            File confDir = new File("/etc/nginx/conf.d/");
+            if (!confDir.exists()) {
+                confDir.mkdirs();  // 디렉토리가 없으면 생성
+            }
+
+            File configFile = new File(configPath);
+            if (!configFile.exists()) {
+                configFile.createNewFile();  // 파일이 없으면 생성
+            }
+
+            try (FileWriter writer = new FileWriter(configFile)) {
+                writer.write(configContent);
+                System.out.println("Nginx config generated for: " + applicationName);
+            }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to generate Nginx config for: " + applicationName, e);
         }
     }
 
-//    private void reloadNginx() {
-//        ProcessBuilder processBuilder = new ProcessBuilder();
-//        processBuilder.command("bash", "-c", "nginx -s reload");
-//
-//        try {
-//            Process process = processBuilder.start();
-//            int exitCode = process.waitFor();
-//            if (exitCode == 0) {
-//                System.out.println("Nginx reloaded successfully.");
-//            } else {
-//                System.err.println("Failed to reload Nginx. Exit code: " + exitCode);
-//            }
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//            throw new RuntimeException("Failed to reload Nginx", e);
-//        }
-//    }
 
     private void reloadNginx() {
         try {
