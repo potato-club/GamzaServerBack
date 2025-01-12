@@ -599,6 +599,8 @@ public class ProjectServiceImpl implements ProjectService {
             listen 443 ssl http2;
             listen [::]:443 ssl http2;
             server_name %s.gamza.club;
+            ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
 
             location / {
                 proxy_pass http://localhost:%d;
