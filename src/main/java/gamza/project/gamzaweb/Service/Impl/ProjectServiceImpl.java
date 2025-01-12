@@ -447,7 +447,16 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
-        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
+//        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
+//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+//                .withHostConfig(newHostConfig()
+//                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
+//                                ExposedPort.tcp(project.getApplication().getInternalPort()))))
+//                .withImage(imageId)
+//                .exec();
+
+        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+                .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
                         .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
@@ -521,13 +530,23 @@ public class ProjectServiceImpl implements ProjectService {
 //        }
 //    }
 
+//
+//    private boolean isImageExists(String name) {
+//        List<Image> existingImages = dockerClient.listImagesCmd().exec();
+//        return existingImages.stream()
+//                .anyMatch(image -> image.getRepoTags() != null &&
+//                        Arrays.asList(image.getRepoTags()).contains(name));
+//    }
 
+    //null 체크 먼저하게 했음
     private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
-                .anyMatch(image -> image.getRepoTags() != null &&
-                        Arrays.asList(image.getRepoTags()).contains(name));
+                .filter(image -> image.getRepoTags() != null)
+                .flatMap(image -> Arrays.stream(image.getRepoTags()))
+                .anyMatch(tag -> tag.equals(name));
     }
+
 
     private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
@@ -603,13 +622,38 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private void reloadNginx() {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("bash", "-c", "nginx -s reload");
+//    private void reloadNginx() {
+//        ProcessBuilder processBuilder = new ProcessBuilder();
+//        processBuilder.command("bash", "-c", "nginx -s reload");
+//
+//        try {
+//            Process process = processBuilder.start();
+//            int exitCode = process.waitFor();
+//            if (exitCode == 0) {
+//                System.out.println("Nginx reloaded successfully.");
+//            } else {
+//                System.err.println("Failed to reload Nginx. Exit code: " + exitCode);
+//            }
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException("Failed to reload Nginx", e);
+//        }
+//    }
 
+    private void reloadNginx() {
         try {
-            Process process = processBuilder.start();
+            ProcessBuilder testConfig = new ProcessBuilder("bash", "-c", "nginx -t");
+            Process testProcess = testConfig.start();
+            int testExitCode = testProcess.waitFor();
+
+            if (testExitCode != 0) {
+                throw new RuntimeException("Nginx config test failed.");
+            }
+
+            ProcessBuilder reloadProcess = new ProcessBuilder("bash", "-c", "nginx -s reload");
+            Process process = reloadProcess.start();
             int exitCode = process.waitFor();
+
             if (exitCode == 0) {
                 System.out.println("Nginx reloaded successfully.");
             } else {
