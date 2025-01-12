@@ -30,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.FileWriter;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -480,14 +481,17 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
+        Optional<ImageEntity> existingImage = imageRepository.findByProjectAndUser(project, userPk);
 
-        ImageEntity imageEntity = ImageEntity.builder()
-                .project(project)
-                .user(userPk)
-                .name(project.getName())
-                .variableKey(project.getApplication().getVariableKey())
-                .build();
-        imageRepository.save(imageEntity);
+        if (existingImage.isEmpty()) {  // 중복이 없을 때만 저장
+            ImageEntity imageEntity = ImageEntity.builder()
+                    .project(project)
+                    .user(userPk)
+                    .name(project.getName())
+                    .variableKey(project.getApplication().getVariableKey())
+                    .build();
+            imageRepository.save(imageEntity);
+        }
 
         if (isImageExists(project.getName())) {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
