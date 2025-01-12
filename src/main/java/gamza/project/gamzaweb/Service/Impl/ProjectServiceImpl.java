@@ -614,21 +614,17 @@ public class ProjectServiceImpl implements ProjectService {
         """.formatted(applicationName, applicationName, applicationPort);
 
         try {
-            File confDir = new File("/etc/nginx/conf.d/");
-            if (!confDir.exists()) {
-                confDir.mkdirs();  // 디렉토리가 없으면 생성
-            }
+            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c",
+                    "echo '" + configContent.replace("'", "'\\''") + "' | sudo tee " + configPath);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
 
-            File configFile = new File(configPath);
-            if (!configFile.exists()) {
-                configFile.createNewFile();  // 파일이 없으면 생성
+            if (exitCode == 0) {
+                System.out.println("Nginx config generated successfully: " + applicationName);
+            } else {
+                System.err.println("Failed to generate Nginx config. Exit code: " + exitCode);
             }
-
-            try (FileWriter writer = new FileWriter(configFile)) {
-                writer.write(configContent);
-                System.out.println("Nginx config generated for: " + applicationName);
-            }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to generate Nginx config for: " + applicationName, e);
         }
