@@ -28,8 +28,6 @@ import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.io.FileWriter;
-
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,7 +46,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
-
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +74,6 @@ public class ProjectServiceImpl implements ProjectService {
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
         try {
-
             ApplicationEntity application = ApplicationEntity.builder()
                     .tag(dto.getTag())
                     .internalPort(80)
@@ -87,15 +83,6 @@ public class ProjectServiceImpl implements ProjectService {
 
             applicationRepository.save(application);
             applicationRepository.flush();
-
-
-//            List<CollaboratorEntity> collaboratorEntities = dto.getCollaborators().stream()
-//                    .map(collaboratorDto -> {
-//                        UserEntity collaboratorUser = userRepository.findById(collaboratorDto.getCollaboratorId())
-//                                .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 존재하지않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
-//                        return new CollaboratorEntity(null, collaboratorUser);
-//                    })
-//                    .toList();
 
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
@@ -109,9 +96,9 @@ public class ProjectServiceImpl implements ProjectService {
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
-            for(RequestAddCollaboratorDto collaboratorDto : dto.getCollaborators()) {
-                UserEntity collaborator = userRepository.findById(collaboratorDto.getCollaboratorId())
-                        .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+            for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+                UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
+                        .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
                 CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
                         .project(project)
@@ -120,6 +107,18 @@ public class ProjectServiceImpl implements ProjectService {
 
                 collaborators.add(collaboratorEntity);
             }
+
+//            for(ProjectRequestDto collaboratorDto : dto.getCollaborators()) {
+//                UserEntity collaborator = userRepository.findById(collaboratorDto.getCollaboratorId())
+//                        .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+//
+//                CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
+//                        .project(project)
+//                        .user(collaborator)
+//                        .build();
+//
+//                collaborators.add(collaboratorEntity);
+//            }
 
             project.addProjectCollaborator(collaborators);
 
