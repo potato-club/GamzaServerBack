@@ -13,5 +13,6 @@ public class ResponseUser {
 
     private Long id;
     private String name;
+    private String studentId;
 
 }
