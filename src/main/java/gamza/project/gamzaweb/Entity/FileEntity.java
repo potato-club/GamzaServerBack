@@ -23,4 +23,8 @@ public class FileEntity {
     @Column(nullable = false, length = 512)
     private String fileUrl;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private ProjectEntity project;
+
 }

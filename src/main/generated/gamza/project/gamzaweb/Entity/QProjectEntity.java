@@ -39,6 +39,8 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final DatePath<java.time.LocalDate> endedDate = createDate("endedDate", java.time.LocalDate.class);
 
+    public final ListPath<FileEntity, QFileEntity> fileEntities = this.<FileEntity, QFileEntity>createList("fileEntities", FileEntity.class, QFileEntity.class, PathInits.DIRECT2);
+
     public final BooleanPath fixedState = createBoolean("fixedState");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

@@ -49,6 +49,9 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정
     private ApplicationEntity application;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FileEntity> fileEntities = new ArrayList<>();
+
     private LocalDate startedDate;
     private LocalDate endedDate;
 

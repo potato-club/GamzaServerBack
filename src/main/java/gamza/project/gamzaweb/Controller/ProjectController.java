@@ -54,8 +54,13 @@ public class ProjectController {
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 수정 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
         }
-
     }
+
+
+    // TODO : /project/create  에 s3를 적용한 file upload Logic ( O ) project url이 FileEntity에 저장됩니다 링크 방문시 다운로드됨
+    // TODO : /user/list 에 파일 부분에 링크 달아줄것 FileEntity에 fileUrl 달아주자 (O) fileURL 반환하도록 했습니다 없는거는 그전에 만들어진거라 null
+    // TODO : /project/update/{projectId} 이거 수정해야할듯
+    // TODO : yml 서버꺼 수정해줘야함 s3 변수 추가됨 김지현한테도 카톡 해주자
 
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
@@ -81,14 +86,6 @@ public class ProjectController {
         projectService.deleteProjectById(request, projectId);
         return ResponseEntity.ok("프로젝트 삭제 완료");
     }
-
-    // TODO : 프로젝트 생성시 참여 인원 추가 API 생성 (O)
-    // TODO : 유저 리스트를 출력 하는 API가 필요할거같다. (O)
-
-    // TODO : S3 를 활용해서 zip파일을 다운받을 수 있는 API 설계, GET API 하나를 만들고 /project/download/zip/{projectId} 이런식으로 해야할듯
-    // TODO : 위 서비스를 진행하려면 프로젝트 만들떄 zip파일을 s3에 저장하는 API 를 추가해야함..
-    // TODO : Deadline 목 회의 전
-
 
     @PutMapping("/collaborator/{projectId}")
     @Operation(description = "해당 프로젝트에 참여 인원 추가하기 (프로젝트 생성자, 어드민만 가능)")

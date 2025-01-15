@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import gamza.project.gamzaweb.Entity.FileEntity;
+import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
 import gamza.project.gamzaweb.Repository.FileRepository;
@@ -33,7 +34,7 @@ public class FileUploader {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public void upload(MultipartFile file, String dirName) {
+    public void upload(MultipartFile file, String dirName, ProjectEntity project) {
 
         try {
             String originalFileName = file.getOriginalFilename();
@@ -49,6 +50,7 @@ public class FileUploader {
             FileEntity fileEntity =  FileEntity.builder()
                     .fileUrl(fileUrl)
                     .fileName(originalFileName)
+                    .project(project)
                     .build();
 
             fileRepository.save(fileEntity);
@@ -56,6 +58,16 @@ public class FileUploader {
         } catch (IOException e) {
             throw new BadRequestException("파일 업로드가 실패되었습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
+    }
+
+
+    public String getFileUrl(ProjectEntity project) {
+
+        FileEntity fileEntity = fileRepository.findByProject(project);
+        if(fileEntity == null) {
+            return null;
+        }
+        return fileEntity.getFileUrl();
     }
 
 }

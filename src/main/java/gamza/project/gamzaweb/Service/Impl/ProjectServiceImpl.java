@@ -123,11 +123,11 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
             }
 
-            fileUploader.upload(file, dto.getName());
-
             project.getApplication().updateDockerfilePath(filePath);
 
             projectRepository.save(project);
+
+            fileUploader.upload(file, dto.getName(), project);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -276,7 +276,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                ".zip"))
+                                fileUploader.getFileUrl(project)))
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -286,7 +286,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                ".zip"))
+                                fileUploader.getFileUrl(project)))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
