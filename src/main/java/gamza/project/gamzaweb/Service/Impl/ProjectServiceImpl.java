@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Service.Impl;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -20,6 +21,7 @@ import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Validate.FileUploader;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
@@ -28,8 +30,10 @@ import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.io.FileReader;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,6 +68,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final FileUploader fileUploader;
+    private final FileRepository fileRepository;
+
 
     @Override
     @Transactional
@@ -108,27 +115,15 @@ public class ProjectServiceImpl implements ProjectService {
                 collaborators.add(collaboratorEntity);
             }
 
-//            for(ProjectRequestDto collaboratorDto : dto.getCollaborators()) {
-//                UserEntity collaborator = userRepository.findById(collaboratorDto.getCollaboratorId())
-//                        .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
-//
-//                CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
-//                        .project(project)
-//                        .user(collaborator)
-//                        .build();
-//
-//                collaborators.add(collaboratorEntity);
-//            }
-
             project.addProjectCollaborator(collaborators);
-
-
 
             String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
 
             if (filePath == null) {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
             }
+
+            fileUploader.upload(file, dto.getName());
 
             project.getApplication().updateDockerfilePath(filePath);
 

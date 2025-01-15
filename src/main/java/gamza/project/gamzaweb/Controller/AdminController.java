@@ -23,7 +23,6 @@ public class AdminController {
     private final UserService userService;
     private final ProjectService projectService;
 
-
     @PostMapping("/user/approve/{id}")
     @Operation(description = "유저 권한 승인")
     public ResponseEntity<String> approve(HttpServletRequest request, @PathVariable("id") Long id) {
