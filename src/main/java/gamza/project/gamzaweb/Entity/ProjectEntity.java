@@ -64,17 +64,13 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState;
 
-    public void updateProjectCollaborator(UserEntity collaborator) {
-        CollaboratorEntity collaboratorEntity = new CollaboratorEntity(this, collaborator);
-        this.collaborators.add(collaboratorEntity);
-    }
-
-    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
+    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
         this.name = name;
         this.description = description;
         this.state = state;
         this.startedDate = startedDate;
         this.endedDate = endedDate;
+        this.collaborators = collaborators;
     }
 
     public void addProjectCollaborator(List<CollaboratorEntity> collaborators) {

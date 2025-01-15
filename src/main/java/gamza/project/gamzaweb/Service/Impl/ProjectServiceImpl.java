@@ -69,7 +69,6 @@ public class ProjectServiceImpl implements ProjectService {
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FileUploader fileUploader;
-    private final FileRepository fileRepository;
 
 
     @Override
@@ -209,31 +208,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
-
-        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
-        String userRole = jwtTokenProvider.extractRole(token);
-        Long userId = jwtTokenProvider.extractId(token);
-
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
-        ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
-
-        if (!project.getLeader().equals(user) || !userRole.equals("0")) {
-            throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
-
-        UserEntity collaborator = userRepository.findById(dto.getCollaboratorId())
-                .orElseThrow(() -> new UnAuthorizedException("추가하려는 해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
-
-        project.updateProjectCollaborator(collaborator);
-        projectRepository.save(project);
-
-    }
-
-    @Override
-    @Transactional
     public void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
 
         String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
@@ -314,21 +288,38 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
+        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
+        String userRole = jwtTokenProvider.extractRole(token);
         Long userId = jwtTokenProvider.extractId(token);
 
-        UserEntity user = userRepository.findById(userId).orElseThrow(() ->
-                new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 
-        ProjectEntity project = projectRepository.findById(id).orElseThrow(() ->
-                new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-        if (!project.getLeader().getId().equals(userId)) {
-            throw new ForbiddenException("이 프로젝트를 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        if(!project.getLeader().equals(user)) {
+            if(!userRole.equals("0")) {
+                throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            }
         }
 
-//        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate());
-//        projectRepository.save(project);
+        List<CollaboratorEntity> newCollaborators = new ArrayList<>();
+
+        for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+            UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
+                    .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+            CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
+                    .project(project)
+                    .user(collaborator)
+                    .build();
+
+            newCollaborators.add(collaboratorEntity);
+        }
+
+        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators);
+        projectRepository.save(project);
 
     }
 

@@ -52,6 +52,7 @@ public class ProjectController {
             projectService.updateProject(request, dto, id);
             return ResponseEntity.ok().body("프로젝트가 수정되었습니다.");
         } catch (Exception e) {
+            e.printStackTrace();
             throw new BadRequestException("프로젝트 수정 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
         }
     }
@@ -59,8 +60,16 @@ public class ProjectController {
 
     // TODO : /project/create  에 s3를 적용한 file upload Logic ( O ) project url이 FileEntity에 저장됩니다 링크 방문시 다운로드됨
     // TODO : /user/list 에 파일 부분에 링크 달아줄것 FileEntity에 fileUrl 달아주자 (O) fileURL 반환하도록 했습니다 없는거는 그전에 만들어진거라 null
-    // TODO : /project/update/{projectId} 이거 수정해야할듯
-    // TODO : yml 서버꺼 수정해줘야함 s3 변수 추가됨 김지현한테도 카톡 해주자
+    // TODO : /project/update/{projectId} 이거 수정하기 ( O )
+    // {
+    //    "name" : "fixed???",
+    //    "description" : "rea???:L???",
+    //    "state" : "DONE",
+    //    "startedDate" : "2025-01-01",
+    //    "endedDate" : "2025-03-30",
+    //    "collaborators" : [1,2,3]
+    //}
+    // TODO : yml 서버꺼 수정해줘야함 s3 변수 추가됨 추가하기 ( O )
 
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
@@ -88,14 +97,14 @@ public class ProjectController {
     }
 
     @PutMapping("/collaborator/{projectId}")
-    @Operation(description = "해당 프로젝트에 참여 인원 추가하기 (프로젝트 생성자, 어드민만 가능)")
+    @Operation(description = "해당 프로젝트에 참여 인원 추가하기 (프로젝트 생성자, 어드민만 가능) API 미사용")
     public ResponseEntity<String> addProjectCollaborator(HttpServletRequest request, @PathVariable("projectId") Long projectId, @RequestBody RequestAddCollaboratorDto dto) {
-        projectService.addProjectCollaborator(request, projectId, dto);
+//        projectService.addProjectCollaborator(request, projectId, dto);
         return ResponseEntity.ok("프로젝트 참여 인원이 추가되었습니다.");
     }
 
     @DeleteMapping("/collaborator/{projectId}")
-    @Operation(description = "해당 프로젝트에 참여 인원 삭제하기 (프로젝트 생성자, 어드민만 가능)")
+    @Operation(description = "해당 프로젝트에 참여 인원 삭제하기 (프로젝트 생성자, 어드민만 가능) API 미사용 / 2차개발")
     public ResponseEntity<String> deleteProjectCollaborator(HttpServletRequest request, @PathVariable("projectId") Long projectId, @RequestBody RequestAddCollaboratorDto dto) {
         projectService.deleteProjectCollaborator(request, projectId, dto);
         return ResponseEntity.ok("프로젝트 참여 인원이 삭제되었습니다.");
