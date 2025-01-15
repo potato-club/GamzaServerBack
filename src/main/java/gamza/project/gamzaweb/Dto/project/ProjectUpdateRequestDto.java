@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,5 +19,6 @@ public class ProjectUpdateRequestDto {
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
+    private List<Integer> collaborators = new ArrayList<>();
 
 }
