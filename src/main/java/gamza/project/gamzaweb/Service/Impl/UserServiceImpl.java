@@ -134,6 +134,7 @@ public class UserServiceImpl implements UserService {
                 .map(user -> ResponseUser.builder()
                         .id(user.getId())
                         .name(user.getFamilyName() + user.getGivenName())
+                        .studentId(user.getStudentId())
                         .build())
                 .toList();
 

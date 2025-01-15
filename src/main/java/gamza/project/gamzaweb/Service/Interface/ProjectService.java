@@ -25,8 +25,6 @@ public interface ProjectService {
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
 
-    void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
-
     void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 
 //    void onContainerCreated(String containerId);

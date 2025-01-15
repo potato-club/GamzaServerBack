@@ -27,6 +27,7 @@ public class ProjectRequestDto {
     private int outerPort;
     private String tag;
     private String variableKey;
-    private List<RequestAddCollaboratorDto> collaborators = new ArrayList<>();
+    private List<Integer> collaborators = new ArrayList<>();
+//    private List<RequestAddCollaboratorDto> collaborators = new ArrayList<>();
 
 }

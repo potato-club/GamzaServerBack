@@ -49,6 +49,9 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정
     private ApplicationEntity application;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FileEntity> fileEntities = new ArrayList<>();
+
     private LocalDate startedDate;
     private LocalDate endedDate;
 
@@ -61,17 +64,13 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState;
 
-    public void updateProjectCollaborator(UserEntity collaborator) {
-        CollaboratorEntity collaboratorEntity = new CollaboratorEntity(this, collaborator);
-        this.collaborators.add(collaboratorEntity);
-    }
-
-    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate) {
+    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
         this.name = name;
         this.description = description;
         this.state = state;
         this.startedDate = startedDate;
         this.endedDate = endedDate;
+        this.collaborators = collaborators;
     }
 
     public void addProjectCollaborator(List<CollaboratorEntity> collaborators) {

@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Service.Impl;
 
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
@@ -20,6 +21,7 @@ import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Validate.FileUploader;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
@@ -28,9 +30,10 @@ import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.io.FileWriter;
-
+import java.io.FileReader;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +50,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
-
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +68,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final FileUploader fileUploader;
+
 
     @Override
     @Transactional
@@ -76,7 +80,6 @@ public class ProjectServiceImpl implements ProjectService {
         UserEntity user = userRepository.findById(userId).orElseThrow();
 
         try {
-
             ApplicationEntity application = ApplicationEntity.builder()
                     .tag(dto.getTag())
                     .internalPort(80)
@@ -86,15 +89,6 @@ public class ProjectServiceImpl implements ProjectService {
 
             applicationRepository.save(application);
             applicationRepository.flush();
-
-
-//            List<CollaboratorEntity> collaboratorEntities = dto.getCollaborators().stream()
-//                    .map(collaboratorDto -> {
-//                        UserEntity collaboratorUser = userRepository.findById(collaboratorDto.getCollaboratorId())
-//                                .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 존재하지않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
-//                        return new CollaboratorEntity(null, collaboratorUser);
-//                    })
-//                    .toList();
 
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
@@ -108,9 +102,9 @@ public class ProjectServiceImpl implements ProjectService {
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
-            for(RequestAddCollaboratorDto collaboratorDto : dto.getCollaborators()) {
-                UserEntity collaborator = userRepository.findById(collaboratorDto.getCollaboratorId())
-                        .orElseThrow(() -> new BadRequestException("해당 유저가 존재하지 않습니다. 잘못된 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+            for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+                UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
+                        .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
                 CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
                         .project(project)
@@ -122,8 +116,6 @@ public class ProjectServiceImpl implements ProjectService {
 
             project.addProjectCollaborator(collaborators);
 
-
-
             String filePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
 
             if (filePath == null) {
@@ -133,6 +125,8 @@ public class ProjectServiceImpl implements ProjectService {
             project.getApplication().updateDockerfilePath(filePath);
 
             projectRepository.save(project);
+
+            fileUploader.upload(file, dto.getName(), project);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -214,31 +208,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void addProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
-
-        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
-        String userRole = jwtTokenProvider.extractRole(token);
-        Long userId = jwtTokenProvider.extractId(token);
-
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
-        ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
-
-        if (!project.getLeader().equals(user) || !userRole.equals("0")) {
-            throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
-
-        UserEntity collaborator = userRepository.findById(dto.getCollaboratorId())
-                .orElseThrow(() -> new UnAuthorizedException("추가하려는 해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
-
-        project.updateProjectCollaborator(collaborator);
-        projectRepository.save(project);
-
-    }
-
-    @Override
-    @Transactional
     public void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto) {
 
         String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
@@ -281,7 +250,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                ".zip"))
+                                fileUploader.getFileUrl(project)))
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -291,7 +260,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                ".zip"))
+                                fileUploader.getFileUrl(project)))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
@@ -319,21 +288,38 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
+        String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
+        String userRole = jwtTokenProvider.extractRole(token);
         Long userId = jwtTokenProvider.extractId(token);
 
-        UserEntity user = userRepository.findById(userId).orElseThrow(() ->
-                new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 
-        ProjectEntity project = projectRepository.findById(id).orElseThrow(() ->
-                new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-        if (!project.getLeader().getId().equals(userId)) {
-            throw new ForbiddenException("이 프로젝트를 수정할 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        if(!project.getLeader().equals(user)) {
+            if(!userRole.equals("0")) {
+                throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            }
         }
 
-//        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate());
-//        projectRepository.save(project);
+        List<CollaboratorEntity> newCollaborators = new ArrayList<>();
+
+        for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+            UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
+                    .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+            CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
+                    .project(project)
+                    .user(collaborator)
+                    .build();
+
+            newCollaborators.add(collaboratorEntity);
+        }
+
+        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators);
+        projectRepository.save(project);
 
     }
 
@@ -447,7 +433,8 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
-        CreateContainerResponse container = dockerClient.createContainerCmd(project.getName())
+        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+                .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
                         .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
@@ -471,14 +458,17 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
+        Optional<ImageEntity> existingImage = imageRepository.findByProjectAndUser(project, userPk);
 
-        ImageEntity imageEntity = ImageEntity.builder()
-                .project(project)
-                .user(userPk)
-                .name(project.getName())
-                .variableKey(project.getApplication().getVariableKey())
-                .build();
-        imageRepository.save(imageEntity);
+        if (existingImage.isEmpty()) {  // 중복이 없을 때만 저장
+            ImageEntity imageEntity = ImageEntity.builder()
+                    .project(project)
+                    .user(userPk)
+                    .name(project.getName())
+                    .variableKey(project.getApplication().getVariableKey())
+                    .build();
+            imageRepository.save(imageEntity);
+        }
 
         if (isImageExists(project.getName())) {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
@@ -521,13 +511,23 @@ public class ProjectServiceImpl implements ProjectService {
 //        }
 //    }
 
+//
+//    private boolean isImageExists(String name) {
+//        List<Image> existingImages = dockerClient.listImagesCmd().exec();
+//        return existingImages.stream()
+//                .anyMatch(image -> image.getRepoTags() != null &&
+//                        Arrays.asList(image.getRepoTags()).contains(name));
+//    }
 
+    //null 체크 먼저하게 했음
     private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
-                .anyMatch(image -> image.getRepoTags() != null &&
-                        Arrays.asList(image.getRepoTags()).contains(name));
+                .filter(image -> image.getRepoTags() != null)
+                .flatMap(image -> Arrays.stream(image.getRepoTags()))
+                .anyMatch(tag -> tag.equals(name));
     }
+
 
     private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
@@ -572,44 +572,64 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     private void generateNginxConfig(String applicationName, int applicationPort) {
+        String configPath = "/etc/nginx/conf.d/" + applicationName + ".conf";
         String configContent = """
-                    server {
-                        listen 80;
-                        listen [::]:80;
-                        server_name %s.gamza.club;
-                        return 301 https://$host$request_uri;
-                    }
-                    server {
-                        listen 443 ssl http2;
-                        listen [::]:443 ssl http2;
-                        server_name %s.gamza.club;
-                
-                        location / {
-                            proxy_pass http://localhost:%d;
-                            proxy_http_version 1.1;
-                            proxy_set_header Upgrade $http_upgrade;
-                            proxy_set_header Connection 'upgrade';
-                            proxy_set_header Host $host;
-                            proxy_cache_bypass $http_upgrade;
-                        }
-                    }
-                """.formatted(applicationName, applicationName, applicationPort);
+        server {
+            listen 80;
+            listen [::]:80;
+            server_name %s.gamzaweb.shop;
+            return 301 https://$host$request_uri;
+        }
+        server {
+            listen 443 ssl http2;
+            listen [::]:443 ssl http2;
+            server_name %s.gamzaweb.shop;
+            ssl_certificate /etc/letsencrypt/live/gamzaweb.shop/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/gamzaweb.shop/privkey.pem;
 
-        try (FileWriter writer = new FileWriter("/etc/nginx/conf.d/" + applicationName + ".conf")) {
-            writer.write(configContent);
-            System.out.println("Nginx config generated for: " + applicationName);
-        } catch (IOException e) {
+            location / {
+                proxy_pass http://localhost:%d;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
+            }
+        }
+        """.formatted(applicationName, applicationName, applicationPort);
+
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c",
+                    "echo '" + configContent.replace("'", "'\\''") + "' | sudo tee " + configPath);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                System.out.println("Nginx config generated successfully: " + applicationName);
+            } else {
+                System.err.println("Failed to generate Nginx config. Exit code: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to generate Nginx config for: " + applicationName, e);
         }
     }
 
-    private void reloadNginx() {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("bash", "-c", "nginx -s reload");
 
+    private void reloadNginx() {
         try {
-            Process process = processBuilder.start();
+            ProcessBuilder testConfig = new ProcessBuilder("bash", "-c", "nginx -t");
+            Process testProcess = testConfig.start();
+            int testExitCode = testProcess.waitFor();
+
+            if (testExitCode != 0) {
+                throw new RuntimeException("Nginx config test failed.");
+            }
+
+            ProcessBuilder reloadProcess = new ProcessBuilder("bash", "-c", "nginx -s reload");
+            Process process = reloadProcess.start();
             int exitCode = process.waitFor();
+
             if (exitCode == 0) {
                 System.out.println("Nginx reloaded successfully.");
             } else {
