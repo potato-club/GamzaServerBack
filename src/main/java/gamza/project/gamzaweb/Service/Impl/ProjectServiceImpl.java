@@ -21,7 +21,7 @@ import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
-//import gamza.project.gamzaweb.Validate.FileUploader;
+import gamza.project.gamzaweb.Validate.FileUploader;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
@@ -68,7 +68,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
-//    private final FileUploader fileUploader;
+    private final FileUploader fileUploader;
     private final FileRepository fileRepository;
 
 
@@ -123,7 +123,7 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new BadRequestException("Failed SaveFile (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
             }
 
-//            fileUploader.upload(file, dto.getName());
+            fileUploader.upload(file, dto.getName());
 
             project.getApplication().updateDockerfilePath(filePath);
 
