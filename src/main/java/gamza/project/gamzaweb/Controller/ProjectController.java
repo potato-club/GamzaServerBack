@@ -79,19 +79,19 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     @Operation(description = "프로젝트 조회")
-    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, @PathVariable Long id) {
+    public ProjectDetailResponseDto getProjectById(HttpServletRequest request, @PathVariable("id") Long id) {
         return projectService.getProjectById(request, id);
     }
 
     @GetMapping("/app/{projectId}")
     @Operation(description = "어플리케이션 조회, 프로젝트 id로 조회하면 됨")
-    public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, @PathVariable Long projectId) {
+    public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, @PathVariable("projectId") Long projectId) {
         return projectService.getApplicationByProjId(request, projectId);
     }
 
     @DeleteMapping("/user/list/{projectId}")
     @Operation(description = "회원이 만든 특정 프로젝트 삭제")
-    public ResponseEntity<String> deleteProject(HttpServletRequest request, @PathVariable Long projectId) {
+    public ResponseEntity<String> deleteProject(HttpServletRequest request, @PathVariable("projectId") Long projectId) {
         projectService.deleteProjectById(request, projectId);
         return ResponseEntity.ok("프로젝트 삭제 완료");
     }

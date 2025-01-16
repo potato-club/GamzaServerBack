@@ -33,6 +33,7 @@ public class ProjectDetailResponseDto {
                 .map(collaborator -> ResponseCollaboratorDto.builder()
                         .id(collaborator.getUser().getId())    // User PK 값
                         .name(collaborator.getUser().getFamilyName() + collaborator.getUser().getGivenName()) // User 이름
+                        .studentId(collaborator.getUser().getStudentId())
                         .build())
                 .toList();
     }
