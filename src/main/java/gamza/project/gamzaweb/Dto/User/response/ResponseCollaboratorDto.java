@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class ResponseCollaboratorDto {
     private Long id;
     private String name;
+    private String studentId;
 }
