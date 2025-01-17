@@ -85,6 +85,9 @@ public class ProjectEntity extends BaseTime {
         this.approveFixedState = true;
     }
 
-
+    public boolean isCollaborator(Long userId) {
+        return collaborators.stream()
+                .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId));
+    }
 
 }

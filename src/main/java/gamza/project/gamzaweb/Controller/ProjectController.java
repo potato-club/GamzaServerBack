@@ -23,11 +23,10 @@ public class ProjectController {
 
     private final ProjectService projectService;
 
-
     @GetMapping("/list")
     @Operation(description = "메인 페이지 프로젝트 출력")
-    public ProjectListResponseDto allProjectList() {
-        return projectService.getAllProject();
+    public ProjectListResponseDto allProjectList(HttpServletRequest request) {
+        return projectService.getAllProject(request);
     }
 
     @PostMapping(value = "/create")
@@ -57,20 +56,6 @@ public class ProjectController {
         }
     }
 
-
-    // TODO : /project/create  에 s3를 적용한 file upload Logic ( O ) project url이 FileEntity에 저장됩니다 링크 방문시 다운로드됨
-    // TODO : /user/list 에 파일 부분에 링크 달아줄것 FileEntity에 fileUrl 달아주자 (O) fileURL 반환하도록 했습니다 없는거는 그전에 만들어진거라 null
-    // TODO : /project/update/{projectId} 이거 수정하기 ( O )
-    // {
-    //    "name" : "fixed???",
-    //    "description" : "rea???:L???",
-    //    "state" : "DONE",
-    //    "startedDate" : "2025-01-01",
-    //    "endedDate" : "2025-03-30",
-    //    "collaborators" : [1,2,3]
-    //}
-    // TODO : yml 서버꺼 수정해줘야함 s3 변수 추가됨 추가하기 ( O )
-
     @GetMapping("/user/list")
     @Operation(description = "회원이 만든 프로젝트 출력")
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
@@ -87,6 +72,22 @@ public class ProjectController {
     @Operation(description = "어플리케이션 조회, 프로젝트 id로 조회하면 됨")
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, @PathVariable("projectId") Long projectId) {
         return projectService.getApplicationByProjId(request, projectId);
+    }
+
+    @PutMapping("/app/update/{projectId}")
+    @Operation(description = "어플리케이션 수정, 프로젝트 id로 조회하면 됨")
+    public ResponseEntity<String> getApplicationByProjId(
+            HttpServletRequest request,
+            @PathVariable("projectId") Long projectId,
+            @RequestPart(value = "zip", required = false) MultipartFile file,
+            @ModelAttribute ApplicationUpdateRequestDto dto) {
+        try {
+            projectService.updateApplication(request, dto, projectId, file);
+            return ResponseEntity.ok().body("어플리케이션이 수정되었습니다.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BadRequestException("어플리케이션 수정 실패 오류", ErrorCode.FAILED_PROJECT_ERROR);
+        }
     }
 
     @DeleteMapping("/user/list/{projectId}")
