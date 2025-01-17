@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,4 +31,6 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, P
 
     Page<ProjectEntity> findByFixedStateAndApproveFixedState(boolean fixedState, boolean approveFixedState, Pageable pageable);
 
+    @Query("SELECT COUNT(c) > 0 FROM CollaboratorEntity c WHERE c.project.id = :projectId AND c.user.id = :userId")
+    boolean isUserCollaborator(@Param("projectId") Long projectId, @Param("userId") Long userId);
 }
