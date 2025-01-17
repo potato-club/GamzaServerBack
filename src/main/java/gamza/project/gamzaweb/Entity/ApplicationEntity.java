@@ -39,4 +39,12 @@ public class ApplicationEntity {
         this.imageId = dockerFilePath;
     }
 
+    public void updateApplication(String newFilePath, int outerPort, String tag, String variableKey) {
+        if (newFilePath != null && !newFilePath.isEmpty()) {
+            this.imageId = newFilePath;
+        }
+        this.outerPort = outerPort;
+        this.tag = tag;
+        this.variableKey = variableKey;
+    }
 }
