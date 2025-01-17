@@ -11,7 +11,7 @@ public interface ProjectService {
 
     void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
 
-    ProjectListResponseDto getAllProject();
+    ProjectListResponseDto getAllProject(HttpServletRequest request);
 
     ProjectListPerResponseDto personalProject(HttpServletRequest request);
 
@@ -24,6 +24,8 @@ public interface ProjectService {
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
+
+    void updateApplication(HttpServletRequest request, ApplicationUpdateRequestDto dto, Long projectId,MultipartFile file);
 
     void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 

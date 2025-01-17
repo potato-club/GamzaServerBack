@@ -1,5 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
@@ -21,8 +23,15 @@ public class ProjectDetailResponseDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
     private List<ResponseCollaboratorDto> collaborators;
+    @JsonProperty("isCollaborator")
+    private boolean isCollaborator;
 
-    public ProjectDetailResponseDto(ProjectEntity project) {
+    @JsonIgnore
+    public boolean isIsCollaborator() {
+        return isCollaborator;
+    }
+
+    public ProjectDetailResponseDto(ProjectEntity project, boolean isCollaborator) {
         this.id = project.getId();
         this.name = project.getName();
         this.description = project.getDescription();
@@ -36,5 +45,6 @@ public class ProjectDetailResponseDto {
                         .studentId(collaborator.getUser().getStudentId())
                         .build())
                 .toList();
+        this.isCollaborator = isCollaborator;
     }
 }

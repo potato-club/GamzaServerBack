@@ -1,5 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import lombok.AllArgsConstructor;
@@ -24,7 +26,11 @@ public class ProjectResponseDto {
     private LocalDate endedDate;
     private List<String> imageIds;
     private List<ResponseCollaboratorDto> collaborators;
+    @JsonProperty("isCollaborator")
+    private boolean isCollaborator;
 
-
-
+    @JsonIgnore
+    public boolean isIsCollaborator() {
+        return isCollaborator;
+    }
 }

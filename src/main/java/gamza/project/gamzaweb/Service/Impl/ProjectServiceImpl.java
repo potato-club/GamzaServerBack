@@ -99,6 +99,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
                     .build();
+            projectRepository.save(project);
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
@@ -135,13 +136,21 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectListResponseDto getAllProject() {
-        List<ProjectEntity> projectPage = projectRepository.findProjectsWithImages();
+    public ProjectListResponseDto getAllProject(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
 
+        final Long userId = (token != null && !token.isEmpty()) ? jwtTokenProvider.extractId(token) : null;
+        final String userRole = (token != null && !token.isEmpty()) ? jwtTokenProvider.extractRole(token) : null;
+
+        List<ProjectEntity> projectPage = projectRepository.findProjectsWithImages();
         System.out.println(projectPage);
 
         List<ProjectResponseDto> collect = projectPage.stream()
                 .map(project -> {
+                    boolean isCollaborator = "0".equals(userRole) ||
+                            (userId != null && project.getCollaborators().stream()
+                                    .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId)));
+
                     List<String> imageIds = project.getImageEntity().stream()
                             .map(ImageEntity::getImageId)
                             .filter(imageId -> imageId != null)
@@ -151,6 +160,7 @@ public class ProjectServiceImpl implements ProjectService {
                             .map(collaborator -> ResponseCollaboratorDto.builder()
                                     .id(collaborator.getUser().getId())    // User PK 값
                                     .name(collaborator.getUser().getFamilyName() + collaborator.getUser().getFamilyName()) // User 이름
+                                    .studentId(collaborator.getUser().getStudentId())
                                     .build())
                             .toList();
 
@@ -162,7 +172,8 @@ public class ProjectServiceImpl implements ProjectService {
                             project.getStartedDate(),
                             project.getEndedDate(),
                             imageIds,
-                            collaboratorDtos
+                            collaboratorDtos,
+                            isCollaborator
                     );
                 })
                 .collect(Collectors.toList());
@@ -176,35 +187,109 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
+        String userRole = jwtTokenProvider.extractRole(token);
+
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(id)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
+//
+//        if (!project.getLeader().getId().equals(userId)) {
+//            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+//        }
+        boolean isCollaborator = "0".equals(userRole) ||
+                project.getCollaborators().stream()
+                        .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId));
 
-        if (!project.getLeader().getId().equals(userId)) {
-            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
-        }
-
-        return new ProjectDetailResponseDto(project);
+        return new ProjectDetailResponseDto(project, isCollaborator);
     }
 
     @Override
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId) {
         String token = jwtTokenProvider.resolveAccessToken(request);
+
+        if (token == null || token.isEmpty()) {
+            ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
+                    .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
+                            ErrorCode.FAILED_PROJECT_ERROR));
+
+            ApplicationEntity application = project.getApplication();
+            if (application == null) {
+                throw new NotFoundException("Application이 이 프로젝트에 연결되지 않았습니다.",
+                        ErrorCode.NOT_FOUND_EXCEPTION);
+            }
+
+            return new ApplicationDetailResponseDto(application, false);
+        }
+
         Long userId = jwtTokenProvider.extractId(token);
+        String userRole = jwtTokenProvider.extractRole(token);
+        System.out.println("userRole: " + userRole);
 
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
-                .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
-
-        if (!project.getLeader().getId().equals(userId)) {
-            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
-        }
+                .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
+                        ErrorCode.FAILED_PROJECT_ERROR));
 
         ApplicationEntity application = project.getApplication();
         if (application == null) {
-            throw new NotFoundException("Application이 이 프로젝트에 연결되지 않았습니다.", ErrorCode.NOT_FOUND_EXCEPTION);
+            throw new NotFoundException("Application이 이 프로젝트에 연결되지 않았습니다.",
+                    ErrorCode.NOT_FOUND_EXCEPTION);
         }
 
-        return new ApplicationDetailResponseDto(application);
+        boolean isCollaborator = "0".equals(userRole) || projectRepository.isUserCollaborator(projectId, userId);
+        System.out.println("isCollaborator: " + isCollaborator);
+
+        return new ApplicationDetailResponseDto(application, isCollaborator);
     }
+
+
+    @Override
+    @Transactional
+    public void updateApplication(HttpServletRequest request, ApplicationUpdateRequestDto dto, Long projectId, MultipartFile file) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        ApplicationEntity application = project.getApplication();
+        if (application == null) {
+            throw new NotFoundException("해당 프로젝트에 등록된 애플리케이션이 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION);
+        }
+
+        // 🔥 기존 파일 경로 가져오기
+        String oldFilePath = application.getImageId();
+        String newFilePath = oldFilePath; // 기본적으로 기존 파일 유지
+
+        if (file != null && !file.isEmpty()) {
+            try {
+                newFilePath = FileController.saveFile(file.getInputStream(), project.getName(), project.getName());
+                if (newFilePath == null) {
+                    throw new BadRequestException("파일 저장 실패 (ZIP)", ErrorCode.FAILED_PROJECT_ERROR);
+                }
+
+                if (oldFilePath != null && !oldFilePath.isEmpty()) {
+                    FileController.deleteFile(oldFilePath);
+                }
+
+                fileUploader.upload(file, project.getName(), project);
+            } catch (IOException e) {
+                throw new BusinessException("파일 업로드 중 오류가 발생했습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+            }
+        }
+
+        application.updateApplication(
+                newFilePath,
+                dto.getOuterPort(),
+                dto.getTag(),
+                dto.getVariableKey()
+        );
+
+        applicationRepository.save(application);
+    }
+
 
     @Override
     @Transactional
@@ -227,8 +312,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BadRequestException("잘못된 요청입니다. 삭제하려는 해당 유저가 존재하지 않습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
         collaboratorRepository.delete(deleteCollaborator);
-
-
     }
 
     @Override
