@@ -28,6 +28,8 @@ public class QContainerEntity extends EntityPathBase<ContainerEntity> {
 
     public final StringPath imageId = createString("imageId");
 
+    public final QProjectEntity project;
+
     public final QUserEntity user;
 
     public QContainerEntity(String variable) {
@@ -48,6 +50,7 @@ public class QContainerEntity extends EntityPathBase<ContainerEntity> {
 
     public QContainerEntity(Class<? extends ContainerEntity> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.project = inits.isInitialized("project") ? new QProjectEntity(forProperty("project"), inits.get("project")) : null;
         this.user = inits.isInitialized("user") ? new QUserEntity(forProperty("user")) : null;
     }
 

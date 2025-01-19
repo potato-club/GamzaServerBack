@@ -141,30 +141,21 @@ public class DockerProvider {
         }
     }
 
-    public void stopContainer(HttpServletRequest request, String imageId) {
+    public void stopContainer(HttpServletRequest request, ContainerEntity container) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
-        Long userId = jwtTokenProvider.extractId(token);
-        UserEntity userPk = userRepository.findUserEntityById(userId);
         String userRole = jwtTokenProvider.extractRole(token);
 
         if (!userRole.equals("0")) {
             throw new UnAuthorizedException("401 ERROR USER NOT FOUNT ", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
-        Optional<ContainerEntity> containerId = containerRepository.findContainerEntitiesByImageId(imageId);
-
-//        Optional<ContainerEntity> userContainer = containerRepository.findByContainerIdAndUser(containerId, userPk);
-//        if (userContainer.isEmpty()) {
-//            throw new DockerRequestException("3006 FAILED CONTAINER STOP", ErrorCode.FAILED_CONTAINER_STOP);
-//        }
-
-        System.out.println(String.valueOf(containerId) + "123123123123123123");
+        System.out.println("delete ContainerId : " + container.getContainerId());
 
         try {
-            StopContainerCmd stopContainer = dockerClient.stopContainerCmd(String.valueOf(containerId));
+            StopContainerCmd stopContainer = dockerClient.stopContainerCmd(container.getContainerId());
             stopContainer.exec();
-            containerRepository.delete(containerId.get());
+            containerRepository.delete(container);
         } catch (NotModifiedException e) {
             e.printStackTrace();
             //maybe already stopped!
