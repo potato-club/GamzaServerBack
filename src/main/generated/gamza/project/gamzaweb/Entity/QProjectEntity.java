@@ -32,7 +32,7 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final ListPath<CollaboratorEntity, QCollaboratorEntity> collaborators = this.<CollaboratorEntity, QCollaboratorEntity>createList("collaborators", CollaboratorEntity.class, QCollaboratorEntity.class, PathInits.DIRECT2);
 
-    public final QContainerEntity container;
+    public final ListPath<ContainerEntity, QContainerEntity> container = this.<ContainerEntity, QContainerEntity>createList("container", ContainerEntity.class, QContainerEntity.class, PathInits.DIRECT2);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDate = _super.createdDate;
@@ -79,7 +79,6 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
     public QProjectEntity(Class<? extends ProjectEntity> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.application = inits.isInitialized("application") ? new QApplicationEntity(forProperty("application"), inits.get("application")) : null;
-        this.container = inits.isInitialized("container") ? new QContainerEntity(forProperty("container"), inits.get("container")) : null;
         this.leader = inits.isInitialized("leader") ? new QUserEntity(forProperty("leader")) : null;
     }
 
