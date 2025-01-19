@@ -155,7 +155,7 @@ public class DockerProvider {
         try {
             StopContainerCmd stopContainer = dockerClient.stopContainerCmd(container.getContainerId());
             stopContainer.exec();
-            containerRepository.delete(container);
+//            containerRepository.delete(container);
         } catch (NotModifiedException e) {
             e.printStackTrace();
             //maybe already stopped!
