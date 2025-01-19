@@ -454,16 +454,14 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public void approveFixedExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
         checkProjectApprovalState(project);
 
-//        project.getApplication().getImageId()
-        // 컨테이너 아이디 있으면 삭제되네
-        // 기존 도커 컨테이너를 삭제해야하네?
-        String imageId =  project.getName() + ":"  + project.getApplication().getTag();
-        dockerProvider.stopContainer(request, imageId);
+        ContainerEntity containerEntity = containerRepository.findContainerEntityByProject(project);
+        dockerProvider.stopContainer(request, containerEntity);
 
         buildDockerImageFromApplicationZip(request, project);
     }
@@ -540,6 +538,7 @@ public class ProjectServiceImpl implements ProjectService {
         dockerClient.startContainerCmd(container.getId()).exec();
 
         ContainerEntity containerEntity = ContainerEntity.builder()
+                .project(project)
                 .containerId(container.getId())
                 .imageId(project.getName() + ":" + project.getApplication().getTag())
                 .user(userPk)
