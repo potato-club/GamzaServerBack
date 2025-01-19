@@ -16,5 +16,5 @@ public interface ContainerRepository extends JpaRepository<ContainerEntity, Long
     @Query("SELECT c.containerId FROM ContainerEntity c WHERE c.user.id = :userId")
     List<String> findContainerIdsByUserId(@Param("userId") Long userId);
 
-    Optional<ContainerEntity> findByContainerIdAndUser(String containerId, UserEntity user);
+    Optional<ContainerEntity> findContainerEntitiesByImageId(String imageId);
 }

@@ -459,7 +459,12 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectEntity project = getProjectById(id);
         checkProjectApprovalState(project);
 
-        // Docker 이미지 빌드
+//        project.getApplication().getImageId()
+        // 컨테이너 아이디 있으면 삭제되네
+        // 기존 도커 컨테이너를 삭제해야하네?
+        String imageId =  project.getName() + ":"  + project.getApplication().getTag();
+        dockerProvider.stopContainer(request, imageId);
+
         buildDockerImageFromApplicationZip(request, project);
     }
 
