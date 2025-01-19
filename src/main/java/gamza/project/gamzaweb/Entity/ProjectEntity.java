@@ -81,6 +81,10 @@ public class ProjectEntity extends BaseTime {
         this.approveState = true;
     }
 
+    public void updateFixedState() {
+        this.fixedState = true;
+    }
+
     public void approveFixedProject() {
         this.approveFixedState = true;
     }

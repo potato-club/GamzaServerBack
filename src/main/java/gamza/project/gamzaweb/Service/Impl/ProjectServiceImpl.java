@@ -286,6 +286,8 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
+        project.updateFixedState();
+
         application.updateApplication(
                 newFilePath,
                 dto.getOuterPort(),
@@ -427,6 +429,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
+        // 승인요청 fixedState 는 true이고 approveFixedState(승인요청 상태가 미허가된 상태 0false) 인애들만 추출
         Page<ProjectEntity> projectEntities = projectRepository.findByFixedStateAndApproveFixedState(true, false, pageable);
 
         return projectEntities.map(FixedProjectListNotApproveResponse::new);

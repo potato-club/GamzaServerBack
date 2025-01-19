@@ -62,7 +62,7 @@ public class AdminController {
 
     // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기
     // TODO : zip string 으로  보내주는거 url로 보내주기, 오름차순? pk값? ( O )
-    // TODO : 서버 이미지 크기 nginx 설정해주기
+    // TODO : 서버 이미지 크기 nginx 설정해주기 ( O ) 100MB 로 설정함 만약 안되면 서버 엔진엑스 껏다 켜봐야할듯? 일단 내가 리로드하긴함
 
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
