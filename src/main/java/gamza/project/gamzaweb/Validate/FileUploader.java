@@ -70,4 +70,14 @@ public class FileUploader {
         return fileEntity.getFileUrl();
     }
 
+    public String recentGetFileUrl(ProjectEntity project) {
+        // 이건 가장 최신 프로젝트를 돌려줍니다.
+
+        FileEntity fileEntity = fileRepository.findByProjectOrderByIdDesc(project);
+        if(fileEntity == null) {
+            return null;
+        }
+        return fileEntity.getFileUrl();
+    }
+
 }
