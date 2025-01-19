@@ -462,6 +462,9 @@ public class ProjectServiceImpl implements ProjectService {
 
         ContainerEntity containerEntity = containerRepository.findContainerEntityByProject(project);
         dockerProvider.stopContainer(request, containerEntity);
+        dockerProvider.removeContainer(containerEntity.getContainerId());
+        containerRepository.delete(containerEntity);
+
 
         buildDockerImageFromApplicationZip(request, project);
     }
