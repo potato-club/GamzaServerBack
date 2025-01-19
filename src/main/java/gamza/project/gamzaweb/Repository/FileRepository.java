@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
     FileEntity findByProject(ProjectEntity project);
+
+    FileEntity findByProjectOrderByIdDesc(ProjectEntity project);
 }
