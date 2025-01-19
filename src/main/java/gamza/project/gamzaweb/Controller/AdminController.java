@@ -60,7 +60,9 @@ public class AdminController {
         return projectService.notApproveProjectList(request, pageable);
     }
 
-    // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기
+    // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기 ( O )
+    //      TODO : -> 위 방식은 기존 도커 컨테이너 스탑, 삭제  이후 실행하는걸로 했음
+    //      TODO : 근데 컨테이너랑 프로젝트 관계설정이 안돼서 그것도 추가해줘서 jpa방식과 합쳐서 해결 완료
     // TODO : zip string 으로  보내주는거 url로 보내주기, 오름차순? pk값? ( O )
     // TODO : 서버 이미지 크기 nginx 설정해주기 ( O ) 100MB 로 설정함 만약 안되면 서버 엔진엑스 껏다 켜봐야할듯? 일단 내가 리로드하긴함
 
