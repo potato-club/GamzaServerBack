@@ -25,8 +25,8 @@ public class ContainerEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @OneToOne
-    @JoinColumn(name = "project_id", nullable = false, unique = true)
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
     private ProjectEntity project;
 
 }
