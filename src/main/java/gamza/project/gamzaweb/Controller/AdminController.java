@@ -60,6 +60,10 @@ public class AdminController {
         return projectService.notApproveProjectList(request, pageable);
     }
 
+    // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기
+    // TODO : zip string 으로  보내주는거 url로 보내주기, 오름차순? pk값? ( O )
+    // TODO : 서버 이미지 크기 nginx 설정해주기 ( O ) 100MB 로 설정함 만약 안되면 서버 엔진엑스 껏다 켜봐야할듯? 일단 내가 리로드하긴함
+
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
@@ -84,12 +88,12 @@ public class AdminController {
         return projectService.notApproveFixedProjectList(request, pageable);
     }
 
-//    @PostMapping("/project/fixed/{id}")
-//    @Operation(description = "프로젝트 수정 승인")
-//    public ResponseEntity<String> approveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
-//        projectService.approveFixedExecutionApplication(request, id);
-//        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
-//    }
+    @PostMapping("/project/fixed/{id}")
+    @Operation(description = "프로젝트 수정 승인")
+    public ResponseEntity<String> approveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
+        projectService.approveFixedExecutionApplication(request, id);
+        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
+    }
 
 //    @DeleteMapping("/project/fixed/remove/{id}")
 //    @Operation(description = "프로젝트 수정 삭제")

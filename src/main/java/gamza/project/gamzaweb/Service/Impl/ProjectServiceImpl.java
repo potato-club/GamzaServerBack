@@ -206,10 +206,14 @@ public class ProjectServiceImpl implements ProjectService {
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId) {
         String token = jwtTokenProvider.resolveAccessToken(request);
 
+        // TODO : 근데 일단 여기에 그 프로젝트 유저인지도 체크해야하지 않나용 지현씌 이유가있었나용
+
         if (token == null || token.isEmpty()) {
             ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
                     .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
                             ErrorCode.FAILED_PROJECT_ERROR));
+
+            String fileUrl = fileUploader.recentGetFileUrl(project);
 
             ApplicationEntity application = project.getApplication();
             if (application == null) {
@@ -217,12 +221,11 @@ public class ProjectServiceImpl implements ProjectService {
                         ErrorCode.NOT_FOUND_EXCEPTION);
             }
 
-            return new ApplicationDetailResponseDto(application, false);
+            return new ApplicationDetailResponseDto(application, false, fileUrl);
         }
 
         Long userId = jwtTokenProvider.extractId(token);
         String userRole = jwtTokenProvider.extractRole(token);
-        System.out.println("userRole: " + userRole);
 
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
@@ -234,10 +237,13 @@ public class ProjectServiceImpl implements ProjectService {
                     ErrorCode.NOT_FOUND_EXCEPTION);
         }
 
-        boolean isCollaborator = "0".equals(userRole) || projectRepository.isUserCollaborator(projectId, userId);
-        System.out.println("isCollaborator: " + isCollaborator);
+        String fileUrl = fileUploader.recentGetFileUrl(project);
 
-        return new ApplicationDetailResponseDto(application, isCollaborator);
+        // jpa pk 값 순으로 젤 첫번쨰에잇느거 주면 그게 제일 최신꺼니까 -> 만약 에나중에 그 프로젝에대한 모든 zip 파일 받고싶으면 모든 findAll
+
+        boolean isCollaborator = "0".equals(userRole) || projectRepository.isUserCollaborator(projectId, userId);
+
+        return new ApplicationDetailResponseDto(application, isCollaborator, fileUrl);
     }
 
 
@@ -260,7 +266,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         // 🔥 기존 파일 경로 가져오기
-        String oldFilePath = application.getImageId();
+        String oldFilePath = application.getImageId(); // -> null 잇으면 url.
         String newFilePath = oldFilePath; // 기본적으로 기존 파일 유지
 
         if (file != null && !file.isEmpty()) {
@@ -279,6 +285,8 @@ public class ProjectServiceImpl implements ProjectService {
                 throw new BusinessException("파일 업로드 중 오류가 발생했습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
             }
         }
+
+        project.updateFixedState();
 
         application.updateApplication(
                 newFilePath,
@@ -421,6 +429,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
+        // 승인요청 fixedState 는 true이고 approveFixedState(승인요청 상태가 미허가된 상태 0false) 인애들만 추출
         Page<ProjectEntity> projectEntities = projectRepository.findByFixedStateAndApproveFixedState(true, false, pageable);
 
         return projectEntities.map(FixedProjectListNotApproveResponse::new);
@@ -449,7 +458,6 @@ public class ProjectServiceImpl implements ProjectService {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
         checkProjectApprovalState(project);
-
 
         // Docker 이미지 빌드
         buildDockerImageFromApplicationZip(request, project);
@@ -480,7 +488,6 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
     }
 
-    //
     private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
