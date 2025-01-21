@@ -5,6 +5,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.exception.UnauthorizedException;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Image;
@@ -163,6 +164,9 @@ public class ProjectServiceImpl implements ProjectService {
                                     .studentId(collaborator.getUser().getStudentId())
                                     .build())
                             .toList();
+                    String route = "https://"
+                            + project.getName().toLowerCase().replace(" ", "-")
+                            + ".gamza-club.com";
 
                     return new ProjectResponseDto(
                             project.getId(),
@@ -173,7 +177,8 @@ public class ProjectServiceImpl implements ProjectService {
                             project.getEndedDate(),
                             imageIds,
                             collaboratorDtos,
-                            isCollaborator
+                            isCollaborator,
+                            route
                     );
                 })
                 .collect(Collectors.toList());
@@ -186,42 +191,36 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request);
+
+        if (token == null) {
+            throw new UnAuthorizedException("로그인이 필요합니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
         Long userId = jwtTokenProvider.extractId(token);
         String userRole = jwtTokenProvider.extractRole(token);
 
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(id)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
-//
-//        if (!project.getLeader().getId().equals(userId)) {
-//            throw new ForbiddenException("프로젝트 리더만 접근 가능합니다.", ErrorCode.FORBIDDEN_EXCEPTION);
-//        }
-        boolean isCollaborator = "0".equals(userRole) ||
+
+        boolean isCollaborator = project.getLeader().getId().equals(userId) ||
                 project.getCollaborators().stream()
                         .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId));
 
-        return new ProjectDetailResponseDto(project, isCollaborator);
+        if (!isCollaborator) {
+            throw new ForbiddenException("프로젝트에 대한 접근 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
+
+        return new ProjectDetailResponseDto(project);
     }
+
 
     @Override
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId) {
         String token = jwtTokenProvider.resolveAccessToken(request);
-
         // TODO : 근데 일단 여기에 그 프로젝트 유저인지도 체크해야하지 않나용 지현씌 이유가있었나용
 
         if (token == null || token.isEmpty()) {
-            ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
-                    .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
-                            ErrorCode.FAILED_PROJECT_ERROR));
-
-            String fileUrl = fileUploader.recentGetFileUrl(project);
-
-            ApplicationEntity application = project.getApplication();
-            if (application == null) {
-                throw new NotFoundException("Application이 이 프로젝트에 연결되지 않았습니다.",
-                        ErrorCode.NOT_FOUND_EXCEPTION);
-            }
-
-            return new ApplicationDetailResponseDto(application, false, fileUrl);
+            throw new UnAuthorizedException("로그인이 필요합니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
         Long userId = jwtTokenProvider.extractId(token);
@@ -237,13 +236,17 @@ public class ProjectServiceImpl implements ProjectService {
                     ErrorCode.NOT_FOUND_EXCEPTION);
         }
 
+        boolean isCollaborator = project.getLeader().getId().equals(userId) ||
+                projectRepository.isUserCollaborator(projectId, userId);
         String fileUrl = fileUploader.recentGetFileUrl(project);
 
         // jpa pk 값 순으로 젤 첫번쨰에잇느거 주면 그게 제일 최신꺼니까 -> 만약 에나중에 그 프로젝에대한 모든 zip 파일 받고싶으면 모든 findAll
 
-        boolean isCollaborator = "0".equals(userRole) || projectRepository.isUserCollaborator(projectId, userId);
+        if (!isCollaborator) {
+            throw new ForbiddenException("프로젝트에 대한 접근 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
+        }
 
-        return new ApplicationDetailResponseDto(application, isCollaborator, fileUrl);
+        return new ApplicationDetailResponseDto(application, fileUrl);
     }
 
 

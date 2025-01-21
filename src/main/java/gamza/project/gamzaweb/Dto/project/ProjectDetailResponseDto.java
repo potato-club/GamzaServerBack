@@ -23,15 +23,8 @@ public class ProjectDetailResponseDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
     private List<ResponseCollaboratorDto> collaborators;
-    @JsonProperty("isCollaborator")
-    private boolean isCollaborator;
 
-    @JsonIgnore
-    public boolean isIsCollaborator() {
-        return isCollaborator;
-    }
-
-    public ProjectDetailResponseDto(ProjectEntity project, boolean isCollaborator) {
+    public ProjectDetailResponseDto(ProjectEntity project) {
         this.id = project.getId();
         this.name = project.getName();
         this.description = project.getDescription();
@@ -45,6 +38,5 @@ public class ProjectDetailResponseDto {
                         .studentId(collaborator.getUser().getStudentId())
                         .build())
                 .toList();
-        this.isCollaborator = isCollaborator;
     }
 }
