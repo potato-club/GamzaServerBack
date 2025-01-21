@@ -18,21 +18,13 @@ public class ApplicationDetailResponseDto {
     private int port;
     private String tag;
     private String variableKey;
-    @JsonProperty("isCollaborator")
-    private boolean isCollaborator;
 
-    @JsonIgnore
-    public boolean isIsCollaborator() {
-        return isCollaborator;
-    }
 
-    public ApplicationDetailResponseDto(ApplicationEntity application, boolean isCollaborator) {
+    public ApplicationDetailResponseDto(ApplicationEntity application) {
         this.id = application.getId();
         this.file = application.getImageId();
         this.port = application.getOuterPort();
         this.tag = application.getTag();
         this.variableKey = application.getVariableKey();
-        this.isCollaborator = isCollaborator;
-
     }
 }
