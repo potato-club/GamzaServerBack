@@ -28,6 +28,7 @@ public class ProjectResponseDto {
     private List<ResponseCollaboratorDto> collaborators;
     @JsonProperty("isCollaborator")
     private boolean isCollaborator;
+    private String route;
 
     @JsonIgnore
     public boolean isIsCollaborator() {

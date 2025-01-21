@@ -18,21 +18,13 @@ public class ApplicationDetailResponseDto {
     private int port;
     private String tag;
     private String variableKey;
-    @JsonProperty("isCollaborator")
-    private boolean isCollaborator;
 
-    @JsonIgnore
-    public boolean isIsCollaborator() {
-        return isCollaborator;
-    }
 
-    public ApplicationDetailResponseDto(ApplicationEntity application, boolean isCollaborator, String fileUrl) {
+    public ApplicationDetailResponseDto(ApplicationEntity application, String fileUrl) {
         this.id = application.getId();
         this.file = fileUrl; // 이미지 url 로 수정 s3 겟
         this.port = application.getOuterPort();
         this.tag = application.getTag();
         this.variableKey = application.getVariableKey();
-        this.isCollaborator = isCollaborator;
-
     }
 }
