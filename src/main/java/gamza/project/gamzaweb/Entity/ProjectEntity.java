@@ -63,10 +63,10 @@ public class ProjectEntity extends BaseTime {
     private boolean approveState; // -> 프로젝트 승인 상태
 
     @Column(nullable = false)
-    private boolean fixedState;
+    private boolean fixedState; // 수정요청 여부
 
     @Column(nullable = false)
-    private boolean approveFixedState;
+    private boolean approveFixedState; //수정요청승인여부
 
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
         this.name = name;
