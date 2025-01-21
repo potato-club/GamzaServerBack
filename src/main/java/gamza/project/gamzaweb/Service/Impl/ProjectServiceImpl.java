@@ -202,11 +202,12 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(id)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.", ErrorCode.FAILED_PROJECT_ERROR));
 
+        boolean isAdmin = "0".equalsIgnoreCase(userRole);
         boolean isCollaborator = project.getLeader().getId().equals(userId) ||
                 project.getCollaborators().stream()
                         .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId));
 
-        if (!isCollaborator) {
+        if (!isAdmin && !isCollaborator) {
             throw new ForbiddenException("프로젝트에 대한 접근 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
 
@@ -217,7 +218,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId) {
         String token = jwtTokenProvider.resolveAccessToken(request);
-        // TODO : 근데 일단 여기에 그 프로젝트 유저인지도 체크해야하지 않나용 지현씌 이유가있었나용
 
         if (token == null || token.isEmpty()) {
             throw new UnAuthorizedException("로그인이 필요합니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
@@ -225,6 +225,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         Long userId = jwtTokenProvider.extractId(token);
         String userRole = jwtTokenProvider.extractRole(token);
+        boolean isAdmin = "0".equalsIgnoreCase(userRole);
 
         ProjectEntity project = projectRepository.findByIdAndApproveStateTrue(projectId)
                 .orElseThrow(() -> new ForbiddenException("승인되지 않은 프로젝트이거나 존재하지 않는 프로젝트입니다.",
@@ -242,7 +243,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         // jpa pk 값 순으로 젤 첫번쨰에잇느거 주면 그게 제일 최신꺼니까 -> 만약 에나중에 그 프로젝에대한 모든 zip 파일 받고싶으면 모든 findAll
 
-        if (!isCollaborator) {
+        if (!isAdmin && !isCollaborator) {
             throw new ForbiddenException("프로젝트에 대한 접근 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
 
