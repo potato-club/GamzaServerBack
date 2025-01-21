@@ -40,6 +40,10 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader; // 프로젝트 생성자가 팀장임
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ContainerEntity> container = new ArrayList<>();
+
+
     @Column()
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -79,6 +83,10 @@ public class ProjectEntity extends BaseTime {
 
     public void approveCreateProject() {
         this.approveState = true;
+    }
+
+    public void updateFixedState() {
+        this.fixedState = true;
     }
 
     public void approveFixedProject() {

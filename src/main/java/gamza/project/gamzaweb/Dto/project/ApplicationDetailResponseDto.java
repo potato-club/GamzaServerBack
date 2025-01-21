@@ -20,9 +20,9 @@ public class ApplicationDetailResponseDto {
     private String variableKey;
 
 
-    public ApplicationDetailResponseDto(ApplicationEntity application) {
+    public ApplicationDetailResponseDto(ApplicationEntity application, String fileUrl) {
         this.id = application.getId();
-        this.file = application.getImageId();
+        this.file = fileUrl; // 이미지 url 로 수정 s3 겟
         this.port = application.getOuterPort();
         this.tag = application.getTag();
         this.variableKey = application.getVariableKey();
