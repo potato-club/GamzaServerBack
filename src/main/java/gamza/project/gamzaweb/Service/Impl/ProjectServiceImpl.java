@@ -424,8 +424,10 @@ public class ProjectServiceImpl implements ProjectService {
 
         Page<ProjectEntity> projectEntities = projectRepository.findByFixedStateAndApproveState(false, false, pageable);
 
-        return projectEntities.map(ProjectListNotApproveResponse::new);
-
+        return projectEntities.map(project -> {
+            String fileUrl = fileUploader.recentGetFileUrl(project);
+            return new ProjectListNotApproveResponse(project, fileUrl);
+        });
         // 이거 리스트 만들기 전에 프로젝트 승인해주는 api 먼저 만들기
     }
 
