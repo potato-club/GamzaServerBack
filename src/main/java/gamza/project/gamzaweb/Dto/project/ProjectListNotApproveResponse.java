@@ -17,6 +17,7 @@ public class ProjectListNotApproveResponse {
     private String description;
     private ProjectState state;
     private String fileUrl;
+    private int port;
 //    private  // port 추가하면 되는데 일단 이어서 할떄는 project create에서 port를 받는데 application entity에 추가하도록 수정먼저하자
 
     public ProjectListNotApproveResponse(ProjectEntity project, String fileUrl) {
@@ -26,5 +27,6 @@ public class ProjectListNotApproveResponse {
         this.description = project.getDescription();
         this.state = project.getState();
         this.fileUrl = fileUrl;
+        this.port = project.getApplication().getOuterPort();
     }
 }
