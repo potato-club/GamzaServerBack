@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Entity;
 
+import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.BaseTime;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import jakarta.persistence.*;
@@ -59,6 +60,11 @@ public class ProjectEntity extends BaseTime {
     private LocalDate startedDate;
     private LocalDate endedDate;
 
+    @Enumerated(EnumType.STRING)
+    private ApprovalProjectStatus approvalProjectStatus; // 이미지 생성 성공,실패,진행중 여부
+
+    private String deploymentStep; // 이미지 생성 step
+
     @Column(nullable = false)
     private boolean approveState; // -> 프로젝트 승인 상태
 
@@ -96,6 +102,14 @@ public class ProjectEntity extends BaseTime {
     public boolean isCollaborator(Long userId) {
         return collaborators.stream()
                 .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId));
+    }
+
+    public void updateApprovalStatus(ApprovalProjectStatus status) {
+        this.approvalProjectStatus = status;
+    }
+
+    public void updateDeploymentStep(String step) {
+        this.deploymentStep = step;
     }
 
 }

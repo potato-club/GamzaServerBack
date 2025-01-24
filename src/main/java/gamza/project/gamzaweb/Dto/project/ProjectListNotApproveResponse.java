@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Dto.project;
 
+import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,8 @@ public class ProjectListNotApproveResponse {
     private ProjectState state;
     private String fileUrl;
     private int port;
-//    private  // port 추가하면 되는데 일단 이어서 할떄는 project create에서 port를 받는데 application entity에 추가하도록 수정먼저하자
+    private ApprovalProjectStatus status;
+    private String deploymentStep;
 
     public ProjectListNotApproveResponse(ProjectEntity project, String fileUrl) {
         this.id = project.getId();
@@ -28,5 +30,7 @@ public class ProjectListNotApproveResponse {
         this.state = project.getState();
         this.fileUrl = fileUrl;
         this.port = project.getApplication().getOuterPort();
+        this.status = project.getApprovalProjectStatus();
+        this.deploymentStep = project.getDeploymentStep();
     }
 }

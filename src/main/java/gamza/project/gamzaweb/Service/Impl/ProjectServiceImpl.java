@@ -12,23 +12,29 @@ import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Ports.Binding;
 import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
+import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
+import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import gamza.project.gamzaweb.Validate.FileUploader;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
+import gamza.project.gamzaweb.dctutil.DockerProvider.DockerProviderBuildCallback;
 import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.FileReader;
@@ -40,6 +46,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,6 +74,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
     private final ContainerRepository containerRepository;
+    private final ProjectStatusService projectStatusService;
 
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -429,7 +437,6 @@ public class ProjectServiceImpl implements ProjectService {
             String fileUrl = fileUploader.recentGetFileUrl(project);
             return new ProjectListNotApproveResponse(project, fileUrl);
         });
-        // 이거 리스트 만들기 전에 프로젝트 승인해주는 api 먼저 만들기
     }
 
     @Override
@@ -443,17 +450,42 @@ public class ProjectServiceImpl implements ProjectService {
 
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
+        project.updateApprovalStatus(status);
+        projectRepository.saveAndFlush(project);
+    }
+
+
     @Override
     @Transactional
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
-        ProjectEntity project = getProjectById(id);
 
-        // Docker 이미지 빌드
-        boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
-        if (buildSuccess) {
-            updateProjectApprovalState(project);
-        }    }
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
+
+        try {
+            projectRepository.save(project);
+            boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+            if (buildSuccess) {
+                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
+
+                updateProjectApprovalState(project);
+            } else {
+                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+
+        }
+        projectRepository.save(project);
+    }
+
+
 
     @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
@@ -507,14 +539,17 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
+            projectStatusService.updateDeploymentStep(project, "STEP 2: 프로젝트 ZIP 경로가 없음 (실패)");
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
+            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
 
+            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
             buildDockerImage(
                     request,
                     dockerfilePath.toFile(),
@@ -526,14 +561,19 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
+                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
+
                         generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성
                         reloadNginx(); // Nginx 재시작
+                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
 
                         System.out.println("Docker image built successfully: " + imageId);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
             e.printStackTrace();
+            projectStatusService.updateDeploymentStep(project, "STEP 3: Dockerfile 추출 실패");
+
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }
         return buildSuccess.get();
@@ -548,7 +588,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
-                        .withPortBindings(new PortBinding(Ports.Binding.bindPort(project.getApplication().getOuterPort()),
+                        .withPortBindings(new PortBinding(Binding.bindPort(project.getApplication().getOuterPort()),
                                 ExposedPort.tcp(project.getApplication().getInternalPort()))))
                 .withImage(imageId)
                 .exec();
@@ -565,7 +605,7 @@ public class ProjectServiceImpl implements ProjectService {
         containerRepository.save(containerEntity);
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, ProjectEntity project, DockerProvider.DockerProviderBuildCallback callback) {
+    private void buildDockerImage(HttpServletRequest request, File dockerfile, ProjectEntity project, DockerProviderBuildCallback callback) {
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
@@ -641,7 +681,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProvider.DockerProviderBuildCallback callback, UserEntity userPk) {
+    private void executeDockerBuild(File dockerfile, String name, @Nullable String key, String tag, DockerProviderBuildCallback callback, UserEntity userPk) {
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(dockerfile);
 
         if (key != null && !key.isEmpty()) {
