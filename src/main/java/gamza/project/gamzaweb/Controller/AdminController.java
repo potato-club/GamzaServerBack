@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.Controller;
 
 import gamza.project.gamzaweb.Dto.User.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.Dto.project.FixedProjectListNotApproveResponse;
+import gamza.project.gamzaweb.Dto.project.ProjectListApproveResponse;
 import gamza.project.gamzaweb.Dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.UserService;
@@ -52,13 +53,24 @@ public class AdminController {
 
     @GetMapping("/project/create/list")
     @Operation(description = "미승인 프로젝트 리스트 출력")
-    public Page<ProjectListNotApproveResponse> approveProjectList(
+    public Page<ProjectListNotApproveResponse> notApproveProjectList(
             HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         return projectService.notApproveProjectList(request, pageable);
+    }
+
+    @GetMapping("/project/create/approve/list")
+    @Operation(description = "승인 프로젝트 리스트 출력")
+    public Page<ProjectListApproveResponse> approvedProjectList(
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "6") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return projectService.approvedProjectList(request, pageable);
     }
 
     // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기 ( O )

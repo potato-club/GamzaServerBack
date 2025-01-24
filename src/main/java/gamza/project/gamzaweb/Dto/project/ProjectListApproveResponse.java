@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProjectListNotApproveResponse {
-
+public class ProjectListApproveResponse {
     private Long id;
     private String userName;
     private String name;
@@ -19,8 +18,10 @@ public class ProjectListNotApproveResponse {
     private ProjectState state;
     private String fileUrl;
     private int port;
+    private ApprovalProjectStatus status;
+    private String deploymentStep;
 
-    public ProjectListNotApproveResponse(ProjectEntity project, String fileUrl) {
+    public ProjectListApproveResponse(ProjectEntity project, String fileUrl) {
         this.id = project.getId();
         this.userName = project.getLeader().getFamilyName() + project.getLeader().getGivenName();
         this.name = project.getName();
@@ -28,5 +29,7 @@ public class ProjectListNotApproveResponse {
         this.state = project.getState();
         this.fileUrl = fileUrl;
         this.port = project.getApplication().getOuterPort();
+        this.status = project.getApprovalProjectStatus();
+        this.deploymentStep = project.getDeploymentStep();
     }
 }
