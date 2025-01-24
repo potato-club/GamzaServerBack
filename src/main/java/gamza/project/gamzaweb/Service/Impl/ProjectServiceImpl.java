@@ -443,8 +443,7 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
-        List<ApprovalProjectStatus> statuses = Arrays.asList(ApprovalProjectStatus.PENDING, ApprovalProjectStatus.FAILED);
-        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIn(statuses, pageable);
+        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
 
         return projectEntities.map(project -> {
             String fileUrl = fileUploader.recentGetFileUrl(project);
