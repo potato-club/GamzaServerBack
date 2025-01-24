@@ -19,6 +19,8 @@ public interface ProjectService {
 
     Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
 
+    Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable);
+
     Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable);
 
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);

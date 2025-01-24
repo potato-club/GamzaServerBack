@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Repository;
 
+import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.QuerydslRepository.ProjectCustomRepository;
@@ -28,6 +29,8 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, P
     Page<ProjectEntity> findByApproveState(boolean approveState, Pageable pageable);
 
     Page<ProjectEntity> findByFixedStateAndApproveState(boolean fixedState, boolean approveState, Pageable pageable);
+
+    Page<ProjectEntity> findByApprovalProjectStatusIn(List<ApprovalProjectStatus> statuses, Pageable pageable);
 
     Page<ProjectEntity> findByFixedStateAndApproveFixedState(boolean fixedState, boolean approveFixedState, Pageable pageable);
 

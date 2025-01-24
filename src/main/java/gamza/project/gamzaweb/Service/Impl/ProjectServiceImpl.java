@@ -440,6 +440,19 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable) {
+        userValidate.validateUserRole(request);
+
+        List<ApprovalProjectStatus> statuses = Arrays.asList(ApprovalProjectStatus.PENDING, ApprovalProjectStatus.FAILED);
+        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIn(statuses, pageable);
+
+        return projectEntities.map(project -> {
+            String fileUrl = fileUploader.recentGetFileUrl(project);
+            return new ProjectListApproveResponse(project, fileUrl);
+        });
+    }
+
+    @Override
     public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
@@ -453,7 +466,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
         project.updateApprovalStatus(status);
-        projectRepository.saveAndFlush(project);
+        projectRepository.save(project);
     }
 
 
@@ -539,17 +552,20 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-            projectStatusService.updateDeploymentStep(project, "STEP 2: 프로젝트 ZIP 경로가 없음 (실패)");
+//            projectStatusService.updateDeploymentStep(project, "STEP 2: 프로젝트 ZIP 경로가 없음 (실패)");
+            projectStatusService.updateDeploymentStep(project, "2");
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
-            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
+//            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
+            projectStatusService.updateDeploymentStep(project, "3");
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
 
-            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
+//            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
+            projectStatusService.updateDeploymentStep(project, "4");
             buildDockerImage(
                     request,
                     dockerfilePath.toFile(),
@@ -561,18 +577,21 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
-                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
+//                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
+                        projectStatusService.updateDeploymentStep(project, "5");
 
                         generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성
                         reloadNginx(); // Nginx 재시작
-                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
+                        projectStatusService.updateDeploymentStep(project, "6");
+//                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
 
                         System.out.println("Docker image built successfully: " + imageId);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
             e.printStackTrace();
-            projectStatusService.updateDeploymentStep(project, "STEP 3: Dockerfile 추출 실패");
+//            projectStatusService.updateDeploymentStep(project, "STEP 3: Dockerfile 추출 실패");
+            projectStatusService.updateDeploymentStep(project, "3");
 
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }
