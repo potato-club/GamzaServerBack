@@ -7,6 +7,7 @@ import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,11 +67,19 @@ public class AdminController {
     // TODO : zip string 으로  보내주는거 url로 보내주기, 오름차순? pk값? ( O )
     // TODO : 서버 이미지 크기 nginx 설정해주기 ( O ) 100MB 로 설정함 만약 안되면 서버 엔진엑스 껏다 켜봐야할듯? 일단 내가 리로드하긴함
 
+    //    1/23
+//TODO: - 백엔드에서 도커이미지 실행 스텝별로 프론트로 보낼 수 있는지 (O)
+//TODO:-- 성공, 실패 여부도 (o)
+//TODO:- 생성승인했을때 프로젝트 실패하면 approve안되게 하고 수정승인 삭제 api (O)
+//TODO:- 프론트 도커 파일 빌드 안됨,,,,재확인->이거 nginx 때문에 그런듯
+//TODO: 마이페이지 손보기 -> 접속해보면 오류남
+//TODO: 프로젝트 수정삭제 주석 풀어야함..
+
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
         projectService.approveExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
+        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다. 승인 프로젝트 시작됨");
     }
 
     @DeleteMapping("/project/remove/{id}")
