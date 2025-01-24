@@ -31,7 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        http.cors(Customizer.withDefaults());
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
@@ -55,6 +55,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("https://gamzaweb.shop");
+        configuration.addAllowedOrigin("https://gamza-club.vercel.app");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.addExposedHeader("*"); // 모든걸 허용함
