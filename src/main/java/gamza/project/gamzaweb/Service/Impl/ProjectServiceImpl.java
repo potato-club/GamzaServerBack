@@ -33,6 +33,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.FileReader;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -443,14 +444,16 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
-        checkProjectApprovalState(project);
 
         // Docker 이미지 빌드
-        buildDockerImageFromApplicationZip(request, project);
-    }
+        boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+        if (buildSuccess) {
+            updateProjectApprovalState(project);
+        }    }
 
     @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
@@ -464,7 +467,6 @@ public class ProjectServiceImpl implements ProjectService {
     public void approveFixedExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
-        checkProjectApprovalState(project);
 
         ContainerEntity containerEntity = containerRepository.findContainerEntityByProject(project);
         dockerProvider.stopContainer(request, containerEntity);
@@ -472,7 +474,10 @@ public class ProjectServiceImpl implements ProjectService {
         containerRepository.delete(containerEntity);
 
 
-        buildDockerImageFromApplicationZip(request, project);
+        boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+        if (buildSuccess) {
+            updateProjectApprovalFixedState(project);
+        }
     }
 
 
@@ -500,10 +505,12 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
     }
 
-    private void buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
+    private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
+
+        AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
@@ -523,11 +530,13 @@ public class ProjectServiceImpl implements ProjectService {
                         reloadNginx(); // Nginx 재시작
 
                         System.out.println("Docker image built successfully: " + imageId);
+                        buildSuccess.set(true);
                     });
         } catch (IOException e) {
             e.printStackTrace();
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }
+        return buildSuccess.get();
     }
 
     private void createContainer(HttpServletRequest request, ProjectEntity project, String imageId) {
@@ -770,8 +779,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BadRequestException("4001 NOT FOUND PROJECT", ErrorCode.FAILED_PROJECT_ERROR));
     }
 
-    private void checkProjectApprovalState(ProjectEntity project) {
-        project.approveCreateProject();
+    private void updateProjectApprovalFixedState(ProjectEntity project) {
+        project.approveFixedProject();
         projectRepository.save(project);
     }
 
