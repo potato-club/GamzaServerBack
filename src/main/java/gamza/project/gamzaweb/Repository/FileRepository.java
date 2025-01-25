@@ -10,5 +10,6 @@ public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
     FileEntity findByProject(ProjectEntity project);
 
-    FileEntity findByProjectOrderByIdDesc(ProjectEntity project);
+    FileEntity findFirstByProjectOrderByIdDesc(ProjectEntity project);
+
 }

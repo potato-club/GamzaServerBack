@@ -73,19 +73,13 @@ public class AdminController {
         return projectService.approvedProjectList(request, pageable);
     }
 
-    // TODO : 프로젝트 수정 dockerfile 실행되는 코드 만들기 ( O )
-    //      TODO : -> 위 방식은 기존 도커 컨테이너 스탑, 삭제  이후 실행하는걸로 했음
-    //      TODO : 근데 컨테이너랑 프로젝트 관계설정이 안돼서 그것도 추가해줘서 jpa방식과 합쳐서 해결 완료
-    // TODO : zip string 으로  보내주는거 url로 보내주기, 오름차순? pk값? ( O )
-    // TODO : 서버 이미지 크기 nginx 설정해주기 ( O ) 100MB 로 설정함 만약 안되면 서버 엔진엑스 껏다 켜봐야할듯? 일단 내가 리로드하긴함
-
     //    1/23
-//TODO: - 백엔드에서 도커이미지 실행 스텝별로 프론트로 보낼 수 있는지 (O)
-//TODO:-- 성공, 실패 여부도 (o)
-//TODO:- 생성승인했을때 프로젝트 실패하면 approve안되게 하고 수정승인 삭제 api (O)
-//TODO:- 프론트 도커 파일 빌드 안됨,,,,재확인->이거 nginx 때문에 그런듯
-//TODO: 마이페이지 손보기 -> 접속해보면 오류남
-//TODO: 프로젝트 수정삭제 주석 풀어야함..
+    //TODO: - 백엔드에서 도커이미지 실행 스텝별로 프론트로 보낼 수 있는지 (O)
+    //TODO:-- 성공, 실패 여부도 (o)
+    //TODO:- 생성승인했을때 프로젝트 실패하면 approve안되게 하고 수정승인 삭제 api (O)
+    //TODO:- 프론트 도커 파일 빌드 안됨,,,,재확인->이거 nginx 때문에 그런듯
+    //TODO: 마이페이지 손보기 -> 접속해보면 오류남 -> ( O )
+    //TODO: 프로젝트 수정삭제 주석 풀어야함..
 
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")

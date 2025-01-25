@@ -354,7 +354,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                fileUploader.getFileUrl(project)))
+                                fileUploader.recentGetFileUrl(project)))
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -364,7 +364,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                fileUploader.getFileUrl(project)))
+                                fileUploader.recentGetFileUrl(project))) // 이부분을 위 아래 수정했음, 가장 최근 프로젝트 link가 반환되도록 함 얘기해볼까 어떻게할지? 일단 오류 수정됨
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
