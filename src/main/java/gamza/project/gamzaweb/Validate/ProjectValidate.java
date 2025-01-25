@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Validate;
 
+import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.NotFoundException;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
@@ -12,8 +13,8 @@ public class ProjectValidate {
 
     private final ProjectRepository projectRepository;
 
-    public void validateProject(Long id) {
-        projectRepository.findById(id)
+    public ProjectEntity validateProject(Long id) {
+        return projectRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Project not found", ErrorCode.NOT_FOUND_EXCEPTION));
     }
 }

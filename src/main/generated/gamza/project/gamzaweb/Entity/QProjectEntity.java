@@ -26,6 +26,8 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final QApplicationEntity application;
 
+    public final EnumPath<gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus> approvalProjectStatus = createEnum("approvalProjectStatus", gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus.class);
+
     public final BooleanPath approveFixedState = createBoolean("approveFixedState");
 
     public final BooleanPath approveState = createBoolean("approveState");
@@ -36,6 +38,8 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDate = _super.createdDate;
+
+    public final StringPath deploymentStep = createString("deploymentStep");
 
     public final StringPath description = createString("description");
 
