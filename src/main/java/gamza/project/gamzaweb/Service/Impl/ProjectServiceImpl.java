@@ -526,9 +526,15 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     @Override
+    @Transactional
     public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        projectValidate.validateProject(id);
+        userValidate.validateUserRole(request); // 오 ㅋㅋ 이걸 사용하네 ㅇㅈ // 어? 이 validateUserRole 메서드 내가만든거구나 뭐임? 푸핫
+        ProjectEntity project = projectValidate.validateProject(id);
+
+        if (!project.isFixedState()) {
+            throw new BadRequestException("해당 프로젝트는 수정 요청 상태가 아닙니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
+
         projectRepository.deleteById(id);
     }
 

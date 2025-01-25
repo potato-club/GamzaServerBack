@@ -112,12 +112,12 @@ public class AdminController {
         return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
     }
 
-//    @DeleteMapping("/project/fixed/remove/{id}")
-//    @Operation(description = "프로젝트 수정 삭제")
-//    public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
-//        projectService.removeFixedExecutionApplication(request, id);
-//        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
-//    }
+    @DeleteMapping("/project/fixed/remove/{id}")
+    @Operation(description = "프로젝트 수정 삭제")
+    public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
+        projectService.removeFixedExecutionApplication(request, id);
+        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+    }
 
     @GetMapping("/request")
     public String getRequestInfo(HttpServletRequest request) {
