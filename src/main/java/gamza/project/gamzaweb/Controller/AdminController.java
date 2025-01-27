@@ -73,13 +73,16 @@ public class AdminController {
         return projectService.approvedProjectList(request, pageable);
     }
 
-    //    1/23
     //TODO: - 백엔드에서 도커이미지 실행 스텝별로 프론트로 보낼 수 있는지 (O)
     //TODO:-- 성공, 실패 여부도 (o)
     //TODO:- 생성승인했을때 프로젝트 실패하면 approve안되게 하고 수정승인 삭제 api (O)
     //TODO:- 프론트 도커 파일 빌드 안됨,,,,재확인->이거 nginx 때문에 그런듯
     //TODO: 마이페이지 손보기 -> 접속해보면 오류남 -> ( O )
-    //TODO: 프로젝트 수정삭제 주석 풀어야함..
+    //TODO: 프로젝트 수정삭제 주석 풀어야함.. -> ( O )
+
+    // 1/27 추가 요청사항
+    // TODO : 로그아웃 기능 만들기
+    // TODO : 서브도메인 만들기
 
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")

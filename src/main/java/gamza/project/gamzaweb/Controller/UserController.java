@@ -33,6 +33,13 @@ public class UserController {
         return ResponseEntity.ok().body("Success Login!");
     }
 
+    @GetMapping("/logout")
+    @Operation(description = "로그아웃")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        userService.logout(request);
+        return ResponseEntity.ok().body("Success Logout!");
+    }
+
     @GetMapping("/reissue")
     @Operation(description = "토큰 재발급")
     public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse response) {
