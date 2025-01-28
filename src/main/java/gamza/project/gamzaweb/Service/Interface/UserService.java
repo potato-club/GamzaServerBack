@@ -15,6 +15,8 @@ public interface UserService {
 
     void login(RequestUserLoginDto dto, HttpServletResponse response);
 
+    void logout(HttpServletRequest request);
+
     void reissueToken(HttpServletRequest request, HttpServletResponse response);
 
     void setTokenInHeader(String email, HttpServletResponse response);

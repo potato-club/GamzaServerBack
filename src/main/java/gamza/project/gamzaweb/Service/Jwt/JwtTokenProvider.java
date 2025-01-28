@@ -14,7 +14,6 @@ import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,7 @@ public class JwtTokenProvider {
 
     private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RedisJwtService redisJwtService;
 
     @Value("${jwt.secretKey}")
     private String secretKey;
@@ -100,6 +100,21 @@ public class JwtTokenProvider {
 
     public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
         response.setHeader("RefreshToken", refreshToken);
+    }
+
+    public void expireToken(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+        if(now.after(expiration)) {
+            redisJwtService.addRefreshTokenInBlacklist(token, expiration.getTime() - now.getTime());
+        }
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
