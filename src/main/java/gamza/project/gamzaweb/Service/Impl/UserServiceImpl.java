@@ -73,11 +73,6 @@ public class UserServiceImpl implements UserService {
         setTokenInHeader(dto.getEmail(), response);
     }
 
-
-    // TODO : 레디스에서 rt를 제거하긴 한다. 그러면 없어진다.
-    // TODO : 그러면 그다음에 RT를 꺼내쓸때 없으면 못쓴다 -> Reissue에서 RT를 쓰니 Reissue 부분을 수정해준다.
-    // TODO : 근데 RT가 지금 다른 API에서 쓸때 AT써도되고 RT를 써도되는데 그러면 AT/RT를 구분해서 Reissue, Logout을 제외한 다른곳에서는 RT를 못쓰게 해야하는것이 아닌가?
-    // TODO :
     @Override
     public void logout(HttpServletRequest request) {
         redisJwtService.delValues(jwtTokenProvider.resolveRefreshToken(request));
@@ -88,6 +83,9 @@ public class UserServiceImpl implements UserService {
     public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
         jwtTokenProvider.validateRefreshToken(refreshToken);
+        if(redisJwtService.isTokenValid(refreshToken)) {
+            throw new UnAuthorizedException("오류당당", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
 
         String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
         String newRT = jwtTokenProvider.reissueRT(refreshToken, response);

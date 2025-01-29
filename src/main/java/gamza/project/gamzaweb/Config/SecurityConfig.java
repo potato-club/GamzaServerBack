@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.Config;
 
 import gamza.project.gamzaweb.Service.Jwt.JwtAuthorizationTokenFilter;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Service.Jwt.RedisJwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisJwtService redisJwtService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,12 +45,10 @@ public class SecurityConfig {
         http.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(new JwtAuthorizationTokenFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthorizationTokenFilter(jwtTokenProvider, redisJwtService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
