@@ -49,18 +49,17 @@ dependencies {
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 
     //여기부터
-    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation group: 'org.javassist', name: 'javassist', version: '3.15.0-GA'
 
     // docker
-    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java
     implementation 'com.github.docker-java:docker-java:3.3.6'
 
     //apache docker http client
-    // https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-httpclient5
     implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.3.6'
 
+    // redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // queryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -73,8 +72,6 @@ dependencies {
 
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
-//    implementation 'org.springdoc:springdoc-openapi-starter-common:2.1.2'
-//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.2'
 
 // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.2.0'

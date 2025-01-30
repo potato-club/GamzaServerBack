@@ -14,7 +14,6 @@ import gamza.project.gamzaweb.Repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +31,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import java.util.Optional;
 
@@ -42,6 +42,7 @@ public class JwtTokenProvider {
 
     private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RedisJwtService redisJwtService;
 
     @Value("${jwt.secretKey}")
     private String secretKey;
@@ -76,30 +77,6 @@ public class JwtTokenProvider {
         }
     }
 
-    public Cookie createAccessCookie(Long userId, UserRole role) {
-        String cookieName = "accessToken";
-        String cookieValue = createAccessToken(userId, role);
-        Cookie cookie = new Cookie(cookieName, cookieValue);
-
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60); // 1hour
-        return cookie;
-    }
-
-    public Cookie createRefreshCookie(Long userId, UserRole role) {
-        String cookieName = "refreshToken";
-        String cookieValue = createRefreshToken(userId, role);
-        Cookie cookie = new Cookie(cookieName, cookieValue);
-
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24); // 1day
-        return cookie;
-    }
-
     public String createToken(Long id, UserRole role, long tokenValid, String tokenType) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", id); // claims
@@ -125,12 +102,19 @@ public class JwtTokenProvider {
         response.setHeader("RefreshToken", refreshToken);
     }
 
-    public void setRefreshCookie(HttpServletResponse response, Cookie refrehsTokenCookie) {
-        response.addCookie(refrehsTokenCookie);
-    }
+    public void expireToken(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
-    public void setAccessCookie(HttpServletResponse response, Cookie accessTokenCookie) {
-        response.addCookie(accessTokenCookie);
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+        if(now.after(expiration)) {
+            redisJwtService.addRefreshTokenInBlacklist(token, expiration.getTime() - now.getTime());
+        }
     }
 
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {

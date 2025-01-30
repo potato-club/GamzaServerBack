@@ -14,6 +14,7 @@ import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.Repository.UserRepository;
 import gamza.project.gamzaweb.Service.Interface.UserService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Service.Jwt.RedisJwtService;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisJwtService redisJwtService;
     private final UserValidate userValidate;
 
     @Override
@@ -72,15 +74,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void logout(HttpServletRequest request) {
+        redisJwtService.delValues(jwtTokenProvider.resolveRefreshToken(request));
+    }
+
+    @Override
     public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
         jwtTokenProvider.validateRefreshToken(refreshToken);
 
+        if(redisJwtService.isTokenValid(refreshToken)) {
+            throw new UnAuthorizedException("로그아웃된 토큰입니다. 다시 로그인해주세요.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+
         String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
         String newRT = jwtTokenProvider.reissueRT(refreshToken, response);
 
-//        Cookie newAT = jwtTokenProvider.reissueAT(refreshToken, response);
-//        Cookie newRT = jwtTokenProvider.reissueRT(refreshToken, response);
         jwtTokenProvider.setHeaderAccessToken(response, newAT);
         jwtTokenProvider.setHeaderRefreshToken(response, newRT);
     }
@@ -92,17 +101,13 @@ public class UserServiceImpl implements UserService {
 
         UserRole role = user.getUserRole();
 
-//        Cookie refreshTokenCookie = jwtTokenProvider.createRefreshCookie(user.getId(), role);
-//        Cookie accessTokenCookie = jwtTokenProvider.createAccessCookie(user.getId(), role);
-
         String accessToken = jwtTokenProvider.createAccessToken(user.getId(), role);
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId(), role);
 
-//        jwtTokenProvider.setRefreshCookie(response, refreshTokenCookie);
-//        jwtTokenProvider.setAccessCookie(response, accessTokenCookie);
-
         jwtTokenProvider.setHeaderAccessToken(response, accessToken);
         jwtTokenProvider.setHeaderRefreshToken(response, refreshToken);
+
+        redisJwtService.setValues(refreshToken, email); // add
     }
 
     @Override

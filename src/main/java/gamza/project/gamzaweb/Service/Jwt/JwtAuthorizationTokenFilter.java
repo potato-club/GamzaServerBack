@@ -1,10 +1,9 @@
 package gamza.project.gamzaweb.Service.Jwt;
 
+import gamza.project.gamzaweb.Entity.Enums.AllowPath;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
-import gamza.project.gamzaweb.Error.requestError.BadRequestException;
-import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
-import gamza.project.gamzaweb.Error.requestError.JwtException;
+import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -24,6 +23,7 @@ import java.io.IOException;
 public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisJwtService redisJwtService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -31,8 +31,9 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-        if (path.contains("/test")) {
+        if(AllowPath.isAllowed(path)) {
             filterChain.doFilter(request, response);
+            return;
         }
 
         try {
@@ -44,10 +45,11 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             }
 
             if (refreshToken != null && path.contains("/reissue")) {
-                jwtTokenProvider.validateRefreshToken(refreshToken);
                 filterChain.doFilter(request, response);
                 return;
             }
+
+
         } catch (ExpiredJwtException e) {
             errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
             setResponse(response, errorCode);
@@ -56,9 +58,6 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
 
         try {
             String accessToken = jwtTokenProvider.resolveAccessToken(request);
-
-
-
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
             if (refreshToken == null && accessToken == null) {
@@ -90,12 +89,10 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         } catch (RuntimeException e) {
-            e.printStackTrace();
             errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
 
