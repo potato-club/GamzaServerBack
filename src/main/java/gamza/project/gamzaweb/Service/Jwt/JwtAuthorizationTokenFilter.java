@@ -1,7 +1,9 @@
 package gamza.project.gamzaweb.Service.Jwt;
 
 import gamza.project.gamzaweb.Entity.Enums.AllowPath;
+import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.ErrorJwtCode;
+import gamza.project.gamzaweb.Error.requestError.UnAuthorizedException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -42,14 +44,11 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (refreshToken != null && path.contains("/reissue") && redisJwtService.isTokenValid(refreshToken)) {
-                jwtTokenProvider.validateRefreshToken(refreshToken);
-                redisJwtService.isTokenInBlacklist(refreshToken);
+            if (refreshToken != null && path.contains("/reissue")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            System.out.println("여기 지남?");
 
         } catch (ExpiredJwtException e) {
             errorCode = ErrorJwtCode.EXPIRED_REFRESH_TOKEN;
@@ -86,17 +85,14 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         } catch (IllegalArgumentException e) {
-            e.printStackTrace();
             errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;
         } catch (RuntimeException e) {
-            e.printStackTrace();
             errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
 

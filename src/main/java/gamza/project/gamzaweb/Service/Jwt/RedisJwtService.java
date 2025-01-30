@@ -46,14 +46,7 @@ public class RedisJwtService {
 
     public boolean isTokenValid(String token) {
         Map<String, String> values = getValues(token);
-        return values != null; // null 이면 false, null이 아니면 true
-    }
-
-    public boolean isTokenInBlacklist(String token) { // 음 어따 써줘야할까
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
-            throw new ExpiredRefreshTokenException("만료된 RT입니다. 다시 로그인 해주세요.", ErrorCode.UNAUTHORIZED_EXCEPTION);
-        }
-        return false;
+        return values == null;
     }
 
 }

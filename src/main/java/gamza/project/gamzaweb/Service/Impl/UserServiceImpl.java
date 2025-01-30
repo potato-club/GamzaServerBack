@@ -76,15 +76,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(HttpServletRequest request) {
         redisJwtService.delValues(jwtTokenProvider.resolveRefreshToken(request));
-//        jwtTokenProvider.expireToken(jwtTokenProvider.resolveRefreshToken(request));
     }
 
     @Override
     public void reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
         jwtTokenProvider.validateRefreshToken(refreshToken);
+
         if(redisJwtService.isTokenValid(refreshToken)) {
-            throw new UnAuthorizedException("오류당당", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new UnAuthorizedException("로그아웃된 토큰입니다. 다시 로그인해주세요.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
         String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
