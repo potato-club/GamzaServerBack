@@ -1,9 +1,12 @@
 package gamza.project.gamzaweb.Entity.Enums;
 
+import lombok.Getter;
+
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
 public enum AllowPath {
 
     LOGIN("/login"),
@@ -18,10 +21,6 @@ public enum AllowPath {
 
     AllowPath(String allowPath) {
         this.allowPath = allowPath;
-    }
-
-    public String getAllowPath() {
-        return allowPath;
     }
 
     private static final Set<String> ALLOWED_PATH = EnumSet.allOf(AllowPath.class)
