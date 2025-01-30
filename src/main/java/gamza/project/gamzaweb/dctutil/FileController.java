@@ -27,7 +27,8 @@ public class FileController {
             throw new RuntimeException("Unable to create directory " + directoryPath);
         }
 
-        String filePath = directoryPath + File.separator + fileName;
+        String filePath = directoryPath + File.separator + fileName + ".zip";
+//        String filePath = directoryPath;
         File file = new File(filePath);
 
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
@@ -42,7 +43,7 @@ public class FileController {
             return null;
         }
 
-        return filePath; // 저장된 파일 경로 반환
+        return directoryPath; // 저장된 파일 경로 반환
     }
 
     public static boolean deleteFile(String filePath) {
