@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ProjectStatusServiceImpl implements ProjectStatusService {
-    private ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
