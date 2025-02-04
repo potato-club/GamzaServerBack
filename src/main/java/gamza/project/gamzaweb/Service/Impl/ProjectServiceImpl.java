@@ -567,7 +567,7 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 //            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
             projectStatusService.updateDeploymentStep(project, "3");
-            Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
+            Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
 //            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
             projectStatusService.updateDeploymentStep(project, "4");
@@ -817,17 +817,35 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private Path extractDockerfileFromZip(String zipPath) throws IOException {
-        boolean unzipResult = FileController.unzip(zipPath);
+    private Path extractDockerfileFromZip(String parentDirectory, String projectName) throws IOException {
+        boolean unzipResult = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
 
         if (!unzipResult) {
             throw new IOException("Zip 파일 압축 해제를 실패하였습니다.");
         }
 
-        File zipFile = new File(zipPath);
-        String extractedDirectoryPath = zipFile.getParent(); // ZIP 파일과 동일한 폴더
+        File zipFile = new File(parentDirectory);
+//        System.out.println("zipPath : " + parentDirectory);
+//        System.out.println("Extracting dockerfile from " + zipFile.getAbsolutePath());
+//        System.out.println("Extracting dockerfile from 2" + zipFile.listFiles());
+//        System.out.println("Extracting dockerfile from3 " + zipFile.list());
+        String extractedDirectoryPath = null;
+        for (File file : zipFile.listFiles()) {
+            System.out.println(file.getName());
+            if (file == null) {
+                continue;
+            }
+            if (file.isDirectory()) {
+                System.out.println(file.getAbsolutePath());
+                extractedDirectoryPath = file.getAbsolutePath(); // ZIP 파일과 동일한 폴더
+            }
+        }
+        if (extractedDirectoryPath == null) {
+            throw new BadRequestException("amola Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+        }
 
         File dockerfile = new File(extractedDirectoryPath, "Dockerfile");
+        System.out.println("Extracted extractedDirectoryPath path: " + extractedDirectoryPath);
         System.out.println("Extracted Dockerfile path: " + dockerfile.getAbsolutePath());
 
         if (!dockerfile.exists()) {
