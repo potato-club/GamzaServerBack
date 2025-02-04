@@ -64,16 +64,15 @@ public class FileController {
     }
 
 
-    public static boolean unzip(String zipFilePath) {
+    public static File unzip(String zipFilePath) {
         File zipFile = new File(zipFilePath);
         String destDirectory = zipFile.getParent(); // zip 파일과 같은 폴더에 압축 해제
         File destDir = new File(destDirectory);
 
         if (!destDir.exists()) {
-            // 디렉토리 생성 여부만 확인
             if (!destDir.mkdirs()) {
                 System.err.println("Failed to create destination directory.");
-                return false;
+                return null;
             }
         }
 
@@ -92,7 +91,7 @@ public class FileController {
                     if (!dir.exists()) {
                         if (!dir.mkdirs()) {
                             System.err.println("Failed to create directory: " + filePath);
-                            return false;
+                            return null;
                         }
                     }
                 }
@@ -102,9 +101,10 @@ public class FileController {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
-        return true; // 압축 해제 성공 시 true 반환
+//        return true; // 압축 해제 성공 시 true 반환
+        return destDir; // 압축 해제 성공 시 폴더 경로 반환
     }
 
 

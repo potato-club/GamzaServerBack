@@ -585,7 +585,7 @@ public class ProjectServiceImpl implements ProjectService {
 //                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
                         projectStatusService.updateDeploymentStep(project, "5");
 
-                        generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성
+                        generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
                         reloadNginx(); // Nginx 재시작
                         projectStatusService.updateDeploymentStep(project, "6");
 //                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
@@ -774,7 +774,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         """.formatted(applicationName, applicationName, applicationPort);
 
-        try {
+        try { // ㅋㅋ 이거.. 뭐노..
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c",
                     "echo '" + configContent.replace("'", "'\\''") + "' | sudo tee " + configPath);
             Process process = processBuilder.start();
@@ -818,35 +818,44 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private Path extractDockerfileFromZip(String parentDirectory, String projectName) throws IOException {
-        boolean unzipResult = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
+//        boolean unzipResult = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
+        File unzipResultDir = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
 
-        if (!unzipResult) {
+        // 이미 위에서 모든 파일을 압축한거아님?
+        if (unzipResultDir == null) {
             throw new IOException("Zip 파일 압축 해제를 실패하였습니다.");
         }
 
-        File zipFile = new File(parentDirectory);
-//        System.out.println("zipPath : " + parentDirectory);
-//        System.out.println("Extracting dockerfile from " + zipFile.getAbsolutePath());
-//        System.out.println("Extracting dockerfile from 2" + zipFile.listFiles());
-//        System.out.println("Extracting dockerfile from3 " + zipFile.list());
-        String extractedDirectoryPath = null;
-        for (File file : zipFile.listFiles()) {
-            System.out.println(file.getName());
-            if (file == null) {
-                continue;
-            }
-            if (file.isDirectory()) {
-                System.out.println(file.getAbsolutePath());
-                extractedDirectoryPath = file.getAbsolutePath(); // ZIP 파일과 동일한 폴더
-            }
-        }
-        if (extractedDirectoryPath == null) {
-            throw new BadRequestException("amola Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+//        File zipFile = new File(parentDirectory);
+//        String extractedDirectoryPath = null;
+//        for (File file : zipFile.listFiles()) {
+//            if (file == null) {
+//                continue;
+//            }
+//            if (file.isDirectory()) {
+//                extractedDirectoryPath = file.getAbsolutePath();
+//            } // 에초에 이게 필요 없는게 이미 위에서 디렉토리를 만들엇는데??
+//        }
+//        if (extractedDirectoryPath == null) {
+//            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+//        }
+
+        File[] files = unzipResultDir.listFiles();
+        File dockerfile = null;
+        if (files == null) {
+            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
-        File dockerfile = new File(extractedDirectoryPath, "Dockerfile");
-        System.out.println("Extracted extractedDirectoryPath path: " + extractedDirectoryPath);
-        System.out.println("Extracted Dockerfile path: " + dockerfile.getAbsolutePath());
+        for (File file : files) {
+            if (file.getName().equals("Dockerfile") && file.isFile()) {
+                dockerfile = file;
+            }
+        }
+
+//        File dockerfile = new File(parentDirectory, "Dockerfile");
+
+        System.out.println(dockerfile.getAbsoluteFile() + " 도커파일 위치");
+        System.out.println(dockerfile + " 이거임 ;;"); // 근데 왜 dockerfile nginx 하나인데 이렇게 오래걸리지?
 
         if (!dockerfile.exists()) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
@@ -854,6 +863,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return dockerfile.toPath();
     }
+
 
 
     private ProjectEntity getProjectById(Long id) {
@@ -872,3 +882,4 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 }
+
