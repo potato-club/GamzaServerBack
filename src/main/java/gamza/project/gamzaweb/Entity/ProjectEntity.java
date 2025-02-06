@@ -74,6 +74,9 @@ public class ProjectEntity extends BaseTime {
     @Column(nullable = false)
     private boolean approveFixedState; //수정요청승인여부
 
+    @Column
+    private boolean successCheck; // 성공한 프로젝트 확인여부
+
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
         this.name = name;
         this.description = description;
@@ -110,6 +113,10 @@ public class ProjectEntity extends BaseTime {
 
     public void updateDeploymentStep(String step) {
         this.deploymentStep = step;
+    }
+
+    public void updateSuccessCheck() {
+        this.successCheck = true;
     }
 
 }

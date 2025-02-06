@@ -29,9 +29,12 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, Long>, P
     Page<ProjectEntity> findByApproveState(boolean approveState, Pageable pageable);
 
     Page<ProjectEntity> findByFixedStateAndApproveState(boolean fixedState, boolean approveState, Pageable pageable);
+//
+//    @Query("SELECT p FROM ProjectEntity p WHERE p.approvalProjectStatus IS NOT NULL")
+//    Page<ProjectEntity> findByApprovalProjectStatusIsNotNull(Pageable pageable);
 
-    @Query("SELECT p FROM ProjectEntity p WHERE p.approvalProjectStatus IS NOT NULL")
-    Page<ProjectEntity> findByApprovalProjectStatusIsNotNull(Pageable pageable);
+    @Query("SELECT p FROM ProjectEntity p WHERE p.approvalProjectStatus IS NOT NULL AND p.successCheck = false")
+    Page<ProjectEntity> findByApprovalProjectStatusIsNotNullAndSuccessCheckFalse(Pageable pageable);
 
     Page<ProjectEntity> findByFixedStateAndApproveFixedState(boolean fixedState, boolean approveFixedState, Pageable pageable);
 

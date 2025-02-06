@@ -443,7 +443,10 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
-        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
+        //이거 나중에 쿼리DSL로 돌리기
+//        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
+        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNullAndSuccessCheckFalse(pageable);
+
 
         return projectEntities.map(project -> {
             String fileUrl = fileUploader.recentGetFileUrl(project);
@@ -497,6 +500,13 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(project);
     }
 
+    @Override
+    @Transactional
+    public void checkSuccessProject(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+        ProjectEntity project = projectValidate.validateProject(id);
+        project.updateSuccessCheck();
+    }
 
 
     @Override
