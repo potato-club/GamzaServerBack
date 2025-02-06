@@ -77,7 +77,7 @@ public class AdminController {
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
         projectService.approveExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다. 승인 프로젝트 시작됨");
+        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.\n승인 프로젝트 시작");
     }
 
     @DeleteMapping("/project/remove/{id}")
