@@ -528,7 +528,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request); // 오 ㅋㅋ 이걸 사용하네 ㅇㅈ // 어? 이 validateUserRole 메서드 내가만든거구나 뭐임? 푸핫
+        userValidate.validateUserRole(request);
         ProjectEntity project = projectValidate.validateProject(id);
 
         if (!project.isFixedState()) {
@@ -748,7 +748,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     private void generateNginxConfig(String applicationName, int applicationPort) {
-        String configPath = "/etc/nginx/conf.d/" + applicationName + ".conf";
+        String configPath = "/etc/nginx/sites-enabled/" + applicationName + ".conf";
         String configContent = """
         server {
             listen 80;
@@ -774,7 +774,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
         """.formatted(applicationName, applicationName, applicationPort);
 
-        try { // ㅋㅋ 이거.. 뭐노..
+        try {
             ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c",
                     "echo '" + configContent.replace("'", "'\\''") + "' | sudo tee " + configPath);
             Process process = processBuilder.start();
