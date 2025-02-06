@@ -835,7 +835,7 @@ public class ProjectServiceImpl implements ProjectService {
 //            if (file.isDirectory()) {
 //                extractedDirectoryPath = file.getAbsolutePath();
 //            } // 에초에 이게 필요 없는게 이미 위에서 디렉토리를 만들엇는데??
-//        }
+//        }         // ????? 엥?
 //        if (extractedDirectoryPath == null) {
 //            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
 //        }
@@ -845,7 +845,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (files == null) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
         }
-
+            // TODO : Create nginx.conf file ah!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Let's GO.
         for (File file : files) {
             if (file.getName().equals("Dockerfile") && file.isFile()) {
                 dockerfile = file;
@@ -855,7 +855,7 @@ public class ProjectServiceImpl implements ProjectService {
 //        File dockerfile = new File(parentDirectory, "Dockerfile");
 
         System.out.println(dockerfile.getAbsoluteFile() + " 도커파일 위치");
-        System.out.println(dockerfile + " 이거임 ;;"); // 근데 왜 dockerfile nginx 하나인데 이렇게 오래걸리지?
+        System.out.println(dockerfile + " 이거임??"); // 근데 왜 dockerfile nginx 하나인데 이렇게 오래걸리지?
 
         if (!dockerfile.exists()) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
