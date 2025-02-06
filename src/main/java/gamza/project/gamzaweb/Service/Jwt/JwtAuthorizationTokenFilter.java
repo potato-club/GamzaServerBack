@@ -31,10 +31,10 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-        if(AllowPath.isAllowed(path)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+//        if(AllowPath.isAllowed(path)) {
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
 
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
@@ -89,6 +89,7 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
             setResponse(response, errorCode);
             return;
         } catch (RuntimeException e) {
+            e.printStackTrace();
             errorCode = ErrorJwtCode.INVALID_VALUE;
             setResponse(response, errorCode);
             return;

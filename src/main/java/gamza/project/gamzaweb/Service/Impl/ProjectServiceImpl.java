@@ -528,7 +528,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request); // 오 ㅋㅋ 이걸 사용하네 ㅇㅈ // 어? 이 validateUserRole 메서드 내가만든거구나 뭐임? 푸핫
+        userValidate.validateUserRole(request);
         ProjectEntity project = projectValidate.validateProject(id);
 
         if (!project.isFixedState()) {
@@ -567,7 +567,7 @@ public class ProjectServiceImpl implements ProjectService {
         try {
 //            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
             projectStatusService.updateDeploymentStep(project, "3");
-            Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId());
+            Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
 //            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
             projectStatusService.updateDeploymentStep(project, "4");
@@ -585,7 +585,7 @@ public class ProjectServiceImpl implements ProjectService {
 //                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
                         projectStatusService.updateDeploymentStep(project, "5");
 
-                        generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성
+                        generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
                         reloadNginx(); // Nginx 재시작
                         projectStatusService.updateDeploymentStep(project, "6");
 //                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
@@ -748,7 +748,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     private void generateNginxConfig(String applicationName, int applicationPort) {
-        String configPath = "/etc/nginx/conf.d/" + applicationName + ".conf";
+        String configPath = "/etc/nginx/sites-enabled/" + applicationName + ".conf";
         String configContent = """
         server {
             listen 80;
@@ -817,18 +817,45 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private Path extractDockerfileFromZip(String zipPath) throws IOException {
-        boolean unzipResult = FileController.unzip(zipPath);
+    private Path extractDockerfileFromZip(String parentDirectory, String projectName) throws IOException {
+//        boolean unzipResult = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
+        File unzipResultDir = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
 
-        if (!unzipResult) {
+        // 이미 위에서 모든 파일을 압축한거아님?
+        if (unzipResultDir == null) {
             throw new IOException("Zip 파일 압축 해제를 실패하였습니다.");
         }
 
-        File zipFile = new File(zipPath);
-        String extractedDirectoryPath = zipFile.getParent(); // ZIP 파일과 동일한 폴더
+//        File zipFile = new File(parentDirectory);
+//        String extractedDirectoryPath = null;
+//        for (File file : zipFile.listFiles()) {
+//            if (file == null) {
+//                continue;
+//            }
+//            if (file.isDirectory()) {
+//                extractedDirectoryPath = file.getAbsolutePath();
+//            } // 에초에 이게 필요 없는게 이미 위에서 디렉토리를 만들엇는데??
+//        }         // ????? 엥?
+//        if (extractedDirectoryPath == null) {
+//            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+//        }
 
-        File dockerfile = new File(extractedDirectoryPath, "Dockerfile");
-        System.out.println("Extracted Dockerfile path: " + dockerfile.getAbsolutePath());
+        File[] files = unzipResultDir.listFiles();
+        File dockerfile = null;
+        if (files == null) {
+            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
+        }
+            // TODO : Create nginx.conf file ah!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Let's GO.
+        for (File file : files) {
+            if (file.getName().equals("Dockerfile") && file.isFile()) {
+                dockerfile = file;
+            }
+        }
+
+//        File dockerfile = new File(parentDirectory, "Dockerfile");
+
+        System.out.println(dockerfile.getAbsoluteFile() + " 도커파일 위치");
+        System.out.println(dockerfile + " 이거임??"); // 근데 왜 dockerfile nginx 하나인데 이렇게 오래걸리지?
 
         if (!dockerfile.exists()) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
@@ -836,6 +863,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return dockerfile.toPath();
     }
+
 
 
     private ProjectEntity getProjectById(Long id) {
@@ -854,3 +882,4 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 }
+
