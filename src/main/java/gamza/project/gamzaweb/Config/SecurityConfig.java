@@ -54,7 +54,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
-        configuration.addAllowedOrigin("https://gamzaweb.shop");
+        configuration.addAllowedOrigin("https://gamzaweb.store");
         configuration.addAllowedOrigin("https://gamza-club.vercel.app");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
