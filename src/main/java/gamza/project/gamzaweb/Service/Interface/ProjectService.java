@@ -35,6 +35,8 @@ public interface ProjectService {
 
     void approveExecutionApplication(HttpServletRequest request, Long id);
 
+    void checkSuccessProject(HttpServletRequest request, Long id);
+
     void removeExecutionApplication(HttpServletRequest request, Long id);
 
     void deleteProjectById(HttpServletRequest request, Long projectId);

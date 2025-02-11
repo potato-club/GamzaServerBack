@@ -63,7 +63,7 @@ public class AdminController {
     }
 
     @GetMapping("/project/pending/list")
-    @Operation(description = "승인 프로젝트 리스트 출력")
+    @Operation(description = "승인된 프로젝트 리스트 출력")
     public Page<ProjectListApproveResponse> approvedProjectList(
             HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -71,6 +71,13 @@ public class AdminController {
 
         Pageable pageable = PageRequest.of(page, size);
         return projectService.approvedProjectList(request, pageable);
+    }
+
+    @PostMapping("/project/pending/{id}")
+    @Operation(description = "프로젝트 성공 확인")
+    public ResponseEntity<String> checkSuccessProject(HttpServletRequest request, @PathVariable("id") Long id) {
+        projectService.checkSuccessProject(request, id);
+        return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
     }
 
     @PostMapping("/project/approve/{id}")

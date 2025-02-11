@@ -3,6 +3,7 @@ package gamza.project.gamzaweb.Entity;
 import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.BaseTime;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,8 +55,12 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "application_id")  // 외래 키 컬럼명 설정
     private ApplicationEntity application;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FileEntity> fileEntities = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "platform_id", nullable = false)
+    private PlatformEntity platformEntity;
+
+    @Enumerated(EnumType.STRING)
+    private ProjectType projectType;
 
     private LocalDate startedDate;
     private LocalDate endedDate;
@@ -73,6 +78,9 @@ public class ProjectEntity extends BaseTime {
 
     @Column(nullable = false)
     private boolean approveFixedState; //수정요청승인여부
+
+    @Column
+    private boolean successCheck; // 성공한 프로젝트 확인여부
 
     public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
         this.name = name;
@@ -110,6 +118,10 @@ public class ProjectEntity extends BaseTime {
 
     public void updateDeploymentStep(String step) {
         this.deploymentStep = step;
+    }
+
+    public void updateSuccessCheck() {
+        this.successCheck = true;
     }
 
 }

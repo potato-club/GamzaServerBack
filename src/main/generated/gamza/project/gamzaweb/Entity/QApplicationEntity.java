@@ -22,6 +22,8 @@ public class QApplicationEntity extends EntityPathBase<ApplicationEntity> {
 
     public static final QApplicationEntity applicationEntity = new QApplicationEntity("applicationEntity");
 
+    public final ListPath<FileEntity, QFileEntity> fileEntities = this.<FileEntity, QFileEntity>createList("fileEntities", FileEntity.class, QFileEntity.class, PathInits.DIRECT2);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath imageId = createString("imageId");

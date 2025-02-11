@@ -22,6 +22,7 @@ import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
+import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
@@ -79,6 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FileUploader fileUploader;
+    private final PlatformService platformService;
 
 
     @Override
@@ -100,12 +102,20 @@ public class ProjectServiceImpl implements ProjectService {
             applicationRepository.save(application);
             applicationRepository.flush();
 
+            PlatformEntity platform = platformService.checkedOrMakePlatform(dto.getPlatformName(), dto.getPlatformId());
+
+            if (platform == null) {
+                throw new BadRequestException("잘못된 플랫폼 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+            }
+
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())
                     .leader(user)
+                    .platformEntity(platform)           // 0211 신규 컬럼 추가 - 성훈
+                    .projectType(dto.getProjectType()) // 0211 신규 컬럼 추가 - 성훈
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
                     .build();
@@ -113,7 +123,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
-            for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+            for(int i = 0 ; i < dto.getCollaborators().size(); i++) {
                 UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
                         .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
@@ -137,7 +147,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectRepository.save(project);
 
-            fileUploader.upload(file, dto.getName(), project);
+            fileUploader.upload(file, dto.getName(), application);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -293,7 +303,7 @@ public class ProjectServiceImpl implements ProjectService {
                     FileController.deleteFile(oldFilePath);
                 }
 
-                fileUploader.upload(file, project.getName(), project);
+                fileUploader.upload(file, project.getName(), application);
             } catch (IOException e) {
                 throw new BusinessException("파일 업로드 중 오류가 발생했습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
             }
@@ -443,7 +453,10 @@ public class ProjectServiceImpl implements ProjectService {
     public Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable) {
         userValidate.validateUserRole(request);
 
-        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
+        //이거 나중에 쿼리DSL로 돌리기
+//        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
+        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNullAndSuccessCheckFalse(pageable);
+
 
         return projectEntities.map(project -> {
             String fileUrl = fileUploader.recentGetFileUrl(project);
@@ -497,6 +510,13 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(project);
     }
 
+    @Override
+    @Transactional
+    public void checkSuccessProject(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+        ProjectEntity project = projectValidate.validateProject(id);
+        project.updateSuccessCheck();
+    }
 
 
     @Override
