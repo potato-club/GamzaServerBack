@@ -57,6 +57,8 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final QPlatformEntity platformEntity;
 
+    public final EnumPath<gamza.project.gamzaweb.Entity.Enums.ProjectType> projectType = createEnum("projectType", gamza.project.gamzaweb.Entity.Enums.ProjectType.class);
+
     public final DatePath<java.time.LocalDate> startedDate = createDate("startedDate", java.time.LocalDate.class);
 
     public final EnumPath<gamza.project.gamzaweb.Entity.Enums.ProjectState> state = createEnum("state", gamza.project.gamzaweb.Entity.Enums.ProjectState.class);

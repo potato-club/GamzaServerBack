@@ -22,6 +22,8 @@ public class QPlatformEntity extends EntityPathBase<PlatformEntity> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final StringPath platformName = createString("platformName");
+
     public final ListPath<ProjectEntity, QProjectEntity> projects = this.<ProjectEntity, QProjectEntity>createList("projects", ProjectEntity.class, QProjectEntity.class, PathInits.DIRECT2);
 
     public QPlatformEntity(String variable) {

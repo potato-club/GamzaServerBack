@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Entity;
 
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,5 +24,10 @@ public class PlatformEntity {
     @OneToMany(mappedBy = "platformEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProjectEntity> projects = new ArrayList<>();
 
+    @Column(nullable = false, unique = true)
+    private String platformName;
+
+//    @Column(nullable = false)
+//    private String description;
 
 }

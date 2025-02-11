@@ -3,6 +3,7 @@ package gamza.project.gamzaweb.Entity;
 import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.BaseTime;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,8 +59,8 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "platform_id", nullable = false)
     private PlatformEntity platformEntity;
 
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<FileEntity> fileEntities = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private ProjectType projectType;
 
     private LocalDate startedDate;
     private LocalDate endedDate;

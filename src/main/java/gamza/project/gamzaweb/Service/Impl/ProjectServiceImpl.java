@@ -22,6 +22,7 @@ import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
+import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
@@ -79,6 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final DockerProvider dockerProvider;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FileUploader fileUploader;
+    private final PlatformService platformService;
 
 
     @Override
@@ -100,12 +102,20 @@ public class ProjectServiceImpl implements ProjectService {
             applicationRepository.save(application);
             applicationRepository.flush();
 
+            PlatformEntity platform = platformService.checkedOrMakePlatform(dto.getPlatformName(), dto.getPlatformId());
+
+            if (platform == null) {
+                throw new BadRequestException("잘못된 플랫폼 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+            }
+
             ProjectEntity project = ProjectEntity.builder()
                     .application(application)
                     .name(dto.getName())
                     .description(dto.getDescription())
                     .state(dto.getState())
                     .leader(user)
+                    .platformEntity(platform)           // 0211 신규 컬럼 추가 - 성훈
+                    .projectType(dto.getProjectType()) // 0211 신규 컬럼 추가 - 성훈
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
                     .build();
