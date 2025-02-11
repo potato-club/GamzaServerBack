@@ -58,4 +58,14 @@ public class PlatformServiceImpl implements PlatformService {
                 .build();
     }
 
+    @Override
+    public void deletePlatform(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+
+        PlatformEntity platform = platformRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("존재하지 않는 플랫폼입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+        platformRepository.delete(platform);
+    }
+
 }
