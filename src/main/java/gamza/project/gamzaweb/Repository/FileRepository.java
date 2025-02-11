@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
-    FileEntity findByProject(ProjectEntity project);
-
-    FileEntity findFirstByProjectOrderByIdDesc(ProjectEntity project);
+//    FileEntity findByProject(ProjectEntity project);
+//
+//    FileEntity findFirstByProjectOrderByIdDesc(ProjectEntity project);
 
 }

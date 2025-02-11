@@ -24,7 +24,7 @@ public class FileEntity {
     private String fileUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private ProjectEntity project;
+    @JoinColumn(name = "application_id", nullable = false)
+    private ApplicationEntity application;
 
 }
