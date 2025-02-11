@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Entity.Enums;
 
-public enum ProjectType {
+public enum ProjectTypeUpdate {
     BACK,
     FRONT,
+    WAITING
 }

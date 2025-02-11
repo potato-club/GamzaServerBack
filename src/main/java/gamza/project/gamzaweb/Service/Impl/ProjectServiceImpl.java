@@ -123,7 +123,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
-            for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+            for(int i = 0 ; i < dto.getCollaborators().size(); i++) {
                 UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
                         .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
