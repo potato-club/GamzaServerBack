@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import gamza.project.gamzaweb.Entity.ApplicationEntity;
 import gamza.project.gamzaweb.Entity.FileEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
@@ -34,7 +35,7 @@ public class FileUploader {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public void upload(MultipartFile file, String dirName, ProjectEntity project) {
+    public void upload(MultipartFile file, String dirName, ApplicationEntity application) {
 
         try {
             String originalFileName = file.getOriginalFilename();
@@ -50,7 +51,7 @@ public class FileUploader {
             FileEntity fileEntity =  FileEntity.builder()
                     .fileUrl(fileUrl)
                     .fileName(originalFileName)
-                    .project(project)
+                    .application(application)
                     .build();
 
             fileRepository.save(fileEntity);
@@ -63,21 +64,24 @@ public class FileUploader {
 
     public String getFileUrl(ProjectEntity project) {
 
-        FileEntity fileEntity = fileRepository.findByProject(project);
-        if(fileEntity == null) {
-            return null;
-        }
-        return fileEntity.getFileUrl();
+//        FileEntity fileEntity = fileRepository.findByProject(project);
+//        if(fileEntity == null) {
+//            return null;
+//        }
+//        return fileEntity.getFileUrl();
+        return null;
     }
+
 
     public String recentGetFileUrl(ProjectEntity project) {
         // 이건 가장 최신 프로젝트를 돌려줍니다.
 
-        FileEntity fileEntity = fileRepository.findFirstByProjectOrderByIdDesc(project);
-        if(fileEntity == null) {
-            return null;
-        }
-        return fileEntity.getFileUrl();
+//        FileEntity fileEntity = fileRepository.findFirstByProjectOrderByIdDesc(project);
+//        if(fileEntity == null) {
+//            return null;
+//        }
+//        return fileEntity.getFileUrl();
+        return null;
     }
 
 }

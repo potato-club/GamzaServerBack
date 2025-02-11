@@ -22,13 +22,13 @@ public class QFileEntity extends EntityPathBase<FileEntity> {
 
     public static final QFileEntity fileEntity = new QFileEntity("fileEntity");
 
+    public final QApplicationEntity application;
+
     public final StringPath fileName = createString("fileName");
 
     public final StringPath fileUrl = createString("fileUrl");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final QProjectEntity project;
 
     public QFileEntity(String variable) {
         this(FileEntity.class, forVariable(variable), INITS);
@@ -48,7 +48,7 @@ public class QFileEntity extends EntityPathBase<FileEntity> {
 
     public QFileEntity(Class<? extends FileEntity> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.project = inits.isInitialized("project") ? new QProjectEntity(forProperty("project"), inits.get("project")) : null;
+        this.application = inits.isInitialized("application") ? new QApplicationEntity(forProperty("application"), inits.get("application")) : null;
     }
 
 }

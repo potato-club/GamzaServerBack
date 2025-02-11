@@ -6,25 +6,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter
-public class FileEntity {
+public class PlatformEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String fileName;
+    @OneToMany(mappedBy = "platformEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProjectEntity> projects = new ArrayList<>();
 
-    @Column(nullable = false, length = 512)
-    private String fileUrl;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
-    private ApplicationEntity application;
 
 }

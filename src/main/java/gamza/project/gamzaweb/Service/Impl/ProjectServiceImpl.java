@@ -137,7 +137,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectRepository.save(project);
 
-            fileUploader.upload(file, dto.getName(), project);
+            fileUploader.upload(file, dto.getName(), application);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -293,7 +293,7 @@ public class ProjectServiceImpl implements ProjectService {
                     FileController.deleteFile(oldFilePath);
                 }
 
-                fileUploader.upload(file, project.getName(), project);
+                fileUploader.upload(file, project.getName(), application);
             } catch (IOException e) {
                 throw new BusinessException("파일 업로드 중 오류가 발생했습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
             }

@@ -45,8 +45,6 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final DatePath<java.time.LocalDate> endedDate = createDate("endedDate", java.time.LocalDate.class);
 
-    public final ListPath<FileEntity, QFileEntity> fileEntities = this.<FileEntity, QFileEntity>createList("fileEntities", FileEntity.class, QFileEntity.class, PathInits.DIRECT2);
-
     public final BooleanPath fixedState = createBoolean("fixedState");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
@@ -57,9 +55,13 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final StringPath name = createString("name");
 
+    public final QPlatformEntity platformEntity;
+
     public final DatePath<java.time.LocalDate> startedDate = createDate("startedDate", java.time.LocalDate.class);
 
     public final EnumPath<gamza.project.gamzaweb.Entity.Enums.ProjectState> state = createEnum("state", gamza.project.gamzaweb.Entity.Enums.ProjectState.class);
+
+    public final BooleanPath successCheck = createBoolean("successCheck");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedDate = _super.updatedDate;
@@ -84,6 +86,7 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
         super(type, metadata, inits);
         this.application = inits.isInitialized("application") ? new QApplicationEntity(forProperty("application"), inits.get("application")) : null;
         this.leader = inits.isInitialized("leader") ? new QUserEntity(forProperty("leader")) : null;
+        this.platformEntity = inits.isInitialized("platformEntity") ? new QPlatformEntity(forProperty("platformEntity")) : null;
     }
 
 }

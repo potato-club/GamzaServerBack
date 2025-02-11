@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -34,6 +37,9 @@ public class ApplicationEntity {
     @OneToOne(mappedBy = "application", fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")  // 외래 키 컬럼명 설정
     private ProjectEntity project;
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FileEntity> fileEntities = new ArrayList<>();
 
     public void updateDockerfilePath(String dockerFilePath) {
         this.imageId = dockerFilePath;
