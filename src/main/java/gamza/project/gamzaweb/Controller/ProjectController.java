@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/project")
@@ -22,6 +23,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final DeploymentSseController deploymentSseController;
 
     @GetMapping("/list")
     @Operation(description = "메인 페이지 프로젝트 출력")
@@ -110,5 +112,11 @@ public class ProjectController {
         projectService.deleteProjectCollaborator(request, projectId, dto);
         return ResponseEntity.ok("프로젝트 참여 인원이 삭제되었습니다.");
     }
+
+//    @GetMapping("/deploy/subscribe/{projectId}")
+//    @Operation(description = "SSE를 활용한 실시간 배포 상태 업데이트")
+//    public SseEmitter subscribeToDeploymentUpdates(@PathVariable Long projectId) {
+//        return deploymentSseController.subscribe(projectId);
+//    }
 
 }

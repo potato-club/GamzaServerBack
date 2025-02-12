@@ -19,6 +19,7 @@ import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
 import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
+import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
@@ -577,20 +578,17 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-//            projectStatusService.updateDeploymentStep(project, "STEP 2: 프로젝트 ZIP 경로가 없음 (실패)");
-            projectStatusService.updateDeploymentStep(project, "2");
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
-//            projectStatusService.updateDeploymentStep(project, "STEP 2: Dockerfile 추출 시작");
-            projectStatusService.updateDeploymentStep(project, "3");
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
-//            projectStatusService.updateDeploymentStep(project, "STEP 3: Docker 이미지 빌드 시작");
-            projectStatusService.updateDeploymentStep(project, "4");
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     request,
                     dockerfilePath.toFile(),
@@ -602,21 +600,19 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
-//                        projectStatusService.updateDeploymentStep(project, "STEP 5: Nginx 설정 생성 시작");
-                        projectStatusService.updateDeploymentStep(project, "5");
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
                         generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
                         reloadNginx(); // Nginx 재시작
-                        projectStatusService.updateDeploymentStep(project, "6");
-//                        projectStatusService.updateDeploymentStep(project, "STEP 6: Nginx 재시작");
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
             e.printStackTrace();
-//            projectStatusService.updateDeploymentStep(project, "STEP 3: Dockerfile 추출 실패");
-            projectStatusService.updateDeploymentStep(project, "3");
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
 
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }
