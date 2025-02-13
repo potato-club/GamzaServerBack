@@ -1,6 +1,7 @@
 package gamza.project.gamzaweb.Dto.project;
 
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,8 @@ public class ProjectUpdateRequestDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
     private List<Integer> collaborators = new ArrayList<>();
+
+    private Long platformId;
+    private ProjectType projectType;
 
 }

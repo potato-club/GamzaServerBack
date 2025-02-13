@@ -1,9 +1,6 @@
 package gamza.project.gamzaweb.Entity;
 
-import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
-import gamza.project.gamzaweb.Entity.Enums.BaseTime;
-import gamza.project.gamzaweb.Entity.Enums.ProjectState;
-import gamza.project.gamzaweb.Entity.Enums.ProjectType;
+import gamza.project.gamzaweb.Entity.Enums.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,9 +42,8 @@ public class ProjectEntity extends BaseTime {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ContainerEntity> container = new ArrayList<>();
 
-
     @Column()
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     @Builder.Default
     private List<CollaboratorEntity> collaborators = new ArrayList<>();
 
@@ -82,13 +78,14 @@ public class ProjectEntity extends BaseTime {
     @Column
     private boolean successCheck; // 성공한 프로젝트 확인여부
 
-    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators) {
+    public void updateProject(String name, String description, ProjectState state, LocalDate startedDate, LocalDate endedDate, List<CollaboratorEntity> collaborators, ProjectType projectType) {
         this.name = name;
         this.description = description;
         this.state = state;
         this.startedDate = startedDate;
         this.endedDate = endedDate;
         this.collaborators = collaborators;
+        this.projectType = projectType;
     }
 
     public void addProjectCollaborator(List<CollaboratorEntity> collaborators) {
@@ -122,6 +119,10 @@ public class ProjectEntity extends BaseTime {
 
     public void updateSuccessCheck() {
         this.successCheck = true;
+    }
+
+    public void updatePlatform(PlatformEntity platform) {
+        this.platformEntity = platform;
     }
 
 }
