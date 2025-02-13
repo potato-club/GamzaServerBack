@@ -67,21 +67,24 @@ import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 public class ProjectServiceImpl implements ProjectService {
 
     private final DockerClient dockerClient = DockerDataStore.getInstance().getDockerClient();
+    private final DockerProvider dockerProvider;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final FileUploader fileUploader;
     private final JwtTokenProvider jwtTokenProvider;
+
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final ApplicationRepository applicationRepository;
     private final CollaboratorRepository collaboratorRepository;
     private final ImageRepository imageRepository;
-    private final UserValidate userValidate;
-    private final ProjectValidate projectValidate;
     private final ContainerRepository containerRepository;
+    private final PlatformRepository platformRepository;
+
+    private final PlatformService platformService;
     private final ProjectStatusService projectStatusService;
 
-    private final DockerProvider dockerProvider;
-    private final ApplicationEventPublisher applicationEventPublisher;
-    private final FileUploader fileUploader;
-    private final PlatformService platformService;
+    private final UserValidate userValidate;
+    private final ProjectValidate projectValidate;
 
 
     @Override
@@ -402,6 +405,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id) {
         String token = jwtTokenProvider.resolveAccessToken(request); // 공통된 로직 부분이 존재하기에 추후 리팩토링 작업시 모두 메서드 분리 예정
         String userRole = jwtTokenProvider.extractRole(token);
@@ -419,6 +423,17 @@ public class ProjectServiceImpl implements ProjectService {
             }
         }
 
+        if (dto.getPlatformId() != null) { // 플랫폼 업데이트
+            PlatformEntity platform = platformRepository.findById(dto.getPlatformId())
+                    .orElseThrow(() -> new BadRequestException("변경할 수 있는 플랫폼이 없습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
+
+            project.updatePlatform(platform);
+        }
+//        List<CollaboratorEntity> existingCollaborators = project.getCollaborators();
+//        collaboratorRepository.deleteAll(existingCollaborators);
+//
+//        project.getCollaborators().clear();
+
         List<CollaboratorEntity> newCollaborators = new ArrayList<>();
 
         for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
@@ -433,7 +448,7 @@ public class ProjectServiceImpl implements ProjectService {
             newCollaborators.add(collaboratorEntity);
         }
 
-        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators);
+        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators ,dto.getProjectType());
         projectRepository.save(project);
 
     }
