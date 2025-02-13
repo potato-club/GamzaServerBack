@@ -429,10 +429,6 @@ public class ProjectServiceImpl implements ProjectService {
 
             project.updatePlatform(platform);
         }
-//        List<CollaboratorEntity> existingCollaborators = project.getCollaborators();
-//        collaboratorRepository.deleteAll(existingCollaborators);
-//
-//        project.getCollaborators().clear();
 
         List<CollaboratorEntity> newCollaborators = new ArrayList<>();
 
