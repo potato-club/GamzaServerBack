@@ -73,15 +73,14 @@ public class FileUploader {
     }
 
 
-    public String recentGetFileUrl(ProjectEntity project) { // 대기이~~
-        // 이건 가장 최신 프로젝트를 돌려줍니다.
+    public String recentGetFileUrl(ProjectEntity project) {
+        if (project.getApplication() == null) {
+            return null;
+        }
 
-//        FileEntity fileEntity = fileRepository.findFirstByProjectOrderByIdDesc(project);
-//        if(fileEntity == null) {
-//            return null;
-//        }
-//        return fileEntity.getFileUrl();
-        return null;
+        FileEntity fileEntity = fileRepository.findFirstByApplicationOrderByIdDesc(project.getApplication());
+
+        return fileEntity != null ? fileEntity.getFileUrl() : null;
     }
 
-}
+ }
