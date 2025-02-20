@@ -1,17 +1,13 @@
 package gamza.project.gamzaweb.Service.Impl;
 
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.BuildImageCmd;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.exception.UnauthorizedException;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
-import com.github.dockerjava.api.model.Ports;
-import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports.Binding;
 import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
@@ -24,6 +20,7 @@ import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
+import gamza.project.gamzaweb.Service.Interface.NginxService;
 import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
@@ -36,15 +33,11 @@ import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.DockerProvider.DockerProviderBuildCallback;
 import gamza.project.gamzaweb.dctutil.FileController;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.io.FileReader;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,6 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final PlatformService platformService;
     private final ProjectStatusService projectStatusService;
+    private final NginxService nginxService;
 
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
@@ -604,23 +598,32 @@ public class ProjectServiceImpl implements ProjectService {
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
+
+
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     request,
                     dockerfilePath.toFile(),
                     project,
                     imageId -> {
+
                         createContainer(request, project, imageId);
 
                         // Docker 빌드 성공 후 Nginx 설정 생성
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
+//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
-                        generateNginxConfig(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
-                        reloadNginx(); // Nginx 재시작
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
+                        System.out.println("Application Name: " + project.getName());
+                        System.out.println("Application Port: " + project.getApplication().getOuterPort());
+
+                        System.out.println("Nginx config generated successfully.");
+
+                        nginxService.generateNginxConf(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
+                        nginxService.restartNginx(); // Nginx 재시작
+
+//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
                         projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
@@ -755,7 +758,11 @@ public class ProjectServiceImpl implements ProjectService {
                         ImageBuildEventDto event = new ImageBuildEventDto(userPk, item.getImageId(), name, key);
                         applicationEventPublisher.publishEvent(event);
 
-                        callback.getImageId(item.getImageId()); // 여기서 콜백 호출
+                        try {
+                            callback.getImageId(item.getImageId()); // 여기서 콜백 호출
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
 
                     }
                 }
@@ -779,115 +786,26 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
 
-    private void generateNginxConfig(String applicationName, int applicationPort) {
-        String configPath = "/etc/nginx/sites-enabled/" + applicationName + ".conf";
-        String configContent = """
-        server {
-            listen 80;
-            listen [::]:80;
-            server_name %s.gamzaweb.shop;
-            return 301 https://$host$request_uri;
-        }
-        server {
-            listen 443 ssl http2;
-            listen [::]:443 ssl http2;
-            server_name %s.gamzaweb.shop;
-            ssl_certificate /etc/letsencrypt/live/gamzaweb.shop/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/gamzaweb.shop/privkey.pem;
 
-            location / {
-                proxy_pass http://localhost:%d;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection 'upgrade';
-                proxy_set_header Host $host;
-                proxy_cache_bypass $http_upgrade;
-            }
-        }
-        """.formatted(applicationName, applicationName, applicationPort);
-
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c",
-                    "echo '" + configContent.replace("'", "'\\''") + "' | sudo tee " + configPath);
-            Process process = processBuilder.start();
-            int exitCode = process.waitFor();
-
-            if (exitCode == 0) {
-                System.out.println("Nginx config generated successfully: " + applicationName);
-            } else {
-                System.err.println("Failed to generate Nginx config. Exit code: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to generate Nginx config for: " + applicationName, e);
-        }
-    }
-
-
-    private void reloadNginx() {
-        try {
-            ProcessBuilder testConfig = new ProcessBuilder("bash", "-c", "nginx -t");
-            Process testProcess = testConfig.start();
-            int testExitCode = testProcess.waitFor();
-
-            if (testExitCode != 0) {
-                throw new RuntimeException("Nginx config test failed.");
-            }
-
-            ProcessBuilder reloadProcess = new ProcessBuilder("bash", "-c", "nginx -s reload");
-            Process process = reloadProcess.start();
-            int exitCode = process.waitFor();
-
-            if (exitCode == 0) {
-                System.out.println("Nginx reloaded successfully.");
-            } else {
-                System.err.println("Failed to reload Nginx. Exit code: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to reload Nginx", e);
-        }
-    }
 
     private Path extractDockerfileFromZip(String parentDirectory, String projectName) throws IOException {
-//        boolean unzipResult = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
         File unzipResultDir = FileController.unzip(parentDirectory + File.separator + projectName + ".zip");
 
-        // 이미 위에서 모든 파일을 압축한거아님?
         if (unzipResultDir == null) {
             throw new IOException("Zip 파일 압축 해제를 실패하였습니다.");
         }
-
-//        File zipFile = new File(parentDirectory);
-//        String extractedDirectoryPath = null;
-//        for (File file : zipFile.listFiles()) {
-//            if (file == null) {
-//                continue;
-//            }
-//            if (file.isDirectory()) {
-//                extractedDirectoryPath = file.getAbsolutePath();
-//            } // 에초에 이게 필요 없는게 이미 위에서 디렉토리를 만들엇는데??
-//        }         // ????? 엥?
-//        if (extractedDirectoryPath == null) {
-//            throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
-//        }
 
         File[] files = unzipResultDir.listFiles();
         File dockerfile = null;
         if (files == null) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
         }
-            // TODO : Create nginx.conf file ah!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Let's GO.
+
         for (File file : files) {
             if (file.getName().equals("Dockerfile") && file.isFile()) {
                 dockerfile = file;
             }
         }
-
-//        File dockerfile = new File(parentDirectory, "Dockerfile");
-
-        System.out.println(dockerfile.getAbsoluteFile() + " 도커파일 위치");
-        System.out.println(dockerfile + " 이거임??"); // 근데 왜 dockerfile nginx 하나인데 이렇게 오래걸리지?
 
         if (!dockerfile.exists()) {
             throw new BadRequestException("Dockerfile not found in the extracted archive", ErrorCode.FAILED_PROJECT_ERROR);
@@ -895,8 +813,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         return dockerfile.toPath();
     }
-
-
 
     private ProjectEntity getProjectById(Long id) {
         return projectRepository.findById(id)

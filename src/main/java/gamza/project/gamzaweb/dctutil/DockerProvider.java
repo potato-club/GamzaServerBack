@@ -260,7 +260,7 @@ public class DockerProvider {
     //example interface ---
 
     public interface DockerProviderBuildCallback {
-        void getImageId(String imageId);
+        void getImageId(String imageId) throws IOException;
     }
 
 
