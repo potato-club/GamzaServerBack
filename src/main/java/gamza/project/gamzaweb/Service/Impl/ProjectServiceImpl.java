@@ -25,6 +25,7 @@ import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Service.Interface.ProjectService;
 import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.Validate.DeploymentStepQueue;
 import gamza.project.gamzaweb.Validate.FileUploader;
 import gamza.project.gamzaweb.Validate.ProjectValidate;
 import gamza.project.gamzaweb.Validate.UserValidate;
@@ -76,6 +77,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final PlatformService platformService;
     private final ProjectStatusService projectStatusService;
+    private final DeploymentStepQueue deploymentStepQueue;
     private final NginxService nginxService;
 
     private final UserValidate userValidate;
@@ -488,6 +490,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
+//        deploymentStepQueue.addDeploymentUpdate(project, status); // 이거를 물어봐야겠따 어떻게 처리할까??
         project.updateApprovalStatus(status);
         projectRepository.save(project);
     }
@@ -501,21 +504,20 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
+//        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
 
         try {
             projectRepository.save(project);
             boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
             if (buildSuccess) {
                 updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
-
                 updateProjectApprovalState(project);
             } else {
-                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+//                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+//            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
 
         }
         projectRepository.save(project);
@@ -588,17 +590,20 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
+//            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
+//            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
+//            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     request,
                     dockerfilePath.toFile(),
