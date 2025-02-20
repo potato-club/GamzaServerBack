@@ -598,8 +598,6 @@ public class ProjectServiceImpl implements ProjectService {
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
-
-
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     request,
@@ -626,7 +624,7 @@ public class ProjectServiceImpl implements ProjectService {
 //                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
+//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
