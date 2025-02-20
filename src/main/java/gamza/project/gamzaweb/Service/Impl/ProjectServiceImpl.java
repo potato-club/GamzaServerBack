@@ -20,6 +20,7 @@ import gamza.project.gamzaweb.Dto.project.*;
 import gamza.project.gamzaweb.Entity.*;
 import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.*;
 import gamza.project.gamzaweb.Repository.*;
@@ -110,6 +111,10 @@ public class ProjectServiceImpl implements ProjectService {
 
             if (platform == null) {
                 throw new BadRequestException("잘못된 플랫폼 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+            }
+
+            if (dto.getProjectType().equals(ProjectType.WAIT)) {
+                throw new BadRequestException("프로젝트 생성시 타입은 BACK, FRONT만 가능합니다.", ErrorCode.FAILED_PROJECT_ERROR);
             }
 
             ProjectEntity project = ProjectEntity.builder()
