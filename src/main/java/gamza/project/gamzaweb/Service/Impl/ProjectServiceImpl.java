@@ -37,12 +37,15 @@ import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +87,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserValidate userValidate;
     private final ProjectValidate projectValidate;
 
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5); // 스레드풀에 일단 5개 생성 먼저
 
     @Override
     @Transactional
@@ -499,6 +503,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+//    @Async // 비동기
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
 
@@ -508,24 +513,28 @@ public class ProjectServiceImpl implements ProjectService {
 //        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
 
-        try {
-            projectRepository.save(project);
-            boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
-            if (buildSuccess) {
-                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
+        executorService.submit(() -> {
+
+            try {
+                projectRepository.save(project);
+                boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+                if (buildSuccess) {
+                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
 //                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
-                updateProjectApprovalState(project);
-            } else {
-                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
+                    updateProjectApprovalState(project);
+                } else {
+                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
 //                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
 //            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
 
-        }
-        projectRepository.save(project);
+            }
+            projectRepository.save(project);
+//            executorService.shutdown();  스레드풀 종료를 해줘야하나?
+        });
     }
 
     @Override
