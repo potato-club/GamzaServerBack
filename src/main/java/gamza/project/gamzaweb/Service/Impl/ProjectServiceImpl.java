@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -128,9 +129,9 @@ public class ProjectServiceImpl implements ProjectService {
 
             List<CollaboratorEntity> collaborators = new ArrayList<>();
 
-            for(int i = 0 ; i < dto.getCollaborators().size(); i++) {
+            for (int i = 0; i < dto.getCollaborators().size(); i++) {
                 UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
-                        .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
+                        .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
                 CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
                         .project(project)
@@ -418,8 +419,8 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-        if(!project.getLeader().equals(user)) {
-            if(!userRole.equals("0")) {
+        if (!project.getLeader().equals(user)) {
+            if (!userRole.equals("0")) {
                 throw new UnAuthorizedException("해당 프로젝트 참여 인원 수정 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
             }
         }
@@ -433,9 +434,9 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<CollaboratorEntity> newCollaborators = new ArrayList<>();
 
-        for(int i = 0 ; i < dto.getCollaborators().size(); i++ ) {
+        for (int i = 0; i < dto.getCollaborators().size(); i++) {
             UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())
-                    .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.",ErrorCode.INTERNAL_SERVER_EXCEPTION));
+                    .orElseThrow(() -> new BadRequestException("존재하지 않는 유저 정보입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
             CollaboratorEntity collaboratorEntity = CollaboratorEntity.builder()
                     .project(project)
@@ -445,7 +446,7 @@ public class ProjectServiceImpl implements ProjectService {
             newCollaborators.add(collaboratorEntity);
         }
 
-        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators ,dto.getProjectType());
+        project.updateProject(dto.getName(), dto.getDescription(), dto.getState(), dto.getStartedDate(), dto.getEndedDate(), newCollaborators, dto.getProjectType());
         projectRepository.save(project);
 
     }
@@ -505,18 +506,22 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
 //        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
+        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
 
         try {
             projectRepository.save(project);
             boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
             if (buildSuccess) {
-                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
+                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
+//                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
                 updateProjectApprovalState(project);
             } else {
+                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
 //                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
             }
         } catch (Exception e) {
             e.printStackTrace();
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
 //            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
 
         }
@@ -616,19 +621,17 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
+                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
 //                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
-                        System.out.println("Application Name: " + project.getName());
-                        System.out.println("Application Port: " + project.getApplication().getOuterPort());
-
-                        System.out.println("Nginx config generated successfully.");
-
-                        nginxService.generateNginxConf(applicationName, applicationPort); // Nginx 설정 파일 생성 // 0205 추가 -> 여기서 지금 nginx 안대서 멈추는거구나
+                        nginxService.generateNginxConf(applicationName, applicationPort);
                         nginxService.restartNginx(); // Nginx 재시작
 
+                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
 //                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
+//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
 //                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
@@ -787,8 +790,6 @@ public class ProjectServiceImpl implements ProjectService {
             throw new DockerRequestException("3001 FAILED IMAGE BUILD", ErrorCode.FAILED_IMAGE_BUILD);
         }
     }
-
-
 
 
     private Path extractDockerfileFromZip(String parentDirectory, String projectName) throws IOException {
