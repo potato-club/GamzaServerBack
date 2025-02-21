@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum DeploymentStep {
+    PENDING("승인 보류"), // 이렇게 바꾸면 대나?
     INIT("STEP 1: 배포 시작"),
     ZIP_PATH_CHECK("STEP 2: 프로젝트 ZIP 경로 확인"),
     DOCKERFILE_EXTRACT("STEP 3: Dockerfile 추출 시작"),

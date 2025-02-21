@@ -80,6 +80,13 @@ public class AdminController {
         return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
     }
 
+    // TODO : 프로젝트 출력 플렛폼 값으로 출력하도록 수정
+    // TODO : ApprovalProjectState + DeploymentStep Enum 합치기 ( O )
+    // TODO : Scheduler 사용한 부분 모두 적용시키고 테스트 하기 ( O )
+    // TODO : 프로젝트 실행 비동기 방식으로 처리하기 ( 처리시간 너무 긴 이유 ) ( O )
+    // TODO : (성훈) s3링크 제대로 반환하는거 확인하자
+
+
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
