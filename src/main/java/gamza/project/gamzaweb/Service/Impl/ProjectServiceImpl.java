@@ -513,7 +513,7 @@ public class ProjectServiceImpl implements ProjectService {
 //        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
 
-        String AT = request.getHeader("Authorization");
+        String AT = request.getHeader("Authorization").substring(7);
         System.out.println("AT 체크 :" + AT);
 
         executorService.submit(() -> {
@@ -567,7 +567,7 @@ public class ProjectServiceImpl implements ProjectService {
         dockerProvider.removeContainer(containerEntity.getContainerId());
         containerRepository.delete(containerEntity);
 
-        String AT = request.getHeader("Authorization");
+        String AT = request.getHeader("Authorization").substring(7);
 
         boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
         if (buildSuccess) {
