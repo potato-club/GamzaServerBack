@@ -567,8 +567,9 @@ public class ProjectServiceImpl implements ProjectService {
         dockerProvider.removeContainer(containerEntity.getContainerId());
         containerRepository.delete(containerEntity);
 
+        String AT = request.getHeader("Authorization");
 
-        boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+        boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
         if (buildSuccess) {
             updateProjectApprovalFixedState(project);
         }
