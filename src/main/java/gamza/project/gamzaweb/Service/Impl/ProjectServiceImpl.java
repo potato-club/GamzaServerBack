@@ -513,11 +513,14 @@ public class ProjectServiceImpl implements ProjectService {
 //        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
 
+        String AT = request.getHeader("Authorization");
+        System.out.println("AT 체크 :" + AT);
+
         executorService.submit(() -> {
 
             try {
                 projectRepository.save(project);
-                boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+                boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
                 if (buildSuccess) {
                     deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
 //                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
@@ -564,8 +567,9 @@ public class ProjectServiceImpl implements ProjectService {
         dockerProvider.removeContainer(containerEntity.getContainerId());
         containerRepository.delete(containerEntity);
 
+        String AT = request.getHeader("Authorization");
 
-        boolean buildSuccess = buildDockerImageFromApplicationZip(request, project);
+        boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
         if (buildSuccess) {
             updateProjectApprovalFixedState(project);
         }
@@ -602,12 +606,14 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
     }
 
-    private boolean buildDockerImageFromApplicationZip(HttpServletRequest request, ProjectEntity project) {
+    private boolean buildDockerImageFromApplicationZip(String token, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
 //            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
+
+        System.out.println("accessToken :" + token);
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
@@ -619,12 +625,12 @@ public class ProjectServiceImpl implements ProjectService {
 //            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
-                    request,
+                    token, // 기존 Reuqest 에서 Token으로 변경 0221 성훈
                     dockerfilePath.toFile(),
                     project,
                     imageId -> {
 
-                        createContainer(request, project, imageId);
+                        createContainer(token, project, imageId);
 
                         // Docker 빌드 성공 후 Nginx 설정 생성
                         String applicationName = project.getName();
@@ -653,8 +659,8 @@ public class ProjectServiceImpl implements ProjectService {
         return buildSuccess.get();
     }
 
-    private void createContainer(HttpServletRequest request, ProjectEntity project, String imageId) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
+    private void createContainer(String token, ProjectEntity project, String imageId) {
+//        String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
@@ -679,8 +685,7 @@ public class ProjectServiceImpl implements ProjectService {
         containerRepository.save(containerEntity);
     }
 
-    private void buildDockerImage(HttpServletRequest request, File dockerfile, ProjectEntity project, DockerProviderBuildCallback callback) {
-        String token = jwtTokenProvider.resolveAccessToken(request);
+    private void buildDockerImage(String token, File dockerfile, ProjectEntity project, DockerProviderBuildCallback callback) {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
