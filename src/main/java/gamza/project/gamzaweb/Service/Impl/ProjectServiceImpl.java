@@ -569,63 +569,54 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-//    @Async // 비동기
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
 
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-//        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
-        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
+        // 배포 시작 상태 SSE 전송
+        projectStatusService.updateDeploymentStep(project, DeploymentStep.PENDING);
 
         String AT = request.getHeader("Authorization").substring(7);
-        System.out.println("AT 체크 :" + AT);
 
         executorService.submit(() -> {
-
             try {
                 projectRepository.save(project);
                 boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
                 if (buildSuccess) {
-                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
-//                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
+                    projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                     updateProjectApprovalState(project);
                 } else {
-                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
-//                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+                    projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
-//            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
-
+                projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
             }
             projectRepository.save(project);
-//            executorService.shutdown();  스레드풀 종료를 해줘야하나?
         });
     }
 
     private boolean buildDockerImageFromApplicationZip(String token, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-//            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
-            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
+
+//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
-
-        System.out.println("accessToken :" + token);
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
-//            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
-            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
+//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
-//            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
-            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
+            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
+//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
-                    token, // 기존 Reuqest 에서 Token으로 변경 0221 성훈
+                    token,
                     dockerfilePath.toFile(),
                     project,
                     imageId -> {
@@ -636,18 +627,18 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
-                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
-//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
+//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
                         nginxService.generateNginxConf(applicationName, applicationPort);
                         nginxService.restartNginx(); // Nginx 재시작
 
-                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
-//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
+//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
 //                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
-//                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
+                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
