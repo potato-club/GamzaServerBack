@@ -33,7 +33,7 @@ public class DeploymentSseController {
 
     private void sendLastDeploymentStep(Long projectId, SseEmitter emitter) {
         // 배포 상태 캐시에서 최신 상태 가져오기
-        String lastStep = deploymentStepCache.getOrDefault(projectId, "🚀 배포 상태 없음");
+        String lastStep = deploymentStepCache.getOrDefault(projectId, "배포 상태 없음");
         try {
             emitter.send(SseEmitter.event().name("deployment-step").data(lastStep));
         } catch (IOException e) {

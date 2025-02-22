@@ -637,7 +637,7 @@ public class ProjectServiceImpl implements ProjectService {
                         projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
-//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
+                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
                         projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
