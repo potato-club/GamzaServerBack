@@ -1,5 +1,7 @@
 package gamza.project.gamzaweb.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gamza.project.gamzaweb.Dto.project.DeployStepResponseDto;
 import java.util.ArrayList;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -11,6 +13,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RestController
 @RequestMapping("/project/deploy")
 public class DeploymentSseController {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private static final ConcurrentHashMap<Long, CopyOnWriteArrayList<SseEmitter>> emitters = new ConcurrentHashMap<>();
     private final Map<Long, String> deploymentStepCache = new ConcurrentHashMap<>();
 
@@ -29,20 +33,20 @@ public class DeploymentSseController {
         return emitter;
     }
 
-
-
     private void sendLastDeploymentStep(Long projectId, SseEmitter emitter) {
-        // 배포 상태 캐시에서 최신 상태 가져오기
         String lastStep = deploymentStepCache.getOrDefault(projectId, "배포 상태 없음");
+
         try {
-            emitter.send(SseEmitter.event().name("deployment-step").data(lastStep));
+            // DTO 객체 생성 후 JSON 변환
+            String jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(lastStep));
+
+            // event 없이 순수 JSON 데이터만 전송
+            emitter.send(jsonData);
         } catch (IOException e) {
             emitter.complete();
             emitters.get(projectId).remove(emitter);
         }
     }
-
-
 
     public void sendUpdate(Long projectId, String step) {
         deploymentStepCache.put(projectId, step); // 최신 배포 상태 저장
@@ -51,14 +55,23 @@ public class DeploymentSseController {
             return;
         }
 
-        // 연결된 클라이언트에게 상태 전송
+        // JSON 변환
+        String jsonData;
+        try {
+            jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(step));
+        } catch (IOException e) {
+            System.out.println("JSON 변환 오류: " + e.getMessage());
+            return;
+        }
+
+        // 연결된 클라이언트에게 JSON만 전송
         for (SseEmitter emitter : new ArrayList<>(emitters.get(projectId))) {
             try {
-                emitter.send(SseEmitter.event().name("deployment-step").data(step));
+                emitter.send(jsonData); // DTO를 사용해 JSON 전송
             } catch (IOException e) {
                 emitter.complete();
                 emitters.get(projectId).remove(emitter);
-                System.out.println(" 클라이언트 연결 끊김, Emitter 제거됨");
+                System.out.println("클라이언트 연결 끊김, Emitter 제거됨");
             }
         }
     }
