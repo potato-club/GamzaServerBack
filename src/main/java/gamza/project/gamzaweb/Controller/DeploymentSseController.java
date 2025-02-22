@@ -13,9 +13,22 @@ public class DeploymentSseController {
 
     @GetMapping("/subscribe/{projectId}")
     public SseEmitter subscribe(@PathVariable Long projectId) {
-//        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        SseEmitter emitter = new SseEmitter(60_000L);
+        SseEmitter emitter = new SseEmitter(0L); // 🔥 타임아웃 무제한 설정
         emitters.computeIfAbsent(projectId, k -> new CopyOnWriteArrayList<>()).add(emitter);
+
+        // 🔥 5초마다 Heartbeat(핑) 메시지 전송 (연결 유지)
+        new Thread(() -> {
+            while (true) {
+                try {
+                    emitter.send(SseEmitter.event().name("ping").data("heartbeat"));
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    emitter.complete();
+                    emitters.get(projectId).remove(emitter);
+                    break;
+                }
+            }
+        }).start();
 
         emitter.onCompletion(() -> emitters.get(projectId).remove(emitter));
         emitter.onTimeout(() -> emitters.get(projectId).remove(emitter));
