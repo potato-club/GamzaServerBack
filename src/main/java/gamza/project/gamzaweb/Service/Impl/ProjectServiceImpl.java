@@ -124,10 +124,11 @@ public class ProjectServiceImpl implements ProjectService {
                     .description(dto.getDescription())
                     .state(dto.getState())
                     .leader(user)
-                    .platformEntity(platform)           // 0211 신규 컬럼 추가 - 성훈
-                    .projectType(dto.getProjectType()) // 0211 신규 컬럼 추가 - 성훈
+                    .platformEntity(platform)
+                    .projectType(dto.getProjectType())
                     .startedDate(dto.getStartedDate())
                     .endedDate(dto.getEndedDate())
+                    .deploymentStep(DeploymentStep.NONE.getDescription())
                     .build();
             projectRepository.save(project);
 

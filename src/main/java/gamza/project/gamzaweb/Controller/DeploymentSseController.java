@@ -2,6 +2,10 @@ package gamza.project.gamzaweb.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gamza.project.gamzaweb.Dto.project.DeployStepResponseDto;
+import gamza.project.gamzaweb.Entity.ProjectEntity;
+import gamza.project.gamzaweb.Error.ErrorCode;
+import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
+import gamza.project.gamzaweb.Repository.ProjectRepository;
 import java.util.ArrayList;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -17,6 +21,11 @@ public class DeploymentSseController {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final ConcurrentHashMap<Long, CopyOnWriteArrayList<SseEmitter>> emitters = new ConcurrentHashMap<>();
     private final Map<Long, String> deploymentStepCache = new ConcurrentHashMap<>();
+    private final ProjectRepository projectRepository;
+
+    public DeploymentSseController(ProjectRepository projectRepository) {
+        this.projectRepository = projectRepository;
+    }
 
     @GetMapping("/subscribe/{projectId}")
     public SseEmitter subscribe(@PathVariable Long projectId) {
@@ -34,7 +43,9 @@ public class DeploymentSseController {
     }
 
     private void sendLastDeploymentStep(Long projectId, SseEmitter emitter) {
-        String lastStep = deploymentStepCache.getOrDefault(projectId, "배포 상태 없음");
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ForbiddenException("프로젝트를 찾을 수 없습니다.", ErrorCode.FAILED_PROJECT_ERROR));
+        String lastStep = deploymentStepCache.getOrDefault(projectId, project.getDeploymentStep());
 
         try {
             // DTO 객체 생성 후 JSON 변환
