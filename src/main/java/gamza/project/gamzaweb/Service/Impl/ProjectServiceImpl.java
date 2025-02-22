@@ -475,7 +475,6 @@ public class ProjectServiceImpl implements ProjectService {
 //        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
         Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNullAndSuccessCheckFalse(pageable);
 
-
         return projectEntities.map(project -> {
             String fileUrl = fileUploader.recentGetFileUrl(project);
             return new ProjectListApproveResponse(project, fileUrl);
@@ -559,12 +558,12 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
-//        deploymentStepQueue.addDeploymentUpdate(project, status); // 이거를 물어봐야겠따 어떻게 처리할까??
-        project.updateApprovalStatus(status);
-        projectRepository.save(project);
-    }
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
+////        deploymentStepQueue.addDeploymentUpdate(project, status); // 이거를 물어봐야겠따 어떻게 처리할까??
+//        project.updateApprovalStatus(status);
+//        projectRepository.save(project);
+//    }
 
 
     @Override
@@ -576,7 +575,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
         // 배포 시작 상태 SSE 전송
-        projectStatusService.updateDeploymentStep(project, DeploymentStep.PENDING);
+        project.updateApprovalProjectStatus(ApprovalProjectStatus.PENDING);
+        projectRepository.save(project);
 
         String AT = request.getHeader("Authorization").substring(7);
 
@@ -586,13 +586,16 @@ public class ProjectServiceImpl implements ProjectService {
                 boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
                 if (buildSuccess) {
                     projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
+                    project.updateApprovalProjectStatus(ApprovalProjectStatus.SUCCESS); // 승인 상태 업데이트
                     updateProjectApprovalState(project);
                 } else {
                     projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
+                    project.updateApprovalProjectStatus(ApprovalProjectStatus.FAILED); //  승인 실패 업데이트
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
+                project.updateApprovalProjectStatus(ApprovalProjectStatus.FAILED); // 승인 실패 업데이트
             }
             projectRepository.save(project);
         });
