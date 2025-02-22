@@ -1,17 +1,12 @@
 package gamza.project.gamzaweb.Service.Impl;
 
 import gamza.project.gamzaweb.Controller.DeploymentSseController;
-import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import gamza.project.gamzaweb.Service.Interface.ProjectStatusService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +16,7 @@ public class ProjectStatusServiceImpl implements ProjectStatusService {
 
     @Override
     public void updateDeploymentStep(ProjectEntity project, DeploymentStep step) {
+        // 🔥 배포 상태를 SSE로 전송
         deploymentSseController.sendUpdate(project.getId(), step.getDescription());
         System.out.println("Deployment Step Updated (SSE Only): " + step.getDescription());
     }
