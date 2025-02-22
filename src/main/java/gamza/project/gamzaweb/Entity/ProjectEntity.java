@@ -125,4 +125,8 @@ public class ProjectEntity extends BaseTime {
         this.platformEntity = platform;
     }
 
+    public void updateApprovalProjectStatus(ApprovalProjectStatus status) {
+        this.approvalProjectStatus = status;
+    }
+
 }
