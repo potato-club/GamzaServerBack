@@ -493,53 +493,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
-//        deploymentStepQueue.addDeploymentUpdate(project, status); // 이거를 물어봐야겠따 어떻게 처리할까??
-        project.updateApprovalStatus(status);
-        projectRepository.save(project);
-    }
-
-
-    @Override
-    @Transactional
-//    @Async // 비동기
-    public void approveExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-
-        ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
-
-//        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
-        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
-
-        String AT = request.getHeader("Authorization").substring(7);
-        System.out.println("AT 체크 :" + AT);
-
-        executorService.submit(() -> {
-
-            try {
-                projectRepository.save(project);
-                boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
-                if (buildSuccess) {
-                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
-//                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
-                    updateProjectApprovalState(project);
-                } else {
-                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
-//                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
-//            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
-
-            }
-            projectRepository.save(project);
-//            executorService.shutdown();  스레드풀 종료를 해줘야하나?
-        });
-    }
-
     @Override
     @Transactional
     public void checkSuccessProject(HttpServletRequest request, Long id) {
@@ -604,6 +557,53 @@ public class ProjectServiceImpl implements ProjectService {
             throw new InvalidTokenException("프로젝트 삭제 권한이 없습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
         projectRepository.delete(project);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateApprovalStatus(ProjectEntity project, ApprovalProjectStatus status) {
+//        deploymentStepQueue.addDeploymentUpdate(project, status); // 이거를 물어봐야겠따 어떻게 처리할까??
+        project.updateApprovalStatus(status);
+        projectRepository.save(project);
+    }
+
+
+    @Override
+    @Transactional
+//    @Async // 비동기
+    public void approveExecutionApplication(HttpServletRequest request, Long id) {
+        userValidate.validateUserRole(request);
+
+        ProjectEntity project = projectRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
+
+//        updateApprovalStatus(project, ApprovalProjectStatus.PENDING);
+        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.PENDING);
+
+        String AT = request.getHeader("Authorization").substring(7);
+        System.out.println("AT 체크 :" + AT);
+
+        executorService.submit(() -> {
+
+            try {
+                projectRepository.save(project);
+                boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
+                if (buildSuccess) {
+                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
+//                updateApprovalStatus(project, ApprovalProjectStatus.SUCCESS);
+                    updateProjectApprovalState(project);
+                } else {
+                    deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
+//                updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
+//            updateApprovalStatus(project, ApprovalProjectStatus.FAILED);
+
+            }
+            projectRepository.save(project);
+//            executorService.shutdown();  스레드풀 종료를 해줘야하나?
+        });
     }
 
     private boolean buildDockerImageFromApplicationZip(String token, ProjectEntity project) {

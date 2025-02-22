@@ -13,7 +13,8 @@ public class DeploymentSseController {
 
     @GetMapping("/subscribe/{projectId}")
     public SseEmitter subscribe(@PathVariable Long projectId) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+//        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+        SseEmitter emitter = new SseEmitter(60_000L);
         emitters.computeIfAbsent(projectId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
         emitter.onCompletion(() -> emitters.get(projectId).remove(emitter));
