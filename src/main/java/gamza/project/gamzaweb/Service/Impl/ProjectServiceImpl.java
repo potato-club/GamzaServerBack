@@ -602,7 +602,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (project.getApplication().getImageId() == null) {
             projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
 
-//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
@@ -610,11 +610,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         try {
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
-//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
             projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
-//            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     token,
                     dockerfilePath.toFile(),
@@ -627,13 +627,13 @@ public class ProjectServiceImpl implements ProjectService {
                         String applicationName = project.getName();
                         int applicationPort = project.getApplication().getOuterPort();
 
-//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
+                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
                         projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
                         nginxService.generateNginxConf(applicationName, applicationPort);
                         nginxService.restartNginx(); // Nginx 재시작
 
-//                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
+                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
                         projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
