@@ -20,13 +20,8 @@ public class ProjectStatusServiceImpl implements ProjectStatusService {
     private final DeploymentSseController deploymentSseController;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateDeploymentStep(ProjectEntity project, DeploymentStep step) {
-        project.updateDeploymentStep(step.getDescription());
-        projectRepository.saveAndFlush(project);
-
         deploymentSseController.sendUpdate(project.getId(), step.getDescription());
-
-        System.out.println("Deployment Step Updated: " + step.getDescription());
+        System.out.println("Deployment Step Updated (SSE Only): " + step.getDescription());
     }
 }
