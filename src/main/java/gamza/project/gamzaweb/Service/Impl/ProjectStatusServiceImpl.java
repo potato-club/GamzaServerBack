@@ -16,7 +16,7 @@ public class ProjectStatusServiceImpl implements ProjectStatusService {
 
     @Override
     public void updateDeploymentStep(ProjectEntity project, DeploymentStep step) {
-        // 🔥 배포 상태를 SSE로 전송
+        // 배포 상태를 SSE로 전송
         deploymentSseController.sendUpdate(project.getId(), step.getDescription());
         System.out.println("Deployment Step Updated (SSE Only): " + step.getDescription());
     }
