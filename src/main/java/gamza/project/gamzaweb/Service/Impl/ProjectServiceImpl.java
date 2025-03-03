@@ -661,11 +661,13 @@ public class ProjectServiceImpl implements ProjectService {
 
         CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
                 .withName(project.getName())
-                .withExposedPorts(ExposedPort.tcp(project.getApplication().getInternalPort()))
+//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getInternalPort()))
 //                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
-                        .withPortBindings(new PortBinding(Binding.bindPort(project.getApplication().getOuterPort()),
-                                ExposedPort.tcp(project.getApplication().getInternalPort()))))
+                        .withPortBindings(new PortBinding(
+                                Binding.bindPort(project.getApplication().getOuterPort()),
+                                ExposedPort.tcp(project.getApplication().getInternalPort())
+                        )))
                 .withImage(imageId)
                 .exec();
 
