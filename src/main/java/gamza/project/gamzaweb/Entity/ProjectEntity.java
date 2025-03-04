@@ -39,9 +39,6 @@ public class ProjectEntity extends BaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity leader; // 프로젝트 생성자가 팀장임
 
-//    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<ContainerEntity> container = new ArrayList<>();
-
     @Column()
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     @Builder.Default

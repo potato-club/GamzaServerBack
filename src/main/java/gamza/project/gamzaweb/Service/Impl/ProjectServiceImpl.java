@@ -375,7 +375,8 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                fileUploader.recentGetFileUrl(project)))
+                                fileUploader.recentGetFileUrl(project),
+                                project.getApplication().getContainerEntity().getContainerId().substring(0,12))) //컨테이너 아이디는 12글자만 있으면 조회 됨
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -385,7 +386,8 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getId(),
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
-                                fileUploader.recentGetFileUrl(project))) // 이부분을 위 아래 수정했음, 가장 최근 프로젝트 link가 반환되도록 함 얘기해볼까 어떻게할지? 일단 오류 수정됨
+                                fileUploader.recentGetFileUrl(project),
+                                project.getApplication().getContainerEntity().getContainerId().substring(0,12)))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()
@@ -515,7 +517,7 @@ public class ProjectServiceImpl implements ProjectService {
         userValidate.validateUserRole(request);
         ProjectEntity project = getProjectById(id);
 
-        ContainerEntity containerEntity = containerRepository.findContainerEntityByProject(project);
+        ContainerEntity containerEntity = containerRepository.findContainerEntityByApplication(project.getApplication());
         dockerProvider.stopContainer(request, containerEntity);
         dockerProvider.removeContainer(containerEntity.getContainerId());
         containerRepository.delete(containerEntity);

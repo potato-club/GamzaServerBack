@@ -14,6 +14,6 @@ public class ProjectPerResponseDto {
     private int port;
     private String file;
 
-//    private String containerId;
+    private String containerId;
 
 }
