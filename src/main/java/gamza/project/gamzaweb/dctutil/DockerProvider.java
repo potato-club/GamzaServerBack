@@ -104,42 +104,42 @@ public class DockerProvider {
     }
 
 
-    public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
-
-        String token = jwtTokenProvider.resolveAccessToken(request);
-        Long userId = jwtTokenProvider.extractId(token);
-        UserEntity userPk = userRepository.findUserEntityById(userId);
-
-        ExposedPort tcpOuter = ExposedPort.tcp(dto.getInternalPort());
-        Ports portBindings = new Ports();
-        portBindings.bind(tcpOuter, Ports.Binding.bindPort(dto.getOuterPort()));
-
-        // create container from image
-        try {
-
-            CreateContainerResponse container = dockerClient.createContainerCmd(dto.getName())
-                    .withExposedPorts(tcpOuter)
-                    .withHostConfig(newHostConfig()
-                            .withPortBindings(portBindings))
-                    .withImage(dto.getName() + ":" + dto.getTag())
-                    .exec();
-
-            // start the container
-            dockerClient.startContainerCmd(container.getId()).exec();
-
-            ContainerEntity containerEntity = ContainerEntity.builder()
-                    .containerId(container.getId()) // ?
-                    .imageId(dto.getName() + ":" + dto.getTag())
-                    .user(userPk)
-                    .build();
-
-            containerRepository.save(containerEntity);
-
-            return container.getId();
-        } catch (Exception e) {
-            throw new DockerRequestException("3005 FAILED CONTAINER BUILD", ErrorCode.FAILED_CONTAINER_BUILD);
-        }
-    }
+//    public String createContainer(RequestDockerContainerDto dto, HttpServletRequest request) {
+//
+//        String token = jwtTokenProvider.resolveAccessToken(request);
+//        Long userId = jwtTokenProvider.extractId(token);
+//        UserEntity userPk = userRepository.findUserEntityById(userId);
+//
+//        ExposedPort tcpOuter = ExposedPort.tcp(dto.getInternalPort());
+//        Ports portBindings = new Ports();
+//        portBindings.bind(tcpOuter, Ports.Binding.bindPort(dto.getOuterPort()));
+//
+//        // create container from image
+//        try {
+//
+//            CreateContainerResponse container = dockerClient.createContainerCmd(dto.getName())
+//                    .withExposedPorts(tcpOuter)
+//                    .withHostConfig(newHostConfig()
+//                            .withPortBindings(portBindings))
+//                    .withImage(dto.getName() + ":" + dto.getTag())
+//                    .exec();
+//
+//            // start the container
+//            dockerClient.startContainerCmd(container.getId()).exec();
+//
+//            ContainerEntity containerEntity = ContainerEntity.builder()
+//                    .containerId(container.getId()) // ?
+//                    .imageId(dto.getName() + ":" + dto.getTag())
+//                    .user(userPk)
+//                    .build();
+//
+//            containerRepository.save(containerEntity);
+//
+//            return container.getId();
+//        } catch (Exception e) {
+//            throw new DockerRequestException("3005 FAILED CONTAINER BUILD", ErrorCode.FAILED_CONTAINER_BUILD);
+//        }
+//    }
 
     public void stopContainer(HttpServletRequest request, ContainerEntity container) {
 

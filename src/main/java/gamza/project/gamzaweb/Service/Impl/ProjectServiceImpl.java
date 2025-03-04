@@ -674,7 +674,7 @@ public class ProjectServiceImpl implements ProjectService {
         dockerClient.startContainerCmd(container.getId()).exec();
 
         ContainerEntity containerEntity = ContainerEntity.builder()
-                .project(project)
+                .application(project.getApplication())
                 .containerId(container.getId())
                 .imageId(project.getName() + ":" + project.getApplication().getTag())
                 .user(userPk)
