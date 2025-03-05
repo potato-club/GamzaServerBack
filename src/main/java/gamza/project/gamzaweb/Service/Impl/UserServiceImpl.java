@@ -83,6 +83,8 @@ public class UserServiceImpl implements UserService {
         String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
         jwtTokenProvider.validateRefreshToken(refreshToken);
 
+        String userEmail = jwtTokenProvider.extractUserEmail(refreshToken);
+
         if(redisJwtService.isTokenValid(refreshToken)) {
             throw new UnAuthorizedException("로그아웃된 토큰입니다. 다시 로그인해주세요.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
@@ -92,6 +94,8 @@ public class UserServiceImpl implements UserService {
 
         jwtTokenProvider.setHeaderAccessToken(response, newAT);
         jwtTokenProvider.setHeaderRefreshToken(response, newRT);
+
+        redisJwtService.setValues(newRT, userEmail);
     }
 
     @Override
