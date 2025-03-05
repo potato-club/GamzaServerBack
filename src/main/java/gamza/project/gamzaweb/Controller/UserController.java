@@ -48,7 +48,6 @@ public class UserController {
     @Operation(description = "토큰 재발급")
     public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse response) {
         userService.reissueToken(request, response);
-        log.info(jwtTokenProvider.resolveRefreshToken(request) + " log");
         return ResponseEntity.ok().body("Success reissue Token!");
     }
 
