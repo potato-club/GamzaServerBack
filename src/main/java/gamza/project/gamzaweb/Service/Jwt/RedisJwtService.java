@@ -30,8 +30,10 @@ public class RedisJwtService {
         Object object = operations.get(token);
 
         if (object instanceof Map) {
+            System.out.println("여기 걸리면 제대로 반환 맞음");
             return (Map<String, String>) object;
         }
+        System.out.println("여기 걸리면 null 맞음");
         return null;
     }
 
