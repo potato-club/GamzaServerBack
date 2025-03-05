@@ -21,7 +21,6 @@ import java.util.List;
 public class ProjectRequestDto {
 
     private Long platformId;
-    private String platformName;
     private String name;
     private String description;
     private ProjectState state;

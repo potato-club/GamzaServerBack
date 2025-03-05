@@ -13,9 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
 @RestController
 @RequestMapping("/project")
 @RequiredArgsConstructor
@@ -59,19 +56,19 @@ public class ProjectController {
     }
 
     @GetMapping("/user/list")
-    @Operation(description = "회원이 만든 프로젝트 출력")
+    @Operation(description = "회원이 만든 프로젝트 출력") // -> containerId값 반환완료
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
         return projectService.personalProject(request);
     }
 
     @GetMapping("/{id}")
-    @Operation(description = "프로젝트 조회")
+    @Operation(description = "프로젝트 조회") // -> containerId값 반환 필요한가?
     public ProjectDetailResponseDto getProjectById(HttpServletRequest request, @PathVariable("id") Long id) {
         return projectService.getProjectById(request, id);
     }
 
     @GetMapping("/app/{projectId}")
-    @Operation(description = "어플리케이션 조회, 프로젝트 id로 조회하면 됨")
+    @Operation(description = "어플리케이션 조회, 프로젝트 id로 조회하면 됨") // -> containerId값 반환 필요한가?
     public ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, @PathVariable("projectId") Long projectId) {
         return projectService.getApplicationByProjId(request, projectId);
     }

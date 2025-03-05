@@ -36,7 +36,6 @@ public class ProjectTaskScheduler {
                 });
         });
 
-        System.out.println("여기까지 뜨면 다된거긴해 제발용~꼬리용용");
     }
 
 

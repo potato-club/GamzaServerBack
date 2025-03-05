@@ -62,7 +62,7 @@ public class AdminController {
         return projectService.notApproveProjectList(request, pageable);
     }
 
-    @GetMapping("/project/pending/list")
+    @GetMapping("/project/pending/list") // containerId 값 반환 필요한가?
     @Operation(description = "승인된 프로젝트 리스트 출력")
     public Page<ProjectListApproveResponse> approvedProjectList(
             HttpServletRequest request,
@@ -81,11 +81,6 @@ public class AdminController {
     }
 
     // TODO : 프로젝트 출력 플렛폼 값으로 출력하도록 수정
-    // TODO : ApprovalProjectState + DeploymentStep Enum 합치기 ( O )
-    // TODO : Scheduler 사용한 부분 모두 적용시키고 테스트 하기 ( O )
-    // TODO : 프로젝트 실행 비동기 방식으로 처리하기 ( 처리시간 너무 긴 이유 ) ( O )
-    // TODO : (성훈) s3링크 제대로 반환하는거 확인하자
-
 
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
@@ -124,17 +119,5 @@ public class AdminController {
         projectService.removeFixedExecutionApplication(request, id);
         return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
     }
-
-    @GetMapping("/request")
-    public String getRequestInfo(HttpServletRequest request) {
-        String ipAddress = request.getRemoteAddr(); // 요청자의 IP 주소
-        String userAgent = request.getHeader("User-Agent"); // 요청자의 User-Agent 정보
-        String method = request.getMethod(); // HTTP 메서드 (GET, POST 등)
-        String url = request.getRequestURL().toString(); // 요청 URL
-
-        return String.format("IP: %s, User-Agent: %s, Method: %s, URL: %s",
-                ipAddress, userAgent, method, url);
-    }
-
 
 }

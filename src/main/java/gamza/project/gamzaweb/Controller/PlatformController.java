@@ -16,8 +16,17 @@ public class PlatformController {
 
     private final PlatformService platformService;
 
+    // TODO : 플랫폼별 프로젝트 리스트 반환 -> 일단 무한스크롤? 페이지네이션 ㄴ? 4개적당해보이는데
+    // TODO :
+
+//    @GetMapping("/project/list")
+//    @Operation(description = "플랫폼별 프로젝트 리스트 출력")
+//    public void getAllPlatformProjectList() {
+//        return platformService
+//    }
+
     @GetMapping("/list")
-    @Operation(description = "플랫폼 리스트 발급")
+    @Operation(description = " 프로젝트 생성시 플랫폼 선택 리스트 출력 api") // ->
     public PlatformListResponseDto getAllPlatformList(HttpServletRequest request) {
         return platformService.getAllPlatformList(request);
     }
