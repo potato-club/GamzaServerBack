@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Repository;
 
+import gamza.project.gamzaweb.Entity.ApplicationEntity;
 import gamza.project.gamzaweb.Entity.ContainerEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
@@ -17,5 +18,5 @@ public interface ContainerRepository extends JpaRepository<ContainerEntity, Long
     @Query("SELECT c.containerId FROM ContainerEntity c WHERE c.user.id = :userId")
     List<String> findContainerIdsByUserId(@Param("userId") Long userId);
 
-    ContainerEntity findContainerEntityByProject(ProjectEntity project);
+    ContainerEntity findContainerEntityByApplication(ApplicationEntity application);
 }

@@ -16,8 +16,11 @@ public class PlatformController {
 
     private final PlatformService platformService;
 
+    @PostMapping("/create")
+//    @Operation(description = )
+
     @GetMapping("/list")
-    @Operation(description = "플랫폼 리스트 발급")
+    @Operation(description = "프로젝트 생성시 플랫폼 선택 리스트 출력 api")
     public PlatformListResponseDto getAllPlatformList(HttpServletRequest request) {
         return platformService.getAllPlatformList(request);
     }

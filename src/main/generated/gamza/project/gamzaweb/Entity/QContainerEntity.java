@@ -22,13 +22,13 @@ public class QContainerEntity extends EntityPathBase<ContainerEntity> {
 
     public static final QContainerEntity containerEntity = new QContainerEntity("containerEntity");
 
+    public final QApplicationEntity application;
+
     public final StringPath containerId = createString("containerId");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath imageId = createString("imageId");
-
-    public final QProjectEntity project;
 
     public final QUserEntity user;
 
@@ -50,7 +50,7 @@ public class QContainerEntity extends EntityPathBase<ContainerEntity> {
 
     public QContainerEntity(Class<? extends ContainerEntity> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.project = inits.isInitialized("project") ? new QProjectEntity(forProperty("project"), inits.get("project")) : null;
+        this.application = inits.isInitialized("application") ? new QApplicationEntity(forProperty("application"), inits.get("application")) : null;
         this.user = inits.isInitialized("user") ? new QUserEntity(forProperty("user")) : null;
     }
 

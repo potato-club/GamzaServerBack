@@ -34,8 +34,6 @@ public class QProjectEntity extends EntityPathBase<ProjectEntity> {
 
     public final ListPath<CollaboratorEntity, QCollaboratorEntity> collaborators = this.<CollaboratorEntity, QCollaboratorEntity>createList("collaborators", CollaboratorEntity.class, QCollaboratorEntity.class, PathInits.DIRECT2);
 
-    public final ListPath<ContainerEntity, QContainerEntity> container = this.<ContainerEntity, QContainerEntity>createList("container", ContainerEntity.class, QContainerEntity.class, PathInits.DIRECT2);
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdDate = _super.createdDate;
 

@@ -4,10 +4,12 @@ import gamza.project.gamzaweb.Dto.User.request.RequestUserLoginDto;
 import gamza.project.gamzaweb.Dto.User.request.RequestUserSignUpDto;
 import gamza.project.gamzaweb.Dto.User.response.ResponseUserList;
 import gamza.project.gamzaweb.Service.Interface.UserService;
+import gamza.project.gamzaweb.Service.Jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/user")
 @CrossOrigin(origins = "${cors.allowed-origins}")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/signup")
     @Operation(description = "회원 가입")
@@ -44,6 +48,8 @@ public class UserController {
     @Operation(description = "토큰 재발급")
     public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse response) {
         userService.reissueToken(request, response);
+        log.info(jwtTokenProvider.resolveRefreshToken(request) + " log");
+        System.out.println(jwtTokenProvider.resolveAccessToken(request) + "sout");
         return ResponseEntity.ok().body("Success reissue Token!");
     }
 

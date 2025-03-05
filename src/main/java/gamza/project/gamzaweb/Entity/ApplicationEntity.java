@@ -38,6 +38,9 @@ public class ApplicationEntity {
     @JoinColumn(name = "project_id")  // 외래 키 컬럼명 설정
     private ProjectEntity project;
 
+    @OneToOne(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ContainerEntity containerEntity;
+
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FileEntity> fileEntities = new ArrayList<>();
 

@@ -22,6 +22,8 @@ public class QApplicationEntity extends EntityPathBase<ApplicationEntity> {
 
     public static final QApplicationEntity applicationEntity = new QApplicationEntity("applicationEntity");
 
+    public final QContainerEntity containerEntity;
+
     public final ListPath<FileEntity, QFileEntity> fileEntities = this.<FileEntity, QFileEntity>createList("fileEntities", FileEntity.class, QFileEntity.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
@@ -56,6 +58,7 @@ public class QApplicationEntity extends EntityPathBase<ApplicationEntity> {
 
     public QApplicationEntity(Class<? extends ApplicationEntity> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.containerEntity = inits.isInitialized("containerEntity") ? new QContainerEntity(forProperty("containerEntity"), inits.get("containerEntity")) : null;
         this.project = inits.isInitialized("project") ? new QProjectEntity(forProperty("project"), inits.get("project")) : null;
     }
 
