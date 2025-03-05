@@ -1,7 +1,5 @@
 package gamza.project.gamzaweb.Service.Jwt;
 
-import gamza.project.gamzaweb.Error.ErrorCode;
-import gamza.project.gamzaweb.Error.requestError.ExpiredRefreshTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;

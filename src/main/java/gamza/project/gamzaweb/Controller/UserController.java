@@ -49,7 +49,6 @@ public class UserController {
     public ResponseEntity<String> reissue(HttpServletRequest request, HttpServletResponse response) {
         userService.reissueToken(request, response);
         log.info(jwtTokenProvider.resolveRefreshToken(request) + " log");
-        System.out.println(jwtTokenProvider.resolveAccessToken(request) + "sout");
         return ResponseEntity.ok().body("Success reissue Token!");
     }
 
