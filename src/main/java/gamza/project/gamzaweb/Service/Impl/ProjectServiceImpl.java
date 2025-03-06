@@ -171,7 +171,6 @@ public class ProjectServiceImpl implements ProjectService {
         final String userRole = (token != null && !token.isEmpty()) ? jwtTokenProvider.extractRole(token) : null;
 
         List<ProjectEntity> projectPage = projectRepository.findProjectsWithImages();
-        System.out.println(projectPage);
 
         List<ProjectResponseDto> collect = projectPage.stream()
                 .map(project -> {
@@ -191,9 +190,16 @@ public class ProjectServiceImpl implements ProjectService {
                                     .studentId(collaborator.getUser().getStudentId())
                                     .build())
                             .toList();
+
                     String route = "https://"
                             + project.getName().toLowerCase().replace(" ", "-")
                             + ".gamza-club.com";
+
+                    String containerId = null;
+
+                    if (isCollaborator) {
+                        containerId = project.getApplication().getContainerEntity().getContainerId().substring(0,12);
+                    }
 
                     return new ProjectResponseDto(
                             project.getId(),
@@ -205,7 +211,9 @@ public class ProjectServiceImpl implements ProjectService {
                             imageIds,
                             collaboratorDtos,
                             isCollaborator,
-                            route
+                            route,
+                            containerId,
+                            project.getProjectType().name()
                     );
                 })
                 .collect(Collectors.toList());
@@ -373,7 +381,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
                                 fileUploader.recentGetFileUrl(project),
-                                project.getApplication().getContainerEntity().getContainerId().substring(0,12))) //컨테이너 아이디는 12글자만 있으면 조회 됨
+                                project.getApplication().getContainerEntity().getContainerId().substring(0, 12))) //컨테이너 아이디는 12글자만 있으면 조회 됨
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -384,7 +392,7 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
                                 fileUploader.recentGetFileUrl(project),
-                                project.getApplication().getContainerEntity().getContainerId().substring(0,12)))
+                                project.getApplication().getContainerEntity().getContainerId().substring(0, 12)))
                 .collect(Collectors.toList());
 
         return ProjectListPerResponseDto.builder()

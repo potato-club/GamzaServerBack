@@ -33,29 +33,9 @@ public class PlatformServiceImpl implements PlatformService {
             PlatformEntity newPlatform = dto.toEntity();
             platformRepository.save(newPlatform);
         } catch (RuntimeException e) {
-            e.printStackTrace();
             throw new DuplicateException("이미 존재하거나 잘못된 플랫폼 이름입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
 
-    }
-
-    @Override
-    public PlatformEntity checkedOrMakePlatform(String platformName, Long platformId) {
-
-        if(platformName.isBlank() && platformId != null) {
-
-            return platformRepository.findById(platformId)
-                    .orElseThrow(() -> new BadRequestException("잘못된 플랫폼 ID값입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
-        }
-        if(!platformName.isBlank() && platformId == null) {
-            PlatformEntity newPlatform = PlatformEntity.builder()
-                    .platformName(platformName)
-                    .build();
-            platformRepository.save(newPlatform);
-            return newPlatform;
-        }
-
-        return null;
     }
 
     @Override

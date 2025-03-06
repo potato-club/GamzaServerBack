@@ -7,8 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface PlatformService {
 
-    PlatformEntity checkedOrMakePlatform(String platformName, Long platformId);
-
     PlatformListResponseDto getAllPlatformList(HttpServletRequest request);
 
     void deletePlatform(HttpServletRequest request, Long id);
