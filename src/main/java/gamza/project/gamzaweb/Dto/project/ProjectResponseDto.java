@@ -29,6 +29,8 @@ public class ProjectResponseDto {
     @JsonProperty("isCollaborator")
     private boolean isCollaborator;
     private String route;
+    private String containerId;
+    private String projectType;
 
     @JsonIgnore
     public boolean isIsCollaborator() {

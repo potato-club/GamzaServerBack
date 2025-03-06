@@ -1,16 +1,19 @@
 package gamza.project.gamzaweb.Service.Impl;
 
+import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformResponseDto;
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
+import gamza.project.gamzaweb.Error.requestError.DuplicateException;
 import gamza.project.gamzaweb.Repository.PlatformRepository;
 import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,22 +25,17 @@ public class PlatformServiceImpl implements PlatformService {
     private final PlatformRepository platformRepository;
 
     @Override
-    public PlatformEntity checkedOrMakePlatform(String platformName, Long platformId) {
+    @Transactional
+    public void createPlatform(HttpServletRequest request, PlatformCreateRequestDto dto) {
+        userValidate.invalidUserRole(request);
 
-        if(platformName.isBlank() && platformId != null) {
-
-            return platformRepository.findById(platformId)
-                    .orElseThrow(() -> new BadRequestException("잘못된 플랫폼 ID값입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
-        }
-        if(!platformName.isBlank() && platformId == null) {
-            PlatformEntity newPlatform = PlatformEntity.builder()
-                    .platformName(platformName)
-                    .build();
+        try {
+            PlatformEntity newPlatform = dto.toEntity();
             platformRepository.save(newPlatform);
-            return newPlatform;
+        } catch (RuntimeException e) {
+            throw new DuplicateException("이미 존재하거나 잘못된 플랫폼 이름입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
 
-        return null;
     }
 
     @Override
@@ -67,5 +65,7 @@ public class PlatformServiceImpl implements PlatformService {
 
         platformRepository.delete(platform);
     }
+
+
 
 }

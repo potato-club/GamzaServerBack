@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.Controller;
 
+import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
 import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +18,11 @@ public class PlatformController {
     private final PlatformService platformService;
 
     @PostMapping("/create")
-//    @Operation(description = )
+    @Operation(description = "플랫폼 생성 API")
+    public ResponseEntity<String> createPlatform(HttpServletRequest request, @RequestBody PlatformCreateRequestDto dto) {
+        platformService.createPlatform(request, dto);
+        return ResponseEntity.ok().body("플랫폼 생성이 완료되었습니다.");
+    }
 
     @GetMapping("/list")
     @Operation(description = "프로젝트 생성시 플랫폼 선택 리스트 출력 api")
