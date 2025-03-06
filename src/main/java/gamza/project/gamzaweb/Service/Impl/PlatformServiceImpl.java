@@ -1,16 +1,19 @@
 package gamza.project.gamzaweb.Service.Impl;
 
+import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformResponseDto;
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.BadRequestException;
+import gamza.project.gamzaweb.Error.requestError.DuplicateException;
 import gamza.project.gamzaweb.Repository.PlatformRepository;
 import gamza.project.gamzaweb.Service.Interface.PlatformService;
 import gamza.project.gamzaweb.Validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +23,21 @@ public class PlatformServiceImpl implements PlatformService {
 
     private final UserValidate userValidate;
     private final PlatformRepository platformRepository;
+
+    @Override
+    @Transactional
+    public void createPlatform(HttpServletRequest request, PlatformCreateRequestDto dto) {
+        userValidate.invalidUserRole(request);
+
+        try {
+            PlatformEntity newPlatform = dto.toEntity();
+            platformRepository.save(newPlatform);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw new DuplicateException("이미 존재하거나 잘못된 플랫폼 이름입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
+
+    }
 
     @Override
     public PlatformEntity checkedOrMakePlatform(String platformName, Long platformId) {
@@ -67,5 +85,7 @@ public class PlatformServiceImpl implements PlatformService {
 
         platformRepository.delete(platform);
     }
+
+
 
 }

@@ -20,4 +20,12 @@ public class UserValidate {
             throw new UnAuthorizedException("401 NOT ADMIN", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
     }
+
+    public void invalidUserRole(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        String userRole = jwtTokenProvider.extractRole(token);
+        if(userRole.equals("2")) {
+            throw new UnAuthorizedException("401 Invalid UserRole", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
+    }
 }
