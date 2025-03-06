@@ -191,14 +191,25 @@ public class ProjectServiceImpl implements ProjectService {
                                     .build())
                             .toList();
 
-                    String route = "https://"
-                            + project.getName().toLowerCase().replace(" ", "-")
-                            + ".gamza-club.com";
+                    String route = null; // 만약 Back만 있으면 null 반환
+
+                    Optional<ProjectEntity> frontProject = project.getPlatformEntity().getProjects().stream()
+                            .filter(p -> p.getProjectType() == ProjectType.FRONT)
+                            .findFirst(); // ->  프론트 프로젝트 찾고
+
+                    if (frontProject.isPresent()) {
+                        String projectRouteName = frontProject.get().getName();
+                        route = "https://"
+                                + projectRouteName.toLowerCase().replace(" ", "-")
+                                + ".gamzaweb.store"; // -> 실 배포시 gamza.club으로 수정
+                    }
+
+
 
                     String containerId = null;
 
                     if (isCollaborator) {
-                        containerId = project.getApplication().getContainerEntity().getContainerId().substring(0,12);
+                        containerId = project.getApplication().getContainerEntity().getContainerId().substring(0, 12);
                     }
 
                     return new ProjectResponseDto(
