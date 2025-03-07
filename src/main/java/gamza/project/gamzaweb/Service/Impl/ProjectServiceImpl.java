@@ -455,7 +455,9 @@ public class ProjectServiceImpl implements ProjectService {
             project.updatePlatform(platform);
         }
 
-        List<CollaboratorEntity> newCollaborators = new ArrayList<>();
+        collaboratorRepository.deleteAllByProject(project); // 기존 해당 프로젝트의 협력자 모두 삭제
+
+        List<CollaboratorEntity> newCollaborators = new ArrayList<>(); // 새로운 배열 생성해서 입력받은 생성자 추가
 
         for (int i = 0; i < dto.getCollaborators().size(); i++) {
             UserEntity collaborator = userRepository.findById(dto.getCollaborators().get(i).longValue())

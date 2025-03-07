@@ -53,6 +53,7 @@ public class ProjectEntity extends BaseTime {
     private PlatformEntity platformEntity;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProjectType projectType;
 
     private LocalDate startedDate;
