@@ -1,9 +1,8 @@
 package gamza.project.gamzaweb.Dto.project;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
+import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +22,9 @@ public class ProjectDetailResponseDto {
     private LocalDate startedDate;
     private LocalDate endedDate;
     private List<ResponseCollaboratorDto> collaborators;
+    private ProjectType projectType;
+    private Long platformId;
+    private String platformName;
 
     public ProjectDetailResponseDto(ProjectEntity project) {
         this.id = project.getId();
@@ -38,5 +40,8 @@ public class ProjectDetailResponseDto {
                         .studentId(collaborator.getUser().getStudentId())
                         .build())
                 .toList();
+        this.projectType = project.getProjectType();
+        this.platformId = project.getPlatformEntity().getId();
+        this.platformName = project.getPlatformEntity().getPlatformName();
     }
 }
