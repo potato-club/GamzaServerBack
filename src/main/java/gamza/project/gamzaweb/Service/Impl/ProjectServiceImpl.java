@@ -178,10 +178,11 @@ public class ProjectServiceImpl implements ProjectService {
                             (userId != null && project.getCollaborators().stream()
                                     .anyMatch(collaborator -> collaborator.getUser().getId().equals(userId)));
 
-                    List<String> imageIds = project.getImageEntity().stream()
-                            .map(ImageEntity::getImageId)
-                            .filter(imageId -> imageId != null)
-                            .toList();
+                    // 추후 사용할 때 주석 해제
+//                    List<String> imageIds = project.getImageEntity().stream()
+//                            .map(ImageEntity::getImageId)
+//                            .filter(imageId -> imageId != null)
+//                            .toList();
 
                     List<ResponseCollaboratorDto> collaboratorDtos = project.getCollaborators().stream()
                             .map(collaborator -> ResponseCollaboratorDto.builder()
@@ -219,7 +220,7 @@ public class ProjectServiceImpl implements ProjectService {
                             project.getState(),
                             project.getStartedDate(),
                             project.getEndedDate(),
-                            imageIds,
+//                            imageIds,
                             collaboratorDtos,
                             isCollaborator,
                             route,

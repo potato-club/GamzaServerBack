@@ -24,7 +24,7 @@ public class ProjectResponseDto {
     private ProjectState state;
     private LocalDate startedDate;
     private LocalDate endedDate;
-    private List<String> imageIds;
+//    private List<String> imageIds;
     private List<ResponseCollaboratorDto> collaborators;
     @JsonProperty("isCollaborator")
     private boolean isCollaborator;
