@@ -623,15 +623,16 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(String token, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-            projectStatusService.sendDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
-
-            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
         }
 
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
+
+            projectStatusService.sendDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
+
             projectStatusService.sendDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
