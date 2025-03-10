@@ -33,6 +33,12 @@ public class DeploymentSseController {
         SseEmitter emitter = new SseEmitter(10*60*1000L); // 무제한 타임아웃 설정
         emitters.computeIfAbsent(projectId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
+        try {
+            Thread.sleep(500); // 0.5초 대기
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         // 기존 배포 상태 즉시 전송
         sendLastDeploymentStep(projectId, emitter); // 여기에서 호출됨
 
