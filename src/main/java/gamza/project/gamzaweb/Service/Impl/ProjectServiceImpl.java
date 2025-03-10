@@ -45,9 +45,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -607,16 +605,16 @@ public class ProjectServiceImpl implements ProjectService {
                 projectRepository.save(project);
                 boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
                 if (buildSuccess) {
-                    projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
+                    projectStatusService.sendDeploymentStep(project, DeploymentStep.SUCCESS);
                     project.updateApprovalProjectStatus(ApprovalProjectStatus.SUCCESS); // 승인 상태 업데이트
                     updateProjectApprovalState(project);
                 } else {
-                    projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
+                    projectStatusService.sendDeploymentStep(project, DeploymentStep.FAILED);
                     project.updateApprovalProjectStatus(ApprovalProjectStatus.FAILED); //  승인 실패 업데이트
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
+                projectStatusService.sendDeploymentStep(project, DeploymentStep.FAILED);
                 project.updateApprovalProjectStatus(ApprovalProjectStatus.FAILED); // 승인 실패 업데이트
             }
             projectRepository.save(project);
@@ -625,7 +623,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private boolean buildDockerImageFromApplicationZip(String token, ProjectEntity project) {
         if (project.getApplication().getImageId() == null) {
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
+            projectStatusService.sendDeploymentStep(project, DeploymentStep.ZIP_PATH_CHECK);
 
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.ZIP_PATH_CHECK);
             throw new BadRequestException("PROJECT ZIP PATH IS NULL", ErrorCode.FAILED_PROJECT_ERROR);
@@ -634,11 +632,11 @@ public class ProjectServiceImpl implements ProjectService {
         AtomicBoolean buildSuccess = new AtomicBoolean(false);
 
         try {
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
+            projectStatusService.sendDeploymentStep(project, DeploymentStep.DOCKERFILE_EXTRACT);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKERFILE_EXTRACT);
             Path dockerfilePath = extractDockerfileFromZip(project.getApplication().getImageId(), project.getName());
 
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
+            projectStatusService.sendDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
             buildDockerImage(
                     token,
@@ -653,22 +651,22 @@ public class ProjectServiceImpl implements ProjectService {
                         int applicationPort = project.getApplication().getOuterPort();
 
                         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_CONFIG);
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
+                        projectStatusService.sendDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
                         nginxService.generateNginxConf(applicationName, applicationPort);
                         nginxService.restartNginx(); // Nginx 재시작
 
                         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
+                        projectStatusService.sendDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
 
                         System.out.println("Docker image built successfully: " + imageId);
                         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
-                        projectStatusService.updateDeploymentStep(project, DeploymentStep.SUCCESS);
+                        projectStatusService.sendDeploymentStep(project, DeploymentStep.SUCCESS);
                         buildSuccess.set(true);
                     });
         } catch (IOException e) {
             e.printStackTrace();
-            projectStatusService.updateDeploymentStep(project, DeploymentStep.FAILED);
+            projectStatusService.sendDeploymentStep(project, DeploymentStep.FAILED);
 
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
         }

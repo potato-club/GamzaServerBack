@@ -7,6 +7,7 @@ import gamza.project.gamzaweb.Error.ErrorCode;
 import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import java.util.ArrayList;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class DeploymentSseController {
 
     @GetMapping("/subscribe/{projectId}")
     public SseEmitter subscribe(@PathVariable Long projectId) {
-        SseEmitter emitter = new SseEmitter(0L); // 무제한 타임아웃 설정
+        SseEmitter emitter = new SseEmitter(10*60*1000L); // 무제한 타임아웃 설정
         emitters.computeIfAbsent(projectId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
         // 기존 배포 상태 즉시 전송
@@ -48,16 +49,29 @@ public class DeploymentSseController {
         String lastStep = deploymentStepCache.getOrDefault(projectId, project.getDeploymentStep());
 
         try {
-            // DTO 객체 생성 후 JSON 변환
-            String jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(lastStep));
-
-            // event 없이 순수 JSON 데이터만 전송
-            emitter.send(jsonData);
+            if (emitter != null) {
+                String jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(lastStep));
+                emitter.send(jsonData);
+            }
         } catch (IOException e) {
             emitter.complete();
-            emitters.get(projectId).remove(emitter);
+            removeEmitter(projectId, emitter);
+        } catch (IllegalStateException e) {
+            // 응답이 이미 종료된 경우 예외 처리
+            System.out.println("응답이 이미 종료됨: " + e.getMessage());
+            removeEmitter(projectId, emitter);
         }
     }
+    private void removeEmitter(Long projectId, SseEmitter emitter) {
+        List<SseEmitter> projectEmitters = emitters.get(projectId);
+        if (projectEmitters != null) {
+            projectEmitters.remove(emitter);
+            if (projectEmitters.isEmpty()) {
+                emitters.remove(projectId); // 더 이상 클라이언트가 없으면 삭제
+            }
+        }
+    }
+
 
     public void sendUpdate(Long projectId, String step) {
         deploymentStepCache.put(projectId, step); // 최신 배포 상태 저장
