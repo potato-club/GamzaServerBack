@@ -675,13 +675,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private void createContainer(String token, ProjectEntity project, String imageId) {
-//        String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
         CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
                 .withName(project.getName())
-//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getInternalPort()))
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
                         .withPortBindings(new PortBinding(
@@ -701,6 +699,33 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
 
         containerRepository.save(containerEntity);
+    }
+
+    private void isNullEnvKey(ProjectEntity project, String imageId) {
+        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+                .withName(project.getName())
+                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+                .withHostConfig(newHostConfig()
+                        .withPortBindings(new PortBinding(
+                                Binding.bindPort(project.getApplication().getOuterPort()),
+                                ExposedPort.tcp(project.getApplication().getOuterPort())
+                        )))
+                .withImage(imageId)
+                .exec();
+    }
+
+    private void isNotNullEnvKey(ProjectEntity project, String imageId) {
+        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+                .withName(project.getName())
+                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+                .withEnv("JASYPT_ENCRYPTOR_PASSWORD=" + project.getApplication().getVariableKey())
+                .withHostConfig(newHostConfig()
+                        .withPortBindings(new PortBinding(
+                                Binding.bindPort(project.getApplication().getOuterPort()),
+                                ExposedPort.tcp(project.getApplication().getOuterPort())
+                        )))
+                .withImage(imageId)
+                .exec();
     }
 
     private void buildDockerImage(String token, File dockerfile, ProjectEntity project, DockerProviderBuildCallback callback) {
@@ -726,49 +751,6 @@ public class ProjectServiceImpl implements ProjectService {
         executeDockerBuild(dockerfile, project.getName(), project.getApplication().getVariableKey(), project.getApplication().getTag(), callback, userPk);
     }
 
-//    private void createContainerFromImage(String imageName, String containerName, String portMapping, UserEntity user, DockerProvider.DockerProviderBuildCallback callback) {
-//        try {
-//            // Docker 이미지 조회
-//            List<Image> existingImages = dockerClient.listImagesCmd().exec();
-//            String imageId = existingImages.stream()
-//                    .filter(image -> Arrays.asList(image.getRepoTags()).contains(imageName))
-//                    .map(Image::getId)
-//                    .findFirst()
-//                    .orElseThrow(() -> new DockerRequestException("3003 IMAGE NOT FOUND", ErrorCode.FAILED_IMAGE_FOUND));
-//
-//            // 컨테이너 생성
-//            CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
-//                    .withName(containerName)
-//                    .withHostConfig(HostConfig.newHostConfig()
-//                            .withPortBindings(PortBinding.parse(portMapping)))
-//                    .exec();
-//
-//            // 컨테이너 실행
-//            dockerClient.startContainerCmd(container.getId()).exec();
-//
-//            // 컨테이너 정보를 DB에 저장
-////            saveContainerInfoToDatabase(container.getId(), imageId, user);
-////
-////             성공 시 콜백 호출
-////            callback.onContainerCreated(container.getId());
-//
-//            System.out.println("Container created and started successfully: " + containerName);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-////            throw new DockerRequestException("3002 FAILED CONTAINER CREATION", ErrorCode.FAILED_CONTAINER_CREATION);
-//        }
-//    }
-
-//
-//    private boolean isImageExists(String name) {
-//        List<Image> existingImages = dockerClient.listImagesCmd().exec();
-//        return existingImages.stream()
-//                .anyMatch(image -> image.getRepoTags() != null &&
-//                        Arrays.asList(image.getRepoTags()).contains(name));
-//    }
-
-    //null 체크 먼저하게 했음
     private boolean isImageExists(String name) {
         List<Image> existingImages = dockerClient.listImagesCmd().exec();
         return existingImages.stream()
