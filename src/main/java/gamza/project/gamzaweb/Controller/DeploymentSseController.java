@@ -8,6 +8,8 @@ import gamza.project.gamzaweb.Error.requestError.ForbiddenException;
 import gamza.project.gamzaweb.Repository.ProjectRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
@@ -41,6 +43,14 @@ public class DeploymentSseController {
 
         // 기존 배포 상태 즉시 전송
         sendLastDeploymentStep(projectId, emitter); // 여기에서 호출됨
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            try {
+                emitter.send("ping: 연결 유지를 위한 핑\n\n");
+            } catch (IOException e) {
+                emitter.complete();
+            }
+        }, 30, 30, TimeUnit.SECONDS); // 30초마다 실행
 
         emitter.onCompletion(() -> emitters.get(projectId).remove(emitter));
         emitter.onTimeout(() -> emitters.get(projectId).remove(emitter));
