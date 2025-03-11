@@ -86,7 +86,6 @@ public class DeploymentSseController {
             return;
         }
 
-        // JSON 변환
         String jsonData;
         try {
             jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(step));
@@ -95,15 +94,21 @@ public class DeploymentSseController {
             return;
         }
 
-        // 연결된 클라이언트에게 JSON만 전송
+        List<SseEmitter> toRemove = new ArrayList<>();
         for (SseEmitter emitter : new ArrayList<>(emitters.get(projectId))) {
             try {
-                emitter.send(jsonData); // DTO를 사용해 JSON 전송
-            } catch (IOException e) {
+                emitter.send(jsonData);
+            } catch (IOException | IllegalStateException e) { // 🔥 응답이 닫힌 경우 예외 처리
                 emitter.complete();
-                emitters.get(projectId).remove(emitter);
+                toRemove.add(emitter);
                 System.out.println("클라이언트 연결 끊김, Emitter 제거됨");
             }
+        }
+
+        // 🔥 응답이 종료된 Emitter를 한 번에 제거
+        emitters.get(projectId).removeAll(toRemove);
+        if (emitters.get(projectId).isEmpty()) {
+            emitters.remove(projectId);
         }
     }
 }
