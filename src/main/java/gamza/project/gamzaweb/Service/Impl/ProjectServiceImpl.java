@@ -678,16 +678,25 @@ public class ProjectServiceImpl implements ProjectService {
         Long userId = jwtTokenProvider.extractId(token);
         UserEntity userPk = userRepository.findUserEntityById(userId);
 
-        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
-                .withName(project.getName())
-                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
-                .withHostConfig(newHostConfig()
-                        .withPortBindings(new PortBinding(
-                                Binding.bindPort(project.getApplication().getOuterPort()),
-                                ExposedPort.tcp(project.getApplication().getOuterPort())
-                        )))
-                .withImage(imageId)
-                .exec();
+        CreateContainerResponse container;
+
+        System.out.println("project Key: " + project.getApplication().getVariableKey());
+        if(project.getApplication().getVariableKey().isEmpty()) { // 키값의 유무에 따름
+            container = isNullEnvKey(project, imageId);
+        } else {
+            container = isNotNullEnvKey(project, imageId);
+        }
+
+//        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+//                .withName(project.getName())
+//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
+//                .withHostConfig(newHostConfig()
+//                        .withPortBindings(new PortBinding(
+//                                Binding.bindPort(project.getApplication().getOuterPort()),
+//                                ExposedPort.tcp(project.getApplication().getOuterPort())
+//                        )))
+//                .withImage(imageId)
+//                .exec();
 
         dockerClient.startContainerCmd(container.getId()).exec();
 
@@ -701,8 +710,8 @@ public class ProjectServiceImpl implements ProjectService {
         containerRepository.save(containerEntity);
     }
 
-    private void isNullEnvKey(ProjectEntity project, String imageId) {
-        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+    private CreateContainerResponse isNullEnvKey(ProjectEntity project, String imageId) {
+        return dockerClient.createContainerCmd(imageId)
                 .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withHostConfig(newHostConfig()
@@ -714,8 +723,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .exec();
     }
 
-    private void isNotNullEnvKey(ProjectEntity project, String imageId) {
-        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
+    private CreateContainerResponse isNotNullEnvKey(ProjectEntity project, String imageId) {
+        return dockerClient.createContainerCmd(imageId)
                 .withName(project.getName())
                 .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
                 .withEnv("JASYPT_ENCRYPTOR_PASSWORD=" + project.getApplication().getVariableKey())
