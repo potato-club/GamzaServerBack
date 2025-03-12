@@ -80,8 +80,6 @@ public class AdminController {
         return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
     }
 
-    // TODO : 프로젝트 출력 플렛폼 값으로 출력하도록 수정
-
     @PostMapping("/project/approve/{id}")
     @Operation(description = "프로젝트 생성 승인")
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
