@@ -687,17 +687,6 @@ public class ProjectServiceImpl implements ProjectService {
             container = isNotNullEnvKey(project, imageId);
         }
 
-//        CreateContainerResponse container = dockerClient.createContainerCmd(imageId)
-//                .withName(project.getName())
-//                .withExposedPorts(ExposedPort.tcp(project.getApplication().getOuterPort()))
-//                .withHostConfig(newHostConfig()
-//                        .withPortBindings(new PortBinding(
-//                                Binding.bindPort(project.getApplication().getOuterPort()),
-//                                ExposedPort.tcp(project.getApplication().getOuterPort())
-//                        )))
-//                .withImage(imageId)
-//                .exec();
-
         dockerClient.startContainerCmd(container.getId()).exec();
 
         ContainerEntity containerEntity = ContainerEntity.builder()

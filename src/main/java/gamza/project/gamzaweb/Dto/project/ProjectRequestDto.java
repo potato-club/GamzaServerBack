@@ -31,6 +31,5 @@ public class ProjectRequestDto {
     private String variableKey;
     private List<Integer> collaborators = new ArrayList<>();
     private ProjectType projectType;
-//    private List<RequestAddCollaboratorDto> collaborators = new ArrayList<>();
 
 }
