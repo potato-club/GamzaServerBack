@@ -680,8 +680,8 @@ public class ProjectServiceImpl implements ProjectService {
 
         CreateContainerResponse container;
 
-        System.out.println("project Key: " + project.getApplication().getVariableKey());
-        if(project.getApplication().getVariableKey() == null) { // 키값의 유무에 따름
+        // 프로젝트를 생성하는데 백엔드일경우에만 isNotNullEnvKey Service 를 탄다.
+        if(project.getApplication().getVariableKey() == null || project.getProjectType().name().equals("FRONT")) { // 키값의 유무에 따름
             container = isNullEnvKey(project, imageId);
         } else {
             container = isNotNullEnvKey(project, imageId);
