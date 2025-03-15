@@ -3,9 +3,9 @@ package gamza.project.gamzaweb.Controller;
 
 import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.project.*;
-import gamza.project.gamzaweb.Error.ErrorCode;
-import gamza.project.gamzaweb.Error.requestError.BadRequestException;
-import gamza.project.gamzaweb.Service.Interface.ProjectService;
+import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.BadRequestException;
+import gamza.project.gamzaweb.service.Interface.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

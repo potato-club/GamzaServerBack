@@ -2,7 +2,7 @@ package gamza.project.gamzaweb.Controller;
 
 import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
 import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
-import gamza.project.gamzaweb.Service.Interface.PlatformService;
+import gamza.project.gamzaweb.service.Interface.PlatformService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

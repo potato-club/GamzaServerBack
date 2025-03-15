@@ -2,7 +2,7 @@ package gamza.project.gamzaweb.dctutil;
 
 import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Entity.ImageEntity;
-import gamza.project.gamzaweb.Repository.ImageRepository;
+import gamza.project.gamzaweb.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
