@@ -56,5 +56,4 @@ public class UserController {
     public ResponseUserList userList() {
         return userService.userList();
     }
-
 }

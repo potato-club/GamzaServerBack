@@ -587,20 +587,25 @@ public class ProjectServiceImpl implements ProjectService {
 //        projectRepository.save(project);
 //    }
 
-
     @Override
     @Transactional
-    public void approveExecutionApplication(HttpServletRequest request, Long id) {
+    public void approveExecutionApplication(HttpServletRequest request, Long id){
         userValidate.validateUserRole(request);
 
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
 
-        // 배포 시작 상태 SSE 전송
         project.updateApprovalProjectStatus(ApprovalProjectStatus.PENDING);
         projectRepository.save(project);
 
         String AT = request.getHeader("Authorization").substring(7);
+        startExecutionApplication(project, AT);
+
+    }
+
+    @Override
+    @Transactional
+    public void startExecutionApplication(ProjectEntity project, String AT) {
 
         executorService.submit(() -> {
             try {

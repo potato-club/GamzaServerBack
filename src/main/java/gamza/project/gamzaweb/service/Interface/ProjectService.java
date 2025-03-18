@@ -2,6 +2,7 @@ package gamza.project.gamzaweb.service.Interface;
 
 import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.Dto.project.*;
+import gamza.project.gamzaweb.Entity.ProjectEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,8 @@ public interface ProjectService {
 //    void onContainerCreated(String containerId);
 
     void approveExecutionApplication(HttpServletRequest request, Long id);
+
+    void startExecutionApplication(ProjectEntity project, String AT);
 
     void checkSuccessProject(HttpServletRequest request, Long id);
 
