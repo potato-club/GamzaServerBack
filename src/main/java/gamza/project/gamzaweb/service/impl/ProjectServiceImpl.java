@@ -674,6 +674,7 @@ public class ProjectServiceImpl implements ProjectService {
                     });
         } catch (IOException e) {
             e.printStackTrace();
+            deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.FAILED);
             projectStatusService.sendDeploymentStep(project, DeploymentStep.FAILED);
 
             throw new BadRequestException("Failed to extract Dockerfile from ZIP", ErrorCode.FAILED_PROJECT_ERROR);
