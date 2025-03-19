@@ -6,16 +6,11 @@ import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.ForbiddenException;
 import gamza.project.gamzaweb.repository.ProjectRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
+import java.util.concurrent.*;
 
 @RestController
 @RequestMapping("/project/deploy")
@@ -32,29 +27,28 @@ public class DeploymentSseController {
 
     @GetMapping("/subscribe/{projectId}")
     public SseEmitter subscribe(@PathVariable Long projectId) {
-        SseEmitter emitter = new SseEmitter(10*60*1000L); // 무제한 타임아웃 설정
+        SseEmitter emitter = new SseEmitter(10 * 60 * 1000L); // 10분 타임아웃 설정
         emitters.computeIfAbsent(projectId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
-        try {
-            Thread.sleep(500); // 0.5초 대기
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         // 기존 배포 상태 즉시 전송
-        sendLastDeploymentStep(projectId, emitter); // 여기에서 호출됨
+        sendLastDeploymentStep(projectId, emitter);
 
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+        // 30초마다 ping 메시지 전송 (연결 유지)
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(() -> {
             try {
                 emitter.send("ping: 연결 유지를 위한 핑\n\n");
             } catch (IOException e) {
                 emitter.complete();
+                removeEmitter(projectId, emitter);
+                scheduler.shutdown();  // 예외 발생 시 스케줄러 종료
             }
-        }, 30, 30, TimeUnit.SECONDS); // 30초마다 실행
+        }, 30, 30, TimeUnit.SECONDS);
 
-        emitter.onCompletion(() -> emitters.get(projectId).remove(emitter));
-        emitter.onTimeout(() -> emitters.get(projectId).remove(emitter));
-        emitter.onError((e) -> emitters.get(projectId).remove(emitter));
+        // 클라이언트가 연결을 끊으면 정리
+        emitter.onCompletion(() -> removeEmitter(projectId, emitter));
+        emitter.onTimeout(() -> removeEmitter(projectId, emitter));
+        emitter.onError((e) -> removeEmitter(projectId, emitter));
 
         return emitter;
     }
@@ -69,25 +63,20 @@ public class DeploymentSseController {
                 String jsonData = objectMapper.writeValueAsString(new DeployStepResponseDto(lastStep));
                 emitter.send(jsonData);
             }
-        } catch (IOException e) {
-            emitter.complete();
-            removeEmitter(projectId, emitter);
-        } catch (IllegalStateException e) {
-            // 응답이 이미 종료된 경우 예외 처리
-            System.out.println("응답이 이미 종료됨: " + e.getMessage());
+        } catch (IOException | IllegalStateException e) {
             removeEmitter(projectId, emitter);
         }
     }
+
     private void removeEmitter(Long projectId, SseEmitter emitter) {
         List<SseEmitter> projectEmitters = emitters.get(projectId);
         if (projectEmitters != null) {
             projectEmitters.remove(emitter);
             if (projectEmitters.isEmpty()) {
-                emitters.remove(projectId); // 더 이상 클라이언트가 없으면 삭제
+                emitters.remove(projectId); // 클라이언트가 없으면 삭제
             }
         }
     }
-
 
     public void sendUpdate(Long projectId, String step) {
         deploymentStepCache.put(projectId, step); // 최신 배포 상태 저장
@@ -108,14 +97,13 @@ public class DeploymentSseController {
         for (SseEmitter emitter : new ArrayList<>(emitters.get(projectId))) {
             try {
                 emitter.send(jsonData);
-            } catch (IOException | IllegalStateException e) { // 🔥 응답이 닫힌 경우 예외 처리
+            } catch (IOException | IllegalStateException e) { // 응답이 닫힌 경우 예외 처리
                 emitter.complete();
                 toRemove.add(emitter);
-                System.out.println("클라이언트 연결 끊김, Emitter 제거됨");
             }
         }
 
-        // 🔥 응답이 종료된 Emitter를 한 번에 제거
+        // 응답이 종료된 Emitter를 한 번에 제거
         emitters.get(projectId).removeAll(toRemove);
         if (emitters.get(projectId).isEmpty()) {
             emitters.remove(projectId);
