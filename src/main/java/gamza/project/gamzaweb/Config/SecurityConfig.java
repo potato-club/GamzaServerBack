@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Config;
+package gamza.project.gamzaweb.config;
 
 import gamza.project.gamzaweb.service.jwt.JwtAuthorizationTokenFilter;
 import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;

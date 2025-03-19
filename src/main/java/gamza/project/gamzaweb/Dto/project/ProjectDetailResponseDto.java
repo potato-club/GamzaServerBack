@@ -1,6 +1,6 @@
-package gamza.project.gamzaweb.Dto.project;
+package gamza.project.gamzaweb.dto.project;
 
-import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
+import gamza.project.gamzaweb.dto.user.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.Enums.ProjectType;
 import gamza.project.gamzaweb.Entity.ProjectEntity;

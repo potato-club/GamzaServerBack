@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.service.impl;
 
-import gamza.project.gamzaweb.Controller.DeploymentSseController;
+import gamza.project.gamzaweb.controller.DeploymentSseController;
 import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.repository.ProjectRepository;

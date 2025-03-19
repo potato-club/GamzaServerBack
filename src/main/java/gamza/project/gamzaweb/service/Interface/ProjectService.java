@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.service.Interface;
 
-import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
-import gamza.project.gamzaweb.Dto.project.*;
+import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.dto.project.*;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;

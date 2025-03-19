@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.project;
+package gamza.project.gamzaweb.dto.project;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

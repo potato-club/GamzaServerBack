@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.application;
+package gamza.project.gamzaweb.dto.application;
 
 import gamza.project.gamzaweb.Entity.Enums.ApplicationType;
 import gamza.project.gamzaweb.Entity.ProjectEntity;

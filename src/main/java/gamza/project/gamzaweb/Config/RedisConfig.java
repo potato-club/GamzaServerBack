@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Config;
+package gamza.project.gamzaweb.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

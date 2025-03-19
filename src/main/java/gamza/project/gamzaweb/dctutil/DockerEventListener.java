@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.dctutil;
 
-import gamza.project.gamzaweb.Dto.docker.ImageBuildEventDto;
+import gamza.project.gamzaweb.dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;

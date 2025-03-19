@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Config;
+package gamza.project.gamzaweb.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

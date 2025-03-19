@@ -1,8 +1,8 @@
-package gamza.project.gamzaweb.Controller;
+package gamza.project.gamzaweb.controller;
 
 
-import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
-import gamza.project.gamzaweb.Dto.project.*;
+import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.dto.project.*;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
