@@ -1,8 +1,8 @@
 package gamza.project.gamzaweb.service.impl;
 
-import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
-import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
-import gamza.project.gamzaweb.Dto.platform.PlatformResponseDto;
+import gamza.project.gamzaweb.dto.platform.PlatformCreateRequestDto;
+import gamza.project.gamzaweb.dto.platform.PlatformListResponseDto;
+import gamza.project.gamzaweb.dto.platform.PlatformResponseDto;
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;

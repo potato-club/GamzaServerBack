@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.project;
+package gamza.project.gamzaweb.dto.project;
 
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;

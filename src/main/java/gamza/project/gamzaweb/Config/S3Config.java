@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Config;
+package gamza.project.gamzaweb.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;

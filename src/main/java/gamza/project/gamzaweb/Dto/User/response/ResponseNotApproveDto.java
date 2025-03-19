@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.User.response;
+package gamza.project.gamzaweb.dto.user.response;
 
 
 import gamza.project.gamzaweb.Entity.UserEntity;

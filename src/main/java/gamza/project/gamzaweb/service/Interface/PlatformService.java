@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.service.Interface;
 
-import gamza.project.gamzaweb.Dto.platform.PlatformCreateRequestDto;
-import gamza.project.gamzaweb.Dto.platform.PlatformListResponseDto;
+import gamza.project.gamzaweb.dto.platform.PlatformCreateRequestDto;
+import gamza.project.gamzaweb.dto.platform.PlatformListResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface PlatformService {

@@ -1,9 +1,9 @@
-package gamza.project.gamzaweb.Controller;
+package gamza.project.gamzaweb.controller;
 
-import gamza.project.gamzaweb.Dto.User.response.ResponseNotApproveDto;
-import gamza.project.gamzaweb.Dto.project.FixedProjectListNotApproveResponse;
-import gamza.project.gamzaweb.Dto.project.ProjectListApproveResponse;
-import gamza.project.gamzaweb.Dto.project.ProjectListNotApproveResponse;
+import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
+import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
+import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
+import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
 import gamza.project.gamzaweb.service.Interface.UserService;
 import io.swagger.v3.oas.annotations.Operation;

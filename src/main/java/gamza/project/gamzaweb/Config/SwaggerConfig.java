@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Config;
+package gamza.project.gamzaweb.config;
 
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;

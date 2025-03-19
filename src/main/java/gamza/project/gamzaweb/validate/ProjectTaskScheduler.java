@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.validate;
 
-import gamza.project.gamzaweb.Dto.project.DeploymentUpdateRequest;
+import gamza.project.gamzaweb.dto.project.DeploymentUpdateRequest;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;

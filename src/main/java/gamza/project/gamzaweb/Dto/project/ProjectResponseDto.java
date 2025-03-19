@@ -1,8 +1,8 @@
-package gamza.project.gamzaweb.Dto.project;
+package gamza.project.gamzaweb.dto.project;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gamza.project.gamzaweb.Dto.User.response.ResponseCollaboratorDto;
+import gamza.project.gamzaweb.dto.user.response.ResponseCollaboratorDto;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -21,23 +21,24 @@ public class NginxServiceImpl implements NginxService {
         String applicationConfName = applicationName + ".conf"; // project.conf
         String filePath = BASIC_PATH + applicationConfName;
         // gamzaweb.store -> 호빈이 domain 으로 추후 수정
+        // gamza.club 으로 수정 완료 3/19 성훈
         //
         String confContent = """
                 server {
                     listen 80;
                     listen [::]:80;
-                    server_name %s.gamzaweb.store;
+                    server_name %s.gamza.club;
                     return 301 https://$host$request_uri;
                 }
                 server {
                     listen 443 ssl http2;
                     listen [::]:443 ssl http2;
-                    server_name %s.gamzaweb.store;
-                    ssl_certificate /etc/letsencrypt/live/gamzaweb.store/fullchain.pem;
-                    ssl_certificate_key /etc/letsencrypt/live/gamzaweb.store/privkey.pem;
+                    server_name %s.gamza.club;
+                    ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
+                    ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
                 
                     location / {
-                            proxy_pass http://localhost:%d;
+                    proxy_pass http://localhost:%d;
                     proxy_http_version 1.1;
                     proxy_set_header Upgrade $http_upgrade;
                     proxy_set_header Connection 'upgrade';

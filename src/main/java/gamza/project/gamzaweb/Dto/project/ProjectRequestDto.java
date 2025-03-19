@@ -1,7 +1,7 @@
-package gamza.project.gamzaweb.Dto.project;
+package gamza.project.gamzaweb.dto.project;
 
-import gamza.project.gamzaweb.Dto.User.request.RequestAddCollaboratorDto;
-import gamza.project.gamzaweb.Dto.application.ApplicationRequestDto;
+import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.dto.application.ApplicationRequestDto;
 import gamza.project.gamzaweb.Entity.ApplicationEntity;
 import gamza.project.gamzaweb.Entity.CollaboratorEntity;
 import gamza.project.gamzaweb.Entity.Enums.ApplicationType;

@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Controller;
+package gamza.project.gamzaweb.controller;
 
 
 import gamza.project.gamzaweb.dctutil.DockerProvider;

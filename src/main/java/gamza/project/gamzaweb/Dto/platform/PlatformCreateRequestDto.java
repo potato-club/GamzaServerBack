@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.Dto.platform;
+package gamza.project.gamzaweb.dto.platform;
 
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import lombok.AllArgsConstructor;
