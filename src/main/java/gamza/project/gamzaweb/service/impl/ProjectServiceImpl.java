@@ -109,7 +109,7 @@ public class ProjectServiceImpl implements ProjectService {
             PlatformEntity platform = platformRepository.findById(dto.getPlatformId())
                     .orElseThrow(() -> new BadRequestException("잘못된 플랫폼 요청입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
 
-            projectValidate.platformChecker(platform, dto.getProjectType().name()); // 플랫폼에 이미 BACK, FRONT 존재할경우 예외처리
+//            projectValidate.platformChecker(platform, dto.getProjectType().name()); // 플랫폼에 이미 BACK, FRONT 존재할경우 예외처리 버그 수정 예정
 
             if (dto.getProjectType().equals(ProjectType.WAIT)) {
                 throw new BadRequestException("프로젝트 생성시 타입은 BACK, FRONT만 가능합니다.", ErrorCode.FAILED_PROJECT_ERROR);
