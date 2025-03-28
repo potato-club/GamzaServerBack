@@ -31,6 +31,11 @@ public class PlatformServiceImpl implements PlatformService {
 
         try {
             PlatformEntity newPlatform = dto.toEntity();
+
+            if (dto.toEntity().getPlatformName().isEmpty()) {
+                throw new BadRequestException("플랫폼이름은 빈값이 될 수 없습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+            }
+
             platformRepository.save(newPlatform);
         } catch (RuntimeException e) {
             throw new DuplicateException("이미 존재하거나 잘못된 플랫폼 이름입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
