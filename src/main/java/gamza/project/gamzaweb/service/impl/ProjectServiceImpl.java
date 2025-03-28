@@ -427,6 +427,11 @@ public class ProjectServiceImpl implements ProjectService {
             throw new ForbiddenException("프로젝트 리더만 삭제할 수 있습니다.", ErrorCode.FORBIDDEN_EXCEPTION);
         }
 
+        ContainerEntity containerId = project.getApplication().getContainerEntity();
+
+        dockerProvider.stopContainer(request, containerId); // container stop
+        dockerProvider.removeContainer(containerId.getContainerId());
+
         projectRepository.delete(project);
     }
 
