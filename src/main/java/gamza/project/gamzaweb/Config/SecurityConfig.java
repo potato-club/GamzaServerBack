@@ -35,7 +35,6 @@ public class SecurityConfig {
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.formLogin(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/api/**", "/api-docs/**", "/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui/index.html").permitAll()
                 .anyRequest().permitAll()
         );
@@ -52,7 +51,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:3000");
-        configuration.addAllowedOrigin("https://gamzaweb.store");
+        configuration.addAllowedOrigin("https://gamza.club");
         configuration.addAllowedOrigin("https://gamza-club.vercel.app");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
