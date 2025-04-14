@@ -46,20 +46,17 @@ public class FileController {
         return directoryPath; // 저장된 파일 경로 반환
     }
 
-    public static boolean deleteFile(String filePath) {
+    public static void deleteFile(String filePath) {
         File file = new File(filePath);
 
         if (file.exists()) {
             if (file.delete()) {
                 System.out.println("파일 삭제 성공: " + filePath);
-                return true;
             } else {
                 System.err.println("파일 삭제 실패: " + filePath);
-                return false;
             }
         } else {
             System.out.println("삭제할 파일이 존재하지 않음: " + filePath);
-            return false;
         }
     }
 

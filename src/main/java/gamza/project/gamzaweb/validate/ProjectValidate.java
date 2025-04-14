@@ -2,9 +2,11 @@ package gamza.project.gamzaweb.validate;
 
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
+import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.NotFoundException;
+import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,13 @@ public class ProjectValidate {
     public ProjectEntity validateProject(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Project not found", ErrorCode.NOT_FOUND_EXCEPTION));
+    }
+
+    public void isParticipateInProject(Long projectId, Long userId) {
+
+        if(!projectRepository.isUserCollaborator(projectId, userId)) {
+            throw new UnAuthorizedException("해당 프로젝트를 삭제할 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     public void platformChecker(PlatformEntity platform, String projectType) {
