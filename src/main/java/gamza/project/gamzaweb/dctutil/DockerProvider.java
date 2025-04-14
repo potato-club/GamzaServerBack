@@ -10,19 +10,23 @@ import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import gamza.project.gamzaweb.Entity.ContainerEntity;
 import gamza.project.gamzaweb.Entity.ImageEntity;
+import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.DockerRequestException;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.repository.ContainerRepository;
 import gamza.project.gamzaweb.repository.ImageRepository;
 import gamza.project.gamzaweb.repository.UserRepository;
 import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.validate.ProjectValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
@@ -42,6 +46,7 @@ public class DockerProvider {
     private final ImageRepository imageRepository;
     private final ContainerRepository containerRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ProjectValidate projectValidate;
 //    private final DockerScheduler dockerScheduler;
 
     public List<Container> getContainerList() {
@@ -108,7 +113,37 @@ public class DockerProvider {
         removeCmd.exec();
     }
 
-    private void removeImage(String imageId, HttpServletRequest request) {
+    @Transactional
+    public void removeAllImage(HttpServletRequest request, ProjectEntity project) {
+        String token = jwtTokenProvider.resolveAccessToken(request); // 토큰 체크
+        Long userId = jwtTokenProvider.extractId(token);
+
+        projectValidate.isParticipateInProject(project.getId(), userId);
+
+        List<ImageEntity> projectImageList = imageRepository.findImageEntitiesByProjectId(project.getId()); // List로 반환 없으면 null // null 일수도 있겠다 해당 프로젝트가 제대로 못열렸다면.
+
+        if (!projectImageList.isEmpty()) {
+            for (ImageEntity imageEntity : projectImageList) {
+                RemoveImageCmd removeImageCmd = dockerClient.removeImageCmd(imageEntity.getImageId()); // 도커에서 삭제
+                removeImageCmd.withForce(true);
+                removeImageCmd.exec();
+                imageRepository.delete(imageEntity); // db에서 삭제
+            }
+        }
+
+    }
+
+    public void removeProjectDirInServer(HttpServletRequest request, ProjectEntity project) {
+
+        String token = jwtTokenProvider.resolveAccessToken(request);
+        Long userId = jwtTokenProvider.extractId(token);
+
+        projectValidate.isParticipateInProject(project.getId(), userId);
+
+        FileController.deleteFile(project.getApplication().getImageId());
+    }
+
+    public void removeImage(String imageId, HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
