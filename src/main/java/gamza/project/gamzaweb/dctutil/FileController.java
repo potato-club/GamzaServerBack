@@ -1,5 +1,8 @@
 package gamza.project.gamzaweb.dctutil;
 
+import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.BadRequestException;
+
 import javax.swing.filechooser.FileSystemView;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -46,9 +49,27 @@ public class FileController {
         return directoryPath; // 저장된 파일 경로 반환
     }
 
+    public static void deleteFileInRoot(String filePath) {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", "sudo rm -rf " + filePath);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                System.out.println("삭제 성공: " + filePath);
+            } else {
+                System.err.println("삭제 실패, 종료 코드: " + exitCode);
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            throw new BadRequestException("Root 경로 폴더가 삭제되지 않았습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
+    }
+
     public static void deleteFile(String filePath) {
         File file = new File(filePath);
-
+    // sudo rm -rf /root/test0414
         if (file.exists()) {
             if (file.delete()) {
                 System.out.println("파일 삭제 성공: " + filePath);
