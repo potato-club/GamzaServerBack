@@ -13,6 +13,7 @@ import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.DockerRequestException;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.repository.ContainerRepository;
@@ -121,7 +122,7 @@ public class DockerProvider {
 
         List<ImageEntity> projectImageList = imageRepository.findImageEntitiesByProjectId(project.getId()); // List로 반환 없으면 null // null 일수도 있겠다 해당 프로젝트가 제대로 못열렸다면.
 
-        if(!projectImageList.isEmpty()) {
+        if (!projectImageList.isEmpty()) {
             for (ImageEntity imageEntity : projectImageList) {
                 RemoveImageCmd removeImageCmd = dockerClient.removeImageCmd(imageEntity.getImageId()); // 도커에서 삭제
                 removeImageCmd.withForce(true);
@@ -133,6 +134,7 @@ public class DockerProvider {
     }
 
     public void removeProjectDirInServer(HttpServletRequest request, ProjectEntity project) {
+
         String token = jwtTokenProvider.resolveAccessToken(request);
         Long userId = jwtTokenProvider.extractId(token);
 

@@ -432,6 +432,7 @@ public class ProjectServiceImpl implements ProjectService {
         dockerProvider.stopContainer(request, containerId); // container stop
         dockerProvider.removeContainer(containerId.getContainerId());
         dockerProvider.removeAllImage(request, project); // project image remove All
+        dockerProvider.removeProjectDirInServer(request, project);
 
         projectRepository.delete(project);
     }
