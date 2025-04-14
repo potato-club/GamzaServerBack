@@ -140,7 +140,7 @@ public class DockerProvider {
 
         projectValidate.isParticipateInProject(project.getId(), userId);
 
-        FileController.deleteFile(project.getApplication().getImageId());
+        FileController.deleteFileInRoot(project.getApplication().getImageId());
     }
 
     public void removeImage(String imageId, HttpServletRequest request) {
