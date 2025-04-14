@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.validate;
 
+import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.PlatformEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
@@ -8,6 +9,8 @@ import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.NotFoundException;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.repository.ProjectRepository;
+import gamza.project.gamzaweb.repository.UserRepository;
+import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +21,7 @@ import java.util.List;
 public class ProjectValidate {
 
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
     public ProjectEntity validateProject(Long id) {
         return projectRepository.findById(id)
@@ -26,8 +30,15 @@ public class ProjectValidate {
 
     public void isParticipateInProject(Long projectId, Long userId) {
 
-        if(!projectRepository.isUserCollaborator(projectId, userId)) {
-            throw new UnAuthorizedException("해당 프로젝트를 삭제할 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        // 어드민이거나 해당 프로젝트 협력자일경우 삭제 가능
+
+        UserEntity user = userRepository.findById(userId) // 해당 유저는 어드민이거나 해당 프로젝트 협력자
+                .orElseThrow(() -> new UnAuthorizedException("해당 유저가 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
+
+        if (!projectRepository.isUserCollaborator(projectId, userId)) {
+            if(!user.getUserRole().equals(UserRole.ADMIN)) {
+                throw new UnAuthorizedException("해당 프로젝트를 삭제할 권한이 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            }
         }
     }
 
@@ -41,18 +52,18 @@ public class ProjectValidate {
 
         List<ProjectEntity> projectEntities = platform.getProjects();
 
-        for(ProjectEntity project : projectEntities) {
-            if(project.getProjectType().name().equals("FRONT")) {
+        for (ProjectEntity project : projectEntities) {
+            if (project.getProjectType().name().equals("FRONT")) {
                 hasFront = true;
             }
-            if(project.getProjectType().name().equals("BACK")) {
+            if (project.getProjectType().name().equals("BACK")) {
                 hasBack = true;
             }
         }
-        if(hasFront) {
+        if (hasFront) {
             throw new BadRequestException("이미 FRONT프로젝트가 존재합니다 WAIT상태로 변경후 다시 시도해주세요.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
-        if(hasBack) {
+        if (hasBack) {
             throw new BadRequestException("이미 BACK프로젝트가 존재합니다 WAIT상태로 변경후 다시 시도해주세요.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
 
