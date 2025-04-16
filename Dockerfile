@@ -1,7 +1,7 @@
 FROM openjdk:17-jdk AS build
 WORKDIR /app
 COPY . /app
-RUN chmod +x ./gradlew && ./gradlew bootJar
+RUN apt-get update && apt-get install -y findutils xutils-core
 
 FROM openjdk:17-jdk
 WORKDIR /app
