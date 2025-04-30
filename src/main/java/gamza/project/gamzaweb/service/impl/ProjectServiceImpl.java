@@ -383,8 +383,10 @@ public class ProjectServiceImpl implements ProjectService {
 
         List<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user);
 
-        // 승인된 프로젝트와 미승인된 프로젝트를 나눔
-        //.zip 추후 수정해야함: zip 파일 이름으로
+        if(projects.isEmpty()) {
+            return ProjectListPerResponseDto.builder().build();
+        }
+
         List<ProjectPerResponseDto> waitProjects = projects.stream()
                 .filter(project -> !project.isApproveState()) // 미승인된 프로젝트
                 .map(project ->
