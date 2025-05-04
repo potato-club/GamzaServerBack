@@ -56,7 +56,7 @@ public class ProjectController {
     }
 
     @GetMapping("/user/list")
-    @Operation(description = "회원이 만든 프로젝트 출력") // -> containerId값 반환완료
+    @Operation(description = "회원이 만든 프로젝트 출력")
     public ProjectListPerResponseDto personalProject(HttpServletRequest request) {
         return projectService.personalProject(request);
     }

@@ -381,11 +381,7 @@ public class ProjectServiceImpl implements ProjectService {
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->
                 new ForbiddenException("유저를 찾을 수 없습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 
-        List<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user);
-
-        if(projects.isEmpty()) {
-            return ProjectListPerResponseDto.builder().build();
-        }
+        List<ProjectEntity> projects = projectRepository.findByLeaderOrderByUpdatedDateDesc(user); // -> 못찾음 수정
 
         List<ProjectPerResponseDto> waitProjects = projects.stream()
                 .filter(project -> !project.isApproveState()) // 미승인된 프로젝트
@@ -395,7 +391,8 @@ public class ProjectServiceImpl implements ProjectService {
                                 project.getName(),
                                 project.getApplication().getOuterPort(),
                                 fileUploader.recentGetFileUrl(project),
-                                project.getApplication().getContainerEntity().getContainerId().substring(0, 12))) //컨테이너 아이디는 12글자만 있으면 조회 됨
+                                null))// 승인되지 않은 프로젝트는 컨테이너 없다.
+//                                project.getApplication().getContainerEntity().getContainerId().substring(0, 12))) //컨테이너 아이디는 12글자만 있으면 조회 됨
                 .collect(Collectors.toList());
 
         List<ProjectPerResponseDto> completeProjects = projects.stream()
@@ -655,6 +652,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             projectStatusService.sendDeploymentStep(project, DeploymentStep.DOCKER_BUILD);
             deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.DOCKER_BUILD);
+
             buildDockerImage(
                     token,
                     dockerfilePath.toFile(),

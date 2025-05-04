@@ -21,7 +21,10 @@ public class DockerDataStore {
         return instance;
     }
 
-    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+    DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+            .withDockerHost("unix://var/run/docker.sock")
+            .build();
+
     DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
             .dockerHost(config.getDockerHost())
             .sslConfig(config.getSSLConfig())
