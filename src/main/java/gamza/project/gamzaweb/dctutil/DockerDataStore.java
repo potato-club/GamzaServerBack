@@ -22,7 +22,7 @@ public class DockerDataStore {
     }
 
     DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost("unix://var/run/docker.sock")
+            .withDockerHost("tcp://100.78.112.64:2375")  // 예: "tcp://192.168.0.10:2375"
             .build();
 
     DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
