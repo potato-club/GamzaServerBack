@@ -1,6 +1,8 @@
 package gamza.project.gamzaweb.controller;
 
 
+import gamza.project.gamzaweb.Entity.UserEntity;
+import gamza.project.gamzaweb.service.utils.AuthUser;
 import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.dto.project.*;
 import gamza.project.gamzaweb.error.ErrorCode;
@@ -33,9 +35,9 @@ public class ProjectController {
     public ResponseEntity<String> createProject(
             @RequestPart(value = "zip", required = false) MultipartFile file,
             @ModelAttribute ProjectRequestDto dto,
-            HttpServletRequest request) {
+            @AuthUser UserEntity user) {
         try {
-            projectService.createProject(request, dto, file);
+            projectService.createProject(user, dto, file);
             return ResponseEntity.ok().body("프로젝트가 생성되었습니다.");
         } catch (Exception e) {
             e.printStackTrace();

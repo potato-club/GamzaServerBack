@@ -89,11 +89,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
-
-        String token = jwtTokenProvider.resolveAccessToken(request);
-        Long userId = jwtTokenProvider.extractId(token);
-        UserEntity user = userRepository.findById(userId).orElseThrow();
+    public void createProject(UserEntity user, ProjectRequestDto dto, MultipartFile file) {
 
         try {
             ApplicationEntity application = ApplicationEntity.builder()

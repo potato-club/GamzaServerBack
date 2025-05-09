@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.service.Interface;
 
+import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.dto.project.*;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
@@ -10,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ProjectService {
 
-    void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
+    void createProject(UserEntity user, ProjectRequestDto dto, MultipartFile file);
 
     ProjectListResponseDto getAllProject(HttpServletRequest request);
 
