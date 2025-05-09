@@ -33,6 +33,7 @@ import gamza.project.gamzaweb.dctutil.DockerDataStore;
 import gamza.project.gamzaweb.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dctutil.DockerProvider.DockerProviderBuildCallback;
 import gamza.project.gamzaweb.dctutil.FileController;
+import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -89,6 +90,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @AdminCheck
     public void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file) {
 
         String token = jwtTokenProvider.resolveAccessToken(request);
