@@ -35,7 +35,7 @@ public class NginxServiceImpl implements NginxService {
                     ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
                 
                     location / {
-                    proxy_pass http://localhost:%d;
+                    proxy_pass http://gamza.club:%d;
                     proxy_http_version 1.1;
                     proxy_set_header Upgrade $http_upgrade;
                     proxy_set_header Connection 'upgrade';
