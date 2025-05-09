@@ -25,6 +25,7 @@ import gamza.project.gamzaweb.service.Interface.PlatformService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
 import gamza.project.gamzaweb.service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.utils.CheckAdmin;
 import gamza.project.gamzaweb.validate.DeploymentStepQueue;
 import gamza.project.gamzaweb.validate.FileUploader;
 import gamza.project.gamzaweb.validate.ProjectValidate;
@@ -595,8 +596,9 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @CheckAdmin
     public void approveExecutionApplication(HttpServletRequest request, Long id){
-        userValidate.validateUserRole(request);
+        // userValidate.validateUserRole(request);
 
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
