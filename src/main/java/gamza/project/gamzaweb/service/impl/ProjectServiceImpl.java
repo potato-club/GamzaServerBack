@@ -669,11 +669,6 @@ public class ProjectServiceImpl implements ProjectService {
                         projectStatusService.sendDeploymentStep(project, DeploymentStep.NGINX_CONFIG);
 
                         nginxService.generateNginxConf(applicationName, applicationPort);
-                        nginxService.restartNginx(); // Nginx 재시작
-
-                        deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.NGINX_RELOAD);
-                        projectStatusService.sendDeploymentStep(project, DeploymentStep.NGINX_RELOAD);
-
                         System.out.println("Docker image built successfully: " + imageId);
                         deploymentStepQueue.addDeploymentUpdate(project, DeploymentStep.SUCCESS);
                         projectStatusService.sendDeploymentStep(project, DeploymentStep.SUCCESS);
