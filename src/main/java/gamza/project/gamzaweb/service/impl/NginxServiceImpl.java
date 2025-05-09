@@ -18,11 +18,8 @@ public class NginxServiceImpl implements NginxService {
     @Override
     public void generateNginxConf(String applicationName, int port) {
 
-        String applicationConfName = applicationName + ".conf"; // project.conf
+        String applicationConfName = applicationName + ".conf";
         String filePath = BASIC_PATH + applicationConfName;
-        // gamzaweb.store -> 호빈이 domain 으로 추후 수정
-        // gamza.club 으로 수정 완료 3/19 성훈
-        //
         String confContent = """
                 server {
                     listen 80;
