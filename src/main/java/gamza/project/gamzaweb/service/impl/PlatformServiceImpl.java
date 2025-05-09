@@ -45,7 +45,7 @@ public class PlatformServiceImpl implements PlatformService {
 
     @Override
     public PlatformListResponseDto getAllPlatformList(HttpServletRequest request) {
-        userValidate.validateUserRole(request);
+        userValidate.invalidUserRole(request);
 
         List<PlatformEntity> platformEntities = platformRepository.findAll(); // 무슨 순으로 해주지?
 
