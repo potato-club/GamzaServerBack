@@ -6,6 +6,7 @@ import gamza.project.gamzaweb.dto.project.*;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
+import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class ProjectController {
 
     @PostMapping(value = "/create")
     @Operation(description = "프로젝트 생성 API")
+    @AdminCheck
     public ResponseEntity<String> createProject(
             @RequestPart(value = "zip", required = false) MultipartFile file,
             @ModelAttribute ProjectRequestDto dto,
