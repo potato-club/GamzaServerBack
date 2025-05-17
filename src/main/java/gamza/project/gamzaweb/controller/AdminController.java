@@ -4,8 +4,12 @@ import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
+import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
+import gamza.project.gamzaweb.service.Interface.AdminService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
 import gamza.project.gamzaweb.service.Interface.UserService;
+import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +26,26 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
+    private final AdminService adminService;
     private final ProjectService projectService;
 
     @PostMapping("/user/approve/{id}")
-    @Operation(description = "유저 권한 승인")
-    public ResponseEntity<String> approve(HttpServletRequest request, @PathVariable("id") Long id) {
-        userService.approve(request, id);
-        return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
+    @Operation(description = "유저 권한 승인 - ADMIN LEVEL")
+    @AdminCheck
+    public ResponseEntity<String> userSignUpApprove(HttpServletRequest request, @PathVariable("id") Long id) {
+        try {
+            adminService.userSignUpApproveByAdmin(request, id);
+            return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
+        } catch (Exception e) {
+            throw new UnAuthorizedException("유저 권한 승인 오류", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     @PostMapping("/user/refuse/{id}")
-    @Operation(description = "유저 승인 삭제")
-    public ResponseEntity<String> notApprove(HttpServletRequest request, @PathVariable("id") Long id) {
-        userService.notApprove(request, id);
+    @Operation(description = "유저 승인 거절 - ADMIN LEVEL")
+    @AdminCheck
+    public ResponseEntity<String> userSignUpApproveRefused(HttpServletRequest request, @PathVariable("id") Long id) {
+        adminService.userSignUpApproveRefusedByAdmin(request, id);
         return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
     }
 

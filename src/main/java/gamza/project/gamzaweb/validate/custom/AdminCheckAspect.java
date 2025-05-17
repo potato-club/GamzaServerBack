@@ -33,7 +33,7 @@ public class AdminCheckAspect {
         String userRole = jwtTokenProvider.extractRole(token);
 
         if (!"0".equals(userRole)) {
-            throw new UnAuthorizedException("401 NOT ADMIN 여기인거지?" , ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new UnAuthorizedException("401 NOT ADMIN" , ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
     }
 }

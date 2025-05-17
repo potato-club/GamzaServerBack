@@ -19,7 +19,6 @@ import gamza.project.gamzaweb.validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +29,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -114,23 +112,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void approve(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        UserEntity user = userRepository.findById(id).orElseThrow();
-        user.approveUserStatus(); // USER -> MEMBER
-
-        userRepository.save(user);
 
     }
 
     @Override
     public void notApprove(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
 
-        UserEntity user = userRepository.findById(id).orElseThrow();
-        user.notApproveUserStatus();
-
-        userRepository.save(user);
     }
 
     @Override

@@ -21,10 +21,6 @@ public interface UserService {
 
     void setTokenInHeader(String email, HttpServletResponse response);
 
-    void approve(HttpServletRequest request, Long id);
-
-    void notApprove(HttpServletRequest request, Long id);
-
     ResponseUserList userList();
 
     Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable);
