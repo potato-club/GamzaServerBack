@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.validate;
 
+import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
