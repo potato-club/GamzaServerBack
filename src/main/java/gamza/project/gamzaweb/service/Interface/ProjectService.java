@@ -12,25 +12,22 @@ public interface ProjectService {
 
     void createProject(HttpServletRequest request, ProjectRequestDto dto, MultipartFile file);
 
+    void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
+
+    void deleteProjectById(HttpServletRequest request, Long projectId);
+
+    void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
+
+    void updateApplication(HttpServletRequest request, ApplicationUpdateRequestDto dto, Long projectId, MultipartFile file);
+
+    void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
+
     ProjectListResponseDto getAllProject(HttpServletRequest request);
 
     ProjectListPerResponseDto personalProject(HttpServletRequest request);
 
-    void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
-
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
-
-    void updateApplication(HttpServletRequest request, ApplicationUpdateRequestDto dto, Long projectId,MultipartFile file);
-
-    void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
-
-    void startExecutionApplication(ProjectEntity project, String AT);
-
-    void deleteProjectById(HttpServletRequest request, Long projectId);
-
-    void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
-
 
 }

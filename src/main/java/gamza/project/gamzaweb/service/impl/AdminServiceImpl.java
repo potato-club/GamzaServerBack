@@ -103,6 +103,14 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
+    public void removeFixedExecutionApplication(Long id) {
+        ProjectEntity project = jpaAssistance.getProjectPkValue(id);
+        projectValidate.isProjectFixedState(project);
+        projectRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
     public void approveFixedExecutionApplication(HttpServletRequest request, Long id) {
         ProjectEntity project = jpaAssistance.getProjectPkValue(id);
 
@@ -113,23 +121,16 @@ public class AdminServiceImpl implements AdminService {
 
         String AT = request.getHeader("Authorization").substring(7);
 
-//        boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
-//        if (buildSuccess) {
-//            updateProjectApprovalFixedState(project);
-//        }
+        boolean buildSuccess = dockerProvider.buildDockerImageFromApplicationZip(AT, project);
+        if (buildSuccess) {
+            dockerProvider.updateProjectApprovalFixedState(project);
+        }
     }
+
 
     @Override
     @Transactional
-    public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
-        ProjectEntity project = jpaAssistance.getProjectPkValue(id);
-        projectValidate.isProjectFixedState(project);
-        projectRepository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public void approveExecutionApplication(HttpServletRequest request, Long id){
+    public void approveExecutionApplication(HttpServletRequest request, Long id) {
 
         ProjectEntity project = projectRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
@@ -138,7 +139,7 @@ public class AdminServiceImpl implements AdminService {
         projectRepository.save(project);
 
         String AT = request.getHeader("Authorization").substring(7);
-//        startExecutionApplication(project, AT);
+        dockerProvider.startExecutionApplication(project, AT);
 
     }
 

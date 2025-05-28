@@ -22,7 +22,7 @@ public interface AdminService {
 
     void approveFixedExecutionApplication(HttpServletRequest request, Long id);
 
-    void removeFixedExecutionApplication(HttpServletRequest request, Long id);
+    void removeFixedExecutionApplication(Long id);
 
     Page<ResponseNotApproveDto> notApproveUserList(Pageable pageable);
 

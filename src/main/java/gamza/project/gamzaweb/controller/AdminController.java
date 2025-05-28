@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
-    private final ProjectService projectService;
 
     @PostMapping("/user/approve/{id}")
     @Operation(description = "유저 권한 승인 - ADMIN LEVEL")
@@ -159,9 +158,9 @@ public class AdminController {
     @DeleteMapping("/project/fixed/remove/{id}")
     @Operation(description = "프로젝트 수정 삭제 - ADMIN LEVEL")
     @AdminCheck
-    public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
+    public ResponseEntity<String> RemoveFixedProject(@PathVariable("id") Long id) {
         try {
-            adminService.removeFixedExecutionApplication(request, id);
+            adminService.removeFixedExecutionApplication(id);
             return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 수정요청 삭제요청 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
