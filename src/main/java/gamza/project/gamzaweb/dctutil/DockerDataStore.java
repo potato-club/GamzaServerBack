@@ -7,13 +7,13 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Duration;
 
 public class DockerDataStore {
 
     private static DockerDataStore instance;
+
     public static synchronized DockerDataStore getInstance() {
         if (instance == null) {
             instance = new DockerDataStore();
