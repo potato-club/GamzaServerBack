@@ -2,12 +2,9 @@ package gamza.project.gamzaweb.service.Interface;
 
 import gamza.project.gamzaweb.dto.user.request.RequestUserLoginDto;
 import gamza.project.gamzaweb.dto.user.request.RequestUserSignUpDto;
-import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.dto.user.response.ResponseUserList;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -23,5 +20,4 @@ public interface UserService {
 
     ResponseUserList userList();
 
-    Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable);
 }

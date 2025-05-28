@@ -86,12 +86,14 @@ public class UserServiceImpl implements UserService {
             throw new UnAuthorizedException("로그아웃된 토큰입니다. 다시 로그인해주세요.", ErrorCode.UNAUTHORIZED_EXCEPTION);
         }
 
+
         String newAT = jwtTokenProvider.reissueAT(refreshToken, response);
         String newRT = jwtTokenProvider.reissueRT(refreshToken, response);
 
         jwtTokenProvider.setHeaderAccessToken(response, newAT);
         jwtTokenProvider.setHeaderRefreshToken(response, newRT);
 
+        redisJwtService.delValues(refreshToken); // 기존 RT 삭제
         redisJwtService.setValues(newRT, userEmail);
     }
 
@@ -112,17 +114,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public void approve(HttpServletRequest request, Long id) {
-
-    }
-
-    @Override
-    public void notApprove(HttpServletRequest request, Long id) {
-
-    }
-
-    @Override
     public ResponseUserList userList() {
 
         List<UserEntity> userEntities = userRepository.findAllByOrderByFamilyNameAsc();
@@ -140,15 +131,5 @@ public class UserServiceImpl implements UserService {
                 .build();
 
     }
-
-    @Override
-    public Page<ResponseNotApproveDto> approveList(HttpServletRequest request, Pageable pageable) {
-        userValidate.validateUserRole(request);
-
-        Page<UserEntity> userEntities = userRepository.findByUserRole(UserRole.USER, pageable);
-
-        return userEntities.map(ResponseNotApproveDto::new);
-    }
-
 
 }

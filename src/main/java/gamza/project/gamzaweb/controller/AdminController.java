@@ -8,7 +8,6 @@ import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.service.Interface.AdminService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
-import gamza.project.gamzaweb.service.Interface.UserService;
 import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,16 +24,15 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "${cors.allowed-origins}")
 public class AdminController {
 
-    private final UserService userService;
     private final AdminService adminService;
     private final ProjectService projectService;
 
     @PostMapping("/user/approve/{id}")
     @Operation(description = "유저 권한 승인 - ADMIN LEVEL")
     @AdminCheck
-    public ResponseEntity<String> userSignUpApprove(HttpServletRequest request, @PathVariable("id") Long id) {
+    public ResponseEntity<String> userSignUpApprove(@PathVariable("id") Long id) {
         try {
-            adminService.userSignUpApproveByAdmin(request, id);
+            adminService.userSignUpApproveByAdmin(id);
             return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
         } catch (Exception e) {
             throw new UnAuthorizedException("유저 권한 승인 오류", ErrorCode.UNAUTHORIZED_EXCEPTION);
@@ -44,21 +42,27 @@ public class AdminController {
     @PostMapping("/user/refuse/{id}")
     @Operation(description = "유저 승인 거절 - ADMIN LEVEL")
     @AdminCheck
-    public ResponseEntity<String> userSignUpApproveRefused(HttpServletRequest request, @PathVariable("id") Long id) {
-        adminService.userSignUpApproveRefusedByAdmin(request, id);
-        return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
+    public ResponseEntity<String> userSignUpApproveRefused(@PathVariable("id") Long id) {
+        try {
+            adminService.userSignUpApproveRefusedByAdmin(id);
+            return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
+        } catch (Exception e) {
+            throw new UnAuthorizedException("유저 권한 승인 오류", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     @GetMapping("/user/approve/list")
     @Operation(description = "미승인 유저 리스트 출력")
-    public Page<ResponseNotApproveDto> approveList(
-            HttpServletRequest request,
+    @AdminCheck
+    public Page<ResponseNotApproveDto> printNotApproveUser(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return userService.approveList(request, pageable);
-
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return adminService.notApproveUserList(pageable);
+        } catch (Exception e) {
+            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     @GetMapping("/project/create/list")
