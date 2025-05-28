@@ -18,10 +18,6 @@ public interface ProjectService {
 
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
 
-    Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable);
-
-    Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable);
-
     Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable);
 
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
@@ -32,13 +28,9 @@ public interface ProjectService {
 
     void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 
-//    void onContainerCreated(String containerId);
-
     void approveExecutionApplication(HttpServletRequest request, Long id);
 
     void startExecutionApplication(ProjectEntity project, String AT);
-
-    void checkSuccessProject(HttpServletRequest request, Long id);
 
     void removeExecutionApplication(HttpServletRequest request, Long id);
 

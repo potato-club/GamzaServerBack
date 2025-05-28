@@ -25,6 +25,7 @@ import gamza.project.gamzaweb.service.Interface.PlatformService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
 import gamza.project.gamzaweb.service.Interface.ProjectStatusService;
 import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
+import gamza.project.gamzaweb.utils.JpaAssistance;
 import gamza.project.gamzaweb.validate.DeploymentStepQueue;
 import gamza.project.gamzaweb.validate.FileUploader;
 import gamza.project.gamzaweb.validate.ProjectValidate;
@@ -69,6 +70,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FileUploader fileUploader;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JpaAssistance jpaAssistance;
 
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
@@ -485,31 +487,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     }
 
-    @Override
-    public Page<ProjectListNotApproveResponse> notApproveProjectList(HttpServletRequest request, Pageable pageable) {
-        userValidate.validateUserRole(request);
 
-        Page<ProjectEntity> projectEntities = projectRepository.findByFixedStateAndApproveState(false, false, pageable);
 
-        return projectEntities.map(project -> {
-            String fileUrl = fileUploader.recentGetFileUrl(project);
-            return new ProjectListNotApproveResponse(project, fileUrl);
-        });
-    }
-
-    @Override
-    public Page<ProjectListApproveResponse> approvedProjectList(HttpServletRequest request, Pageable pageable) {
-        userValidate.validateUserRole(request);
-
-        //이거 나중에 쿼리DSL로 돌리기
-//        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNull(pageable);
-        Page<ProjectEntity> projectEntities = projectRepository.findByApprovalProjectStatusIsNotNullAndSuccessCheckFalse(pageable);
-
-        return projectEntities.map(project -> {
-            String fileUrl = fileUploader.recentGetFileUrl(project);
-            return new ProjectListApproveResponse(project, fileUrl);
-        });
-    }
 
     @Override
     public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
@@ -523,18 +502,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    @Transactional
-    public void checkSuccessProject(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        ProjectEntity project = projectValidate.validateProject(id);
-        project.updateSuccessCheck();
-    }
-
-
-    @Override
     public void removeExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
-        projectValidate.validateProject(id);
+        jpaAssistance.getProjectPkValue(id);
         projectRepository.deleteById(id);
     }
 
@@ -562,7 +532,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
         userValidate.validateUserRole(request);
-        ProjectEntity project = projectValidate.validateProject(id);
+        ProjectEntity project = jpaAssistance.getProjectPkValue(id);
 
         if (!project.isFixedState()) {
             throw new BadRequestException("해당 프로젝트는 수정 요청 상태가 아닙니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);

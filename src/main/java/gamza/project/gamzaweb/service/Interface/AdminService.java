@@ -1,5 +1,7 @@
 package gamza.project.gamzaweb.service.Interface;
 
+import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
+import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,12 @@ public interface AdminService {
     void userSignUpApproveRefusedByAdmin(Long id);
 
     Page<ResponseNotApproveDto> notApproveUserList(Pageable pageable);
+
+    Page<ProjectListNotApproveResponse> notApproveProjectList(Pageable pageable);
+
+    Page<ProjectListApproveResponse> approvedProjectList(Pageable pageable);
+
+    void checkSuccessProject(Long id);
 
 
 }

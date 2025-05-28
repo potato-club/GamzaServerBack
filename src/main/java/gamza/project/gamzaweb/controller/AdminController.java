@@ -52,7 +52,7 @@ public class AdminController {
     }
 
     @GetMapping("/user/approve/list")
-    @Operation(description = "미승인 유저 리스트 출력")
+    @Operation(description = "미승인 유저 리스트 출력 - ADMIN LEVEL")
     @AdminCheck
     public Page<ResponseNotApproveDto> printNotApproveUser(
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -66,32 +66,43 @@ public class AdminController {
     }
 
     @GetMapping("/project/create/list")
-    @Operation(description = "미승인 프로젝트 리스트 출력")
-    public Page<ProjectListNotApproveResponse> notApproveProjectList(
-            HttpServletRequest request,
+    @Operation(description = "미승인 프로젝트 리스트 출력 - ADMIN LEVEL")
+    @AdminCheck
+    public Page<ProjectListNotApproveResponse> printNotApproveProject(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return projectService.notApproveProjectList(request, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return adminService.notApproveProjectList(pageable);
+        } catch (Exception e) {
+            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
-    @GetMapping("/project/pending/list") // containerId 값 반환 필요한가?
-    @Operation(description = "승인된 프로젝트 리스트 출력")
+    @GetMapping("/project/pending/list")
+    @Operation(description = "승인된 프로젝트 리스트 출력 - ADMIN LEVEL")
+    @AdminCheck
     public Page<ProjectListApproveResponse> approvedProjectList(
-            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-        return projectService.approvedProjectList(request, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return adminService.approvedProjectList(pageable);
+        } catch (Exception e) {
+            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     @PostMapping("/project/pending/{id}")
     @Operation(description = "프로젝트 성공 확인")
-    public ResponseEntity<String> checkSuccessProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.checkSuccessProject(request, id);
-        return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
+    @AdminCheck
+    public ResponseEntity<String> checkSuccessProject(@PathVariable("id") Long id) {
+        try {
+            adminService.checkSuccessProject(id);
+            return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
+        } catch (Exception e) {
+            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+        }
     }
 
     @PostMapping("/project/approve/{id}")

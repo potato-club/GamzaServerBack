@@ -23,11 +23,6 @@ public class ProjectValidate {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    public ProjectEntity validateProject(Long id) {
-        return projectRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Project not found", ErrorCode.NOT_FOUND_EXCEPTION));
-    }
-
     public void isParticipateInProject(Long projectId, Long userId) {
 
         // 어드민이거나 해당 프로젝트 협력자일경우 삭제 가능
