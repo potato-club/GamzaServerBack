@@ -5,6 +5,7 @@ import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.error.ErrorCode;
+import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.service.Interface.AdminService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
@@ -12,6 +13,7 @@ import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.InternalException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +37,7 @@ public class AdminController {
             adminService.userSignUpApproveByAdmin(id);
             return ResponseEntity.ok().body("해당 유저 가입이 승인되었습니다.");
         } catch (Exception e) {
-            throw new UnAuthorizedException("유저 권한 승인 오류", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("유저 권한 승인 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
         }
     }
 
@@ -47,7 +49,7 @@ public class AdminController {
             adminService.userSignUpApproveRefusedByAdmin(id);
             return ResponseEntity.ok().body("해당 유저 가입이 거절되었습니다.");
         } catch (Exception e) {
-            throw new UnAuthorizedException("유저 권한 승인 오류", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("유저 권한 거절 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
         }
     }
 
@@ -61,7 +63,7 @@ public class AdminController {
             Pageable pageable = PageRequest.of(page, size);
             return adminService.notApproveUserList(pageable);
         } catch (Exception e) {
-            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("유저 리스트 출력 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
     }
 
@@ -75,7 +77,7 @@ public class AdminController {
             Pageable pageable = PageRequest.of(page, size);
             return adminService.notApproveProjectList(pageable);
         } catch (Exception e) {
-            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("미승인 프로젝트 출력 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
     }
 
@@ -89,58 +91,84 @@ public class AdminController {
             Pageable pageable = PageRequest.of(page, size);
             return adminService.approvedProjectList(pageable);
         } catch (Exception e) {
-            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("승인 프로젝트 리스트 출력 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
     }
 
     @PostMapping("/project/pending/{id}")
-    @Operation(description = "프로젝트 성공 확인")
+    @Operation(description = "프로젝트 성공 확인 - ADMIN LEVEL")
     @AdminCheck
     public ResponseEntity<String> checkSuccessProject(@PathVariable("id") Long id) {
         try {
             adminService.checkSuccessProject(id);
             return ResponseEntity.ok().body("프로젝트 생성을 확인했습니다.");
         } catch (Exception e) {
-            throw new UnAuthorizedException("접근 권한이 존재하지 않습니다. - ADMIN LEVEL", ErrorCode.UNAUTHORIZED_EXCEPTION);
+            throw new BadRequestException("성공 확인요청 반환 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
         }
     }
 
     @PostMapping("/project/approve/{id}")
-    @Operation(description = "프로젝트 생성 승인")
+    @Operation(description = "프로젝트 생성 승인 - ADMIN LEVEL")
+    @AdminCheck
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.approveExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.\n승인 프로젝트 시작");
+        try {
+            projectService.approveExecutionApplication(request, id);
+            return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.\n승인 프로젝트 시작");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 승인 요청 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
     }
 
     @DeleteMapping("/project/remove/{id}")
-    @Operation(description = "프로젝트 삭제 승인")
+    @Operation(description = "프로젝트 삭제 승인 - ADMIN LEVEL")
+    @AdminCheck
     public ResponseEntity<String> RemoveProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.removeExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+        try {
+            projectService.removeExecutionApplication(request, id);
+            return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 삭제 요청 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
     }
 
     @GetMapping("/project/modify/list")
-    @Operation(description = "수정 미승인 프로젝트 리스트 출력")
+    @Operation(description = "수정 미승인 프로젝트 리스트 출력 - ADMIN LEVEL")
+    @AdminCheck
     public Page<FixedProjectListNotApproveResponse> approveFixedProjectList(
             HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        return projectService.notApproveFixedProjectList(request, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return projectService.notApproveFixedProjectList(request, pageable);
+        } catch (Exception e) {
+            throw new BadRequestException("미승인 프로젝트 리스트 출력 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
+
     }
 
     @PostMapping("/project/fixed/{id}")
-    @Operation(description = "프로젝트 수정 승인")
+    @Operation(description = "프로젝트 수정 승인 - ADMIN LEVEL")
+    @AdminCheck
     public ResponseEntity<String> approveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.approveFixedExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
+        try {
+            projectService.approveFixedExecutionApplication(request, id);
+            return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 수정 승인요청 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
+        }
     }
 
     @DeleteMapping("/project/fixed/remove/{id}")
-    @Operation(description = "프로젝트 수정 삭제")
+    @Operation(description = "프로젝트 수정 삭제 - ADMIN LEVEL")
+    @AdminCheck
     public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
-        projectService.removeFixedExecutionApplication(request, id);
-        return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+        try {
+            projectService.removeFixedExecutionApplication(request, id);
+            return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
+        } catch (Exception e) {
+            throw new BadRequestException("프로젝트 수정요청 삭제요청 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
+        }
     }
 
 }

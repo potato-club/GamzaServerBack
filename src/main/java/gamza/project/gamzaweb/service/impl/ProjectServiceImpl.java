@@ -527,7 +527,6 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
-
     @Override
     @Transactional
     public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
