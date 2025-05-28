@@ -61,30 +61,4 @@ public class NginxServiceImpl implements NginxService {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public void restartNginx() {
-        try {
-            ProcessBuilder testConfig = new ProcessBuilder("bash", "-c", "nginx -t");
-            Process testProcess = testConfig.start();
-            int testExitCode = testProcess.waitFor();
-
-            if (testExitCode != 0) {
-                throw new RuntimeException("Nginx config test failed.");
-            }
-
-            ProcessBuilder reloadProcess = new ProcessBuilder("bash", "-c", "nginx -s reload");
-            Process process = reloadProcess.start();
-            int exitCode = process.waitFor();
-
-            if (exitCode == 0) {
-                System.out.println("Nginx reloaded successfully.");
-            } else {
-                System.err.println("Failed to reload Nginx. Exit code: " + exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to reload Nginx", e);
-        }
-    }
 }

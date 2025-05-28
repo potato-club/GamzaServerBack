@@ -28,7 +28,10 @@
 - Git
 - Github
 - Postman
-- Swagger 
+- Swagger
+
+## 📍 프로젝트 구성도
+![image](https://github.com/user-attachments/assets/36d942f8-ef8f-4e39-8d7c-4fd9d6af30e6)
 
 ## 📍 ERD
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/6ddfcf4f-c522-4eb2-81b3-e2edddfa02d9" />
