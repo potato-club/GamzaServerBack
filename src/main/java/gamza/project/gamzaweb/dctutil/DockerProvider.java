@@ -47,7 +47,6 @@ public class DockerProvider {
     private final ContainerRepository containerRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ProjectValidate projectValidate;
-//    private final DockerScheduler dockerScheduler;
 
     public List<Container> getContainerList() {
         return dockerClient.listContainersCmd().exec();

@@ -490,55 +490,6 @@ public class ProjectServiceImpl implements ProjectService {
 
 
 
-    @Override
-    public Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable) {
-        userValidate.validateUserRole(request);
-
-        // 승인요청 fixedState 는 true이고 approveFixedState(승인요청 상태가 미허가된 상태 0false) 인애들만 추출
-        Page<ProjectEntity> projectEntities = projectRepository.findByFixedStateAndApproveFixedState(true, false, pageable);
-
-        return projectEntities.map(FixedProjectListNotApproveResponse::new);
-
-    }
-
-    @Override
-    public void removeExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        jpaAssistance.getProjectPkValue(id);
-        projectRepository.deleteById(id);
-    }
-
-    @Override
-    @Transactional
-    public void approveFixedExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        ProjectEntity project = getProjectById(id);
-
-        ContainerEntity containerEntity = containerRepository.findContainerEntityByApplication(project.getApplication());
-        dockerProvider.stopContainer(request, containerEntity);
-        dockerProvider.removeContainer(containerEntity.getContainerId());
-        containerRepository.delete(containerEntity);
-
-        String AT = request.getHeader("Authorization").substring(7);
-
-        boolean buildSuccess = buildDockerImageFromApplicationZip(AT, project);
-        if (buildSuccess) {
-            updateProjectApprovalFixedState(project);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void removeFixedExecutionApplication(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
-        ProjectEntity project = jpaAssistance.getProjectPkValue(id);
-
-        if (!project.isFixedState()) {
-            throw new BadRequestException("해당 프로젝트는 수정 요청 상태가 아닙니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
-        }
-
-        projectRepository.deleteById(id);
-    }
 
     @Override
     public void removeTeamProjectInMyPage(HttpServletRequest request, Long id) {
@@ -564,21 +515,7 @@ public class ProjectServiceImpl implements ProjectService {
 //        projectRepository.save(project);
 //    }
 
-    @Override
-    @Transactional
-    public void approveExecutionApplication(HttpServletRequest request, Long id){
-        userValidate.validateUserRole(request);
 
-        ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
-
-        project.updateApprovalProjectStatus(ApprovalProjectStatus.PENDING);
-        projectRepository.save(project);
-
-        String AT = request.getHeader("Authorization").substring(7);
-        startExecutionApplication(project, AT);
-
-    }
 
     @Override
     @Transactional

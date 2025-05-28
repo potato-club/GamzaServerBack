@@ -6,14 +6,12 @@ import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;
-import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.service.Interface.AdminService;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
 import gamza.project.gamzaweb.validate.custom.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.InternalException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -112,7 +110,7 @@ public class AdminController {
     @AdminCheck
     public ResponseEntity<String> approveCreateProject(HttpServletRequest request, @PathVariable("id") Long id) {
         try {
-            projectService.approveExecutionApplication(request, id);
+            adminService.approveExecutionApplication(request, id);
             return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.\n승인 프로젝트 시작");
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 승인 요청 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
@@ -122,9 +120,9 @@ public class AdminController {
     @DeleteMapping("/project/remove/{id}")
     @Operation(description = "프로젝트 삭제 승인 - ADMIN LEVEL")
     @AdminCheck
-    public ResponseEntity<String> RemoveProject(HttpServletRequest request, @PathVariable("id") Long id) {
+    public ResponseEntity<String> RemoveProject(@PathVariable("id") Long id) {
         try {
-            projectService.removeExecutionApplication(request, id);
+            adminService.removeExecutionApplication(id);
             return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 삭제 요청 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
@@ -135,12 +133,11 @@ public class AdminController {
     @Operation(description = "수정 미승인 프로젝트 리스트 출력 - ADMIN LEVEL")
     @AdminCheck
     public Page<FixedProjectListNotApproveResponse> approveFixedProjectList(
-            HttpServletRequest request,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "6") int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            return projectService.notApproveFixedProjectList(request, pageable);
+            return adminService.notApproveFixedProjectList(pageable);
         } catch (Exception e) {
             throw new BadRequestException("미승인 프로젝트 리스트 출력 오류", ErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
@@ -152,7 +149,7 @@ public class AdminController {
     @AdminCheck
     public ResponseEntity<String> approveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
         try {
-            projectService.approveFixedExecutionApplication(request, id);
+            adminService.approveFixedExecutionApplication(request, id);
             return ResponseEntity.ok().body("해당 프로젝트가 승인되었습니다.");
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 수정 승인요청 오류", ErrorCode.BAD_REQUEST_EXCEPTION);
@@ -164,7 +161,7 @@ public class AdminController {
     @AdminCheck
     public ResponseEntity<String> RemoveFixedProject(HttpServletRequest request, @PathVariable("id") Long id) {
         try {
-            projectService.removeFixedExecutionApplication(request, id);
+            adminService.removeFixedExecutionApplication(request, id);
             return ResponseEntity.ok().body("해당 프로젝트가 삭제되었습니다.");
         } catch (Exception e) {
             throw new BadRequestException("프로젝트 수정요청 삭제요청 오류", ErrorCode.BAD_REQUEST_EXCEPTION);

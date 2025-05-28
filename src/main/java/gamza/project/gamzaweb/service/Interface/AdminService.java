@@ -1,5 +1,6 @@
 package gamza.project.gamzaweb.service.Interface;
 
+import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
@@ -13,13 +14,22 @@ public interface AdminService {
 
     void userSignUpApproveRefusedByAdmin(Long id);
 
+    void checkSuccessProject(Long id);
+
+    void approveExecutionApplication(HttpServletRequest request, Long id);
+
+    void removeExecutionApplication(Long id);
+
+    void approveFixedExecutionApplication(HttpServletRequest request, Long id);
+
+    void removeFixedExecutionApplication(HttpServletRequest request, Long id);
+
     Page<ResponseNotApproveDto> notApproveUserList(Pageable pageable);
 
     Page<ProjectListNotApproveResponse> notApproveProjectList(Pageable pageable);
 
     Page<ProjectListApproveResponse> approvedProjectList(Pageable pageable);
 
-    void checkSuccessProject(Long id);
-
+    Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(Pageable pageable);
 
 }

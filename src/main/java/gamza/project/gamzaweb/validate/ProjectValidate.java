@@ -37,6 +37,12 @@ public class ProjectValidate {
         }
     }
 
+    public void isProjectFixedState (ProjectEntity project) {
+        if (!project.isFixedState()) {
+            throw new BadRequestException("해당 프로젝트는 수정 요청 상태가 아닙니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);
+        }
+    }
+
     public void platformChecker(PlatformEntity platform, String projectType) {
         if (platform.getProjects().size() >= 3) {
             throw new BadRequestException("하나의 플랫폼에는 4개 이상의 프로젝트를 가질 수 없습니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION);

@@ -18,8 +18,6 @@ public interface ProjectService {
 
     void updateProject(HttpServletRequest request, ProjectUpdateRequestDto dto, Long id);
 
-    Page<FixedProjectListNotApproveResponse> notApproveFixedProjectList(HttpServletRequest request, Pageable pageable);
-
     ProjectDetailResponseDto getProjectById(HttpServletRequest request, Long id);
 
     ApplicationDetailResponseDto getApplicationByProjId(HttpServletRequest request, Long projectId);
@@ -28,17 +26,11 @@ public interface ProjectService {
 
     void deleteProjectCollaborator(HttpServletRequest request, Long projectId, RequestAddCollaboratorDto dto);
 
-    void approveExecutionApplication(HttpServletRequest request, Long id);
-
     void startExecutionApplication(ProjectEntity project, String AT);
-
-    void removeExecutionApplication(HttpServletRequest request, Long id);
 
     void deleteProjectById(HttpServletRequest request, Long projectId);
 
     void removeTeamProjectInMyPage(HttpServletRequest request, Long id);
 
-    void approveFixedExecutionApplication(HttpServletRequest request, Long id);
 
-    void removeFixedExecutionApplication(HttpServletRequest request, Long id);
 }
