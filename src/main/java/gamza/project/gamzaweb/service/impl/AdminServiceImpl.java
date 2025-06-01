@@ -10,13 +10,11 @@ import gamza.project.gamzaweb.dto.project.response.FixedProjectListNotApproveRes
 import gamza.project.gamzaweb.dto.project.response.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.response.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
-import gamza.project.gamzaweb.utils.error.ErrorCode;
-import gamza.project.gamzaweb.utils.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.repository.ContainerRepository;
 import gamza.project.gamzaweb.repository.ProjectRepository;
 import gamza.project.gamzaweb.repository.UserRepository;
 import gamza.project.gamzaweb.service.Interface.AdminService;
-import gamza.project.gamzaweb.utils.JpaAssistance;
+import gamza.project.gamzaweb.utils.validate.JpaAssistance;
 import gamza.project.gamzaweb.utils.validate.FileUploader;
 import gamza.project.gamzaweb.utils.validate.ProjectValidate;
 import jakarta.servlet.http.HttpServletRequest;
@@ -131,9 +129,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public void approveExecutionApplication(HttpServletRequest request, Long id) {
 
-        ProjectEntity project = projectRepository.findById(id)
-                .orElseThrow(() -> new BadRequestException("해당 프로젝트를 찾을 수 없습니다.", ErrorCode.NOT_FOUND_EXCEPTION));
-
+        ProjectEntity project = jpaAssistance.getProjectPkValue(id);
         project.updateApprovalProjectStatus(ApprovalProjectStatus.PENDING);
         projectRepository.save(project);
 

@@ -28,11 +28,6 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         ErrorJwtCode errorCode;
 
-//        if(AllowPath.isAllowed(path)) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-
         try {
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
 
@@ -97,7 +92,6 @@ public class JwtAuthorizationTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
 
     }
-
 
     private void setResponse(HttpServletResponse response, ErrorJwtCode errorCode) throws IOException {
         JSONObject json = new JSONObject();

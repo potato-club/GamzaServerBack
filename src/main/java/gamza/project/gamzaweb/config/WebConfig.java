@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.config;
 
 
-import gamza.project.gamzaweb.utils.validate.aop.AuthUserArgumentResolver;
+import gamza.project.gamzaweb.utils.validate.aop.AdminCheckParamAOP;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final AuthUserArgumentResolver authUserArgumentResolver;
+    private final AdminCheckParamAOP authUserArgumentResolver;
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
