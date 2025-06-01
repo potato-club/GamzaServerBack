@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.utils.validate.custom;
+package gamza.project.gamzaweb.utils.validate.aop;
 
 import java.lang.annotation.*;
 

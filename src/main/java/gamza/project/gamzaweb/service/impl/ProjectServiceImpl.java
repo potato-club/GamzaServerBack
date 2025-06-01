@@ -19,7 +19,7 @@ import gamza.project.gamzaweb.utils.error.requestError.*;
 import gamza.project.gamzaweb.utils.validate.FileUploader;
 import gamza.project.gamzaweb.utils.dctutil.DockerProvider;
 import gamza.project.gamzaweb.utils.dctutil.FileController;
-import gamza.project.gamzaweb.utils.validate.custom.AdminCheck;
+import gamza.project.gamzaweb.utils.validate.aop.AdminCheck;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Optional;

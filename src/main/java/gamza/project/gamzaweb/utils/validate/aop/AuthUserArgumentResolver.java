@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.utils.validate.custom;
+package gamza.project.gamzaweb.utils.validate.aop;
 
 
 import gamza.project.gamzaweb.Entity.UserEntity;

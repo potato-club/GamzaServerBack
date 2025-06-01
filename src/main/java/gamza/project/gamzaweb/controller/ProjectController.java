@@ -12,7 +12,7 @@ import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.utils.error.ErrorCode;
 import gamza.project.gamzaweb.utils.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.service.Interface.ProjectService;
-import gamza.project.gamzaweb.utils.validate.custom.AdminCheck;
+import gamza.project.gamzaweb.utils.validate.aop.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.utils.validate.custom;
+package gamza.project.gamzaweb.utils.validate.aop;
 
 
 import gamza.project.gamzaweb.utils.error.ErrorCode;
@@ -20,7 +20,7 @@ public class AdminCheckAspect {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Pointcut("@annotation(gamza.project.gamzaweb.utils.validate.custom.AdminCheck)")
+    @Pointcut("@annotation(gamza.project.gamzaweb.utils.validate.aop.AdminCheck)")
     public void adminCheckPointcut() {}
 
     @Before("adminCheckPointcut()")

@@ -17,7 +17,7 @@ public class ProjectTaskScheduler {
     private final DeploymentStepQueue deploymentStepQueue;
     private final ProjectRepository projectRepository;
 
-    @Scheduled(fixedRate = 5000) // 5sec
+    @Scheduled(fixedRate = 5000)
     public void processDeploymentSteps() {
         List<DeploymentUpdateRequest> updateRequests = deploymentStepQueue.pollQueue();
         if(updateRequests.isEmpty()) {

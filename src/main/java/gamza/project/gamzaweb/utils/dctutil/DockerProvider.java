@@ -232,12 +232,6 @@ public class DockerProvider {
 
     //examples end---
 
-
-
-
-
-
-
     @Transactional
     public void startExecutionApplication(ProjectEntity project, String AT) {
 

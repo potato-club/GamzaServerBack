@@ -23,8 +23,6 @@ public class ProjectValidate {
 
     public void isParticipateInProject(Long projectId, Long userId) {
 
-        // 어드민이거나 해당 프로젝트 협력자일경우 삭제 가능
-
         UserEntity user = userRepository.findById(userId) // 해당 유저는 어드민이거나 해당 프로젝트 협력자
                 .orElseThrow(() -> new UnAuthorizedException("해당 유저가 존재하지 않습니다.", ErrorCode.UNAUTHORIZED_EXCEPTION));
 

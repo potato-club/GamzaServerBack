@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.config;
 
 
-import gamza.project.gamzaweb.utils.validate.custom.AuthUserArgumentResolver;
+import gamza.project.gamzaweb.utils.validate.aop.AuthUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
