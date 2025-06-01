@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.controller;
 
 
-import gamza.project.gamzaweb.dctutil.DockerProvider;
+import gamza.project.gamzaweb.utils.dctutil.DockerProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

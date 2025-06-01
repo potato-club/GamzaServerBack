@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.service.impl;
 
-import gamza.project.gamzaweb.error.requestError.DockerRequestException;
+import gamza.project.gamzaweb.utils.error.requestError.DockerRequestException;
 import gamza.project.gamzaweb.service.Interface.NginxService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

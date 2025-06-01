@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.service.jwt;
 
-import gamza.project.gamzaweb.error.ErrorJwtCode;
+import gamza.project.gamzaweb.utils.error.ErrorJwtCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;

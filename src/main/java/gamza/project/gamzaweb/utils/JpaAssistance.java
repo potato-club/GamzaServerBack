@@ -2,9 +2,9 @@ package gamza.project.gamzaweb.utils;
 
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
-import gamza.project.gamzaweb.error.ErrorCode;
-import gamza.project.gamzaweb.error.requestError.NotFoundException;
-import gamza.project.gamzaweb.error.requestError.UnAuthorizedException;
+import gamza.project.gamzaweb.utils.error.ErrorCode;
+import gamza.project.gamzaweb.utils.error.requestError.NotFoundException;
+import gamza.project.gamzaweb.utils.error.requestError.UnAuthorizedException;
 import gamza.project.gamzaweb.repository.ProjectRepository;
 import gamza.project.gamzaweb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

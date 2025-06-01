@@ -2,7 +2,7 @@ package gamza.project.gamzaweb.repository;
 
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
-import gamza.project.gamzaweb.querydslRepository.ProjectCustomRepository;
+import gamza.project.gamzaweb.repository.querydslRepository.ProjectCustomRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
