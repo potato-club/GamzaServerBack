@@ -14,7 +14,7 @@ import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
 import gamza.project.gamzaweb.Entity.ImageEntity;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.Entity.UserEntity;
-import gamza.project.gamzaweb.dto.docker.ImageBuildEventDto;
+import gamza.project.gamzaweb.dto.project.request.ImageBuildEventRequestDto;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.error.requestError.DockerRequestException;
@@ -412,7 +412,7 @@ public class DockerProvider {
                     if (item.getImageId() != null) {
                         taggingImage(item.getImageId(), name, tag);
 
-                        ImageBuildEventDto event = new ImageBuildEventDto(userPk, item.getImageId(), name, key);
+                        ImageBuildEventRequestDto event = new ImageBuildEventRequestDto(userPk, item.getImageId(), name, key);
                         applicationEventPublisher.publishEvent(event);
 
                         try {

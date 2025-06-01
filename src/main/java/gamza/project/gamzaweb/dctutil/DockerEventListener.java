@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.dctutil;
 
-import gamza.project.gamzaweb.dto.docker.ImageBuildEventDto;
 import gamza.project.gamzaweb.Entity.ImageEntity;
+import gamza.project.gamzaweb.dto.project.request.ImageBuildEventRequestDto;
 import gamza.project.gamzaweb.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -16,20 +16,13 @@ public class DockerEventListener {
     private final ImageRepository imageRepository;
 
     @EventListener
-    public void handleImageBuildEvent(ImageBuildEventDto event) {
+    public void handleImageBuildEvent(ImageBuildEventRequestDto event) {
         Optional<ImageEntity> optionalImageEntity = imageRepository.findByNameAndUser(event.getName(), event.getUserPk());
         if (optionalImageEntity.isPresent()) {
-            ImageEntity imageEntity = optionalImageEntity.get(); // 실제 ImageEntity 객체를 가져옴
+            ImageEntity imageEntity = optionalImageEntity.get();
 
             imageEntity.updatedImageId(event.getImageId());
             imageRepository.save(imageEntity);
-//            ImageEntity updatedImageEntity = ImageEntity.builder()
-//                    .user(imageEntity.getUser())
-//                    .imageId(event.getImageId()) // 새로 업데이트된 imageId
-//                    .name(imageEntity.getName())
-//                    .variableKey(imageEntity.getVariableKey())
-//                    .build();
-//            imageRepository.save(updatedImageEntity); // 업데이트된 엔티티 저장
         }
     }
 

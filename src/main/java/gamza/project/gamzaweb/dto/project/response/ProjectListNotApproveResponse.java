@@ -1,6 +1,5 @@
-package gamza.project.gamzaweb.dto.project;
+package gamza.project.gamzaweb.dto.project.response;
 
-import gamza.project.gamzaweb.Entity.Enums.ApprovalProjectStatus;
 import gamza.project.gamzaweb.Entity.Enums.ProjectState;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import lombok.AllArgsConstructor;

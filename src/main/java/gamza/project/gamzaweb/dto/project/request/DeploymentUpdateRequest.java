@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.dto.project;
+package gamza.project.gamzaweb.dto.project.request;
 
 import gamza.project.gamzaweb.Entity.Enums.DeploymentStep;
 import lombok.AllArgsConstructor;

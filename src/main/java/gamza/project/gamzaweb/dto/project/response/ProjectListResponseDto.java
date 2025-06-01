@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.dto.project;
+package gamza.project.gamzaweb.dto.project.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

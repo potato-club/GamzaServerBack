@@ -1,10 +1,6 @@
-package gamza.project.gamzaweb.dto.project;
+package gamza.project.gamzaweb.dto.project.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import gamza.project.gamzaweb.Entity.ApplicationEntity;
-import gamza.project.gamzaweb.Entity.ProjectEntity;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

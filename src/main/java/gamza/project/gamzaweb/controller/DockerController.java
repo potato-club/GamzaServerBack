@@ -19,7 +19,7 @@ public class DockerController {
 
     private final DockerProvider provider;
 
-    @GetMapping("/logs/{containerId}") // 컨테이너 로그 반환 있어야겠다
+    @GetMapping("/logs/{containerId}")
     @Operation(description = "컨테이너 로그")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
                                          @RequestParam(value = "lines", defaultValue = "100") int lines) {

@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gamza.project.gamzaweb.dto.project.DeployStepResponseDto;
+import gamza.project.gamzaweb.dto.project.response.DeployStepResponseDto;
 import gamza.project.gamzaweb.Entity.ProjectEntity;
 import gamza.project.gamzaweb.error.ErrorCode;
 import gamza.project.gamzaweb.error.requestError.ForbiddenException;
