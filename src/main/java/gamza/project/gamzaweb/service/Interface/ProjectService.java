@@ -1,11 +1,14 @@
 package gamza.project.gamzaweb.service.Interface;
 
+import gamza.project.gamzaweb.dto.project.request.ApplicationUpdateRequestDto;
+import gamza.project.gamzaweb.dto.project.request.ProjectRequestDto;
+import gamza.project.gamzaweb.dto.project.request.ProjectUpdateRequestDto;
+import gamza.project.gamzaweb.dto.project.response.ApplicationDetailResponseDto;
+import gamza.project.gamzaweb.dto.project.response.ProjectDetailResponseDto;
+import gamza.project.gamzaweb.dto.project.response.ProjectListPerResponseDto;
+import gamza.project.gamzaweb.dto.project.response.ProjectListResponseDto;
 import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
-import gamza.project.gamzaweb.dto.project.*;
-import gamza.project.gamzaweb.Entity.ProjectEntity;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ProjectService {

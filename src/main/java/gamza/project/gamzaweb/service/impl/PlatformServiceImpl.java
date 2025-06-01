@@ -1,15 +1,15 @@
 package gamza.project.gamzaweb.service.impl;
 
-import gamza.project.gamzaweb.dto.platform.PlatformCreateRequestDto;
-import gamza.project.gamzaweb.dto.platform.PlatformListResponseDto;
-import gamza.project.gamzaweb.dto.platform.PlatformResponseDto;
+import gamza.project.gamzaweb.dto.platform.request.PlatformCreateRequestDto;
+import gamza.project.gamzaweb.dto.platform.response.PlatformListResponseDto;
+import gamza.project.gamzaweb.dto.platform.response.PlatformResponseDto;
 import gamza.project.gamzaweb.Entity.PlatformEntity;
-import gamza.project.gamzaweb.error.ErrorCode;
-import gamza.project.gamzaweb.error.requestError.BadRequestException;
-import gamza.project.gamzaweb.error.requestError.DuplicateException;
+import gamza.project.gamzaweb.utils.error.ErrorCode;
+import gamza.project.gamzaweb.utils.error.requestError.BadRequestException;
+import gamza.project.gamzaweb.utils.error.requestError.DuplicateException;
 import gamza.project.gamzaweb.repository.PlatformRepository;
 import gamza.project.gamzaweb.service.Interface.PlatformService;
-import gamza.project.gamzaweb.validate.UserValidate;
+import gamza.project.gamzaweb.utils.validate.UserValidate;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
