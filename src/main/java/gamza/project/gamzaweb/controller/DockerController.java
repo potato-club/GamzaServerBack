@@ -1,7 +1,7 @@
 package gamza.project.gamzaweb.controller;
 
 
-import gamza.project.gamzaweb.dctutil.DockerProvider;
+import gamza.project.gamzaweb.utils.dctutil.DockerProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ public class DockerController {
 
     private final DockerProvider provider;
 
-    @GetMapping("/logs/{containerId}") // 컨테이너 로그 반환 있어야겠다
+    @GetMapping("/logs/{containerId}")
     @Operation(description = "컨테이너 로그")
     public List<String> getContainerLogs(@PathVariable("containerId") String containerId,
                                          @RequestParam(value = "lines", defaultValue = "100") int lines) {

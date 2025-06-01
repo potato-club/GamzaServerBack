@@ -1,8 +1,8 @@
 package gamza.project.gamzaweb.service.Interface;
 
-import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
-import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
-import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
+import gamza.project.gamzaweb.dto.project.response.FixedProjectListNotApproveResponse;
+import gamza.project.gamzaweb.dto.project.response.ProjectListApproveResponse;
+import gamza.project.gamzaweb.dto.project.response.ProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;

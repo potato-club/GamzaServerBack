@@ -1,14 +1,13 @@
 package gamza.project.gamzaweb.controller;
 
 import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
-import gamza.project.gamzaweb.dto.project.FixedProjectListNotApproveResponse;
-import gamza.project.gamzaweb.dto.project.ProjectListApproveResponse;
-import gamza.project.gamzaweb.dto.project.ProjectListNotApproveResponse;
-import gamza.project.gamzaweb.error.ErrorCode;
-import gamza.project.gamzaweb.error.requestError.BadRequestException;
+import gamza.project.gamzaweb.dto.project.response.FixedProjectListNotApproveResponse;
+import gamza.project.gamzaweb.dto.project.response.ProjectListApproveResponse;
+import gamza.project.gamzaweb.dto.project.response.ProjectListNotApproveResponse;
+import gamza.project.gamzaweb.utils.error.ErrorCode;
+import gamza.project.gamzaweb.utils.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.service.Interface.AdminService;
-import gamza.project.gamzaweb.service.Interface.ProjectService;
-import gamza.project.gamzaweb.validate.custom.AdminCheck;
+import gamza.project.gamzaweb.utils.validate.aop.AdminCheck;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
