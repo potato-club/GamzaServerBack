@@ -6,9 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface PlatformService {
 
-    PlatformListResponseDto getAllPlatformList(HttpServletRequest request);
+    PlatformListResponseDto getAllPlatformList();
 
-    void deletePlatform(HttpServletRequest request, Long id);
+    void deletePlatform(Long id);
 
-    void createPlatform(HttpServletRequest request, PlatformCreateRequestDto dto);
+    void createPlatform(PlatformCreateRequestDto dto);
 }

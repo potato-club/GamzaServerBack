@@ -21,13 +21,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlatformServiceImpl implements PlatformService {
 
-    private final UserValidate userValidate;
     private final PlatformRepository platformRepository;
 
     @Override
     @Transactional
-    public void createPlatform(HttpServletRequest request, PlatformCreateRequestDto dto) {
-        userValidate.invalidUserRole(request);
+    public void createPlatform(PlatformCreateRequestDto dto) {
 
         try {
             PlatformEntity newPlatform = dto.toEntity();
@@ -44,8 +42,7 @@ public class PlatformServiceImpl implements PlatformService {
     }
 
     @Override
-    public PlatformListResponseDto getAllPlatformList(HttpServletRequest request) {
-        userValidate.invalidUserRole(request);
+    public PlatformListResponseDto getAllPlatformList() {
 
         List<PlatformEntity> platformEntities = platformRepository.findAll(); // 무슨 순으로 해주지?
 
@@ -62,8 +59,7 @@ public class PlatformServiceImpl implements PlatformService {
     }
 
     @Override
-    public void deletePlatform(HttpServletRequest request, Long id) {
-        userValidate.validateUserRole(request);
+    public void deletePlatform(Long id) {
 
         PlatformEntity platform = platformRepository.findById(id)
                 .orElseThrow(() -> new BadRequestException("존재하지 않는 플랫폼입니다.", ErrorCode.INTERNAL_SERVER_EXCEPTION));
