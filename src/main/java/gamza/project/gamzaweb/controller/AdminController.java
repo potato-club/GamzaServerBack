@@ -1,6 +1,6 @@
 package gamza.project.gamzaweb.controller;
 
-import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
+import gamza.project.gamzaweb.dto.User.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.dto.project.response.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.project.response.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.response.ProjectListNotApproveResponse;

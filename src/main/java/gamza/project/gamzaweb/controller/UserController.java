@@ -1,10 +1,9 @@
 package gamza.project.gamzaweb.controller;
 
-import gamza.project.gamzaweb.dto.user.request.RequestUserLoginDto;
-import gamza.project.gamzaweb.dto.user.request.RequestUserSignUpDto;
-import gamza.project.gamzaweb.dto.user.response.ResponseUserList;
+import gamza.project.gamzaweb.dto.User.request.RequestUserLoginDto;
+import gamza.project.gamzaweb.dto.User.request.RequestUserSignUpDto;
+import gamza.project.gamzaweb.dto.User.response.ResponseUserList;
 import gamza.project.gamzaweb.service.Interface.UserService;
-import gamza.project.gamzaweb.service.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

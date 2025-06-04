@@ -9,7 +9,7 @@ import gamza.project.gamzaweb.utils.dctutil.DockerProvider;
 import gamza.project.gamzaweb.dto.project.response.FixedProjectListNotApproveResponse;
 import gamza.project.gamzaweb.dto.project.response.ProjectListApproveResponse;
 import gamza.project.gamzaweb.dto.project.response.ProjectListNotApproveResponse;
-import gamza.project.gamzaweb.dto.user.response.ResponseNotApproveDto;
+import gamza.project.gamzaweb.dto.User.response.ResponseNotApproveDto;
 import gamza.project.gamzaweb.repository.ContainerRepository;
 import gamza.project.gamzaweb.repository.ProjectRepository;
 import gamza.project.gamzaweb.repository.UserRepository;
