@@ -165,7 +165,7 @@ public class ProjectServiceImpl implements ProjectService {
                         String projectRouteName = frontProject.get().getName();
                         route = "https://"
                                 + projectRouteName.toLowerCase().replace(" ", "-")
-                                + ".gamzaweb.store"; // -> 실 배포시 gamza.club으로 수정
+                                + ".gamzaweb.online"; // -> 실 배포시 gamza.club으로 수정
                     }
 
 

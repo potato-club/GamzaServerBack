@@ -24,18 +24,18 @@ public class NginxServiceImpl implements NginxService {
                 server {
                     listen 80;
                     listen [::]:80;
-                    server_name %s.gamza.club;
+                    server_name %s.gamza.online;
                     return 301 https://$host$request_uri;
                 }
                 server {
                     listen 443 ssl http2;
                     listen [::]:443 ssl http2;
-                    server_name %s.gamza.club;
-                    ssl_certificate /etc/letsencrypt/live/gamza.club/fullchain.pem;
-                    ssl_certificate_key /etc/letsencrypt/live/gamza.club/privkey.pem;
+                    server_name %s.gamza.online;
+                    ssl_certificate /etc/letsencrypt/live/gamza.online/fullchain.pem;
+                    ssl_certificate_key /etc/letsencrypt/live/gamza.online/privkey.pem;
                 
                     location / {
-                    proxy_pass http://gamza.club:%d;
+                    proxy_pass http://gamza.online:%d;
                     proxy_http_version 1.1;
                     proxy_set_header Upgrade $http_upgrade;
                     proxy_set_header Connection 'upgrade';
