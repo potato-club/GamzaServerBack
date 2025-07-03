@@ -7,7 +7,7 @@ import gamza.project.gamzaweb.dto.project.response.ApplicationDetailResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectDetailResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectListPerResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectListResponseDto;
-import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.dto.User.request.RequestAddCollaboratorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 

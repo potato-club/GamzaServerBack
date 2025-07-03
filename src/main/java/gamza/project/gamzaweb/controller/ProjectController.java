@@ -8,7 +8,7 @@ import gamza.project.gamzaweb.dto.project.response.ApplicationDetailResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectDetailResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectListPerResponseDto;
 import gamza.project.gamzaweb.dto.project.response.ProjectListResponseDto;
-import gamza.project.gamzaweb.dto.user.request.RequestAddCollaboratorDto;
+import gamza.project.gamzaweb.dto.User.request.RequestAddCollaboratorDto;
 import gamza.project.gamzaweb.utils.error.ErrorCode;
 import gamza.project.gamzaweb.utils.error.requestError.BadRequestException;
 import gamza.project.gamzaweb.service.Interface.ProjectService;

@@ -1,4 +1,4 @@
-package gamza.project.gamzaweb.dto.user.request;
+package gamza.project.gamzaweb.dto.User.request;
 
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;

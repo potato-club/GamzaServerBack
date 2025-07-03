@@ -1,9 +1,9 @@
 package gamza.project.gamzaweb.service.impl;
 
-import gamza.project.gamzaweb.dto.user.request.RequestUserLoginDto;
-import gamza.project.gamzaweb.dto.user.request.RequestUserSignUpDto;
-import gamza.project.gamzaweb.dto.user.response.ResponseUser;
-import gamza.project.gamzaweb.dto.user.response.ResponseUserList;
+import gamza.project.gamzaweb.dto.User.request.RequestUserLoginDto;
+import gamza.project.gamzaweb.dto.User.request.RequestUserSignUpDto;
+import gamza.project.gamzaweb.dto.User.response.ResponseUser;
+import gamza.project.gamzaweb.dto.User.response.ResponseUserList;
 import gamza.project.gamzaweb.Entity.Enums.UserRole;
 import gamza.project.gamzaweb.Entity.UserEntity;
 import gamza.project.gamzaweb.utils.error.ErrorCode;
